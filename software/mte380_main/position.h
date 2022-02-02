@@ -40,4 +40,13 @@ typedef struct {
       float yz_rot;
     };
   };
+  
+  union {
+    float angular_vel[3];
+    struct {
+      float xy_ang_vel;
+      float xz_ang_vel;
+      float yz_ang_vel;
+    };
+  };
 } position_t;
