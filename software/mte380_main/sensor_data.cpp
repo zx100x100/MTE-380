@@ -12,15 +12,6 @@ Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(02);
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_L3GD20_Unified gyro = Adafruit_L3GD20_Unified(03);
 
-void TOF_ select(uint8_t i) {
-  if (i > 7) return;
- 
-  Wire.beginTransmission(TCAADDR);
-  Wire.write(1 << i);
-  Wire.endTransmission();  
-}
-
-
 bool sensor_init(void)
 {
   bool success = true;

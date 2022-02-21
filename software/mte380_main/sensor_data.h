@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-#define TCAADDR 0x70
-
-void TOF_ select(uint8_t i);
-
 typedef struct {
   uint32_t timestamp;
   
