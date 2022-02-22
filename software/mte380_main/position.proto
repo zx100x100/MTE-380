@@ -1,0 +1,22 @@
+message position{
+  message location{
+    required float x_loc;
+    required float y_loc;
+    required float z_loc;
+  }
+  message velocity{
+    required float x_velocity;
+    required float y_velocity;
+    required float z_velocity;
+  }
+  message accel{
+    required float x_accel;
+    required float y_accel;
+    required float z accel;
+  }
+  message rotation{
+    required float xy_rot;
+    required float xz_rot;
+    required float yz_rot;
+  }
+}

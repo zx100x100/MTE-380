@@ -1,0 +1,18 @@
+message teleop_cmd{
+  required float left_power;
+  required float right_power;
+}
+
+message robot_state{
+  enum STATE{
+    E_STOP = 0;
+    STOP = 1;
+    RUN = 2;
+  };
+  required STATE state_cmd;
+}
+
+message command{
+  optional teleop_cmd teleop;
+  optional robot_state cur_state;
+}
