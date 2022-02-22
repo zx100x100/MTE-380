@@ -50,3 +50,4 @@ typedef struct {
     };
   };
 } position_t;
+#endif
