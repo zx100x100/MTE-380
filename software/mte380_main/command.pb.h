@@ -10,15 +10,21 @@
 #endif
 
 /* Enum definitions */
-typedef enum _RobotState_State { 
-    RobotState_State_E_STOP = 0, 
-    RobotState_State_STOP = 1, 
-    RobotState_State_RUN = 2 
-} RobotState_State;
+typedef enum _RunState { 
+    RunState_E_STOP = 0, 
+    RunState_STOP = 1, 
+    RunState_RUN = 2 
+} RunState;
 
 /* Struct definitions */
+typedef struct _Command { 
+    /* TeleopCmd teleop_cmd = 1;
+ RobotState robot_state = 2; */
+    float test; 
+} Command;
+
 typedef struct _RobotState { 
-    RobotState_State state_cmd; 
+    RunState run_state; 
 } RobotState;
 
 typedef struct _TeleopCmd { 
@@ -26,18 +32,11 @@ typedef struct _TeleopCmd {
     float right_power; 
 } TeleopCmd;
 
-typedef struct _Command { 
-    bool has_teleop_cmd;
-    TeleopCmd teleop_cmd; 
-    bool has_robot_state;
-    RobotState robot_state; 
-} Command;
-
 
 /* Helper constants for enums */
-#define _RobotState_State_MIN RobotState_State_E_STOP
-#define _RobotState_State_MAX RobotState_State_RUN
-#define _RobotState_State_ARRAYSIZE ((RobotState_State)(RobotState_State_RUN+1))
+#define _RunState_MIN RunState_E_STOP
+#define _RunState_MAX RunState_RUN
+#define _RunState_ARRAYSIZE ((RunState)(RunState_RUN+1))
 
 
 #ifdef __cplusplus
@@ -46,18 +45,17 @@ extern "C" {
 
 /* Initializer values for message structs */
 #define TeleopCmd_init_default                   {0, 0}
-#define RobotState_init_default                  {_RobotState_State_MIN}
-#define Command_init_default                     {false, TeleopCmd_init_default, false, RobotState_init_default}
+#define RobotState_init_default                  {_RunState_MIN}
+#define Command_init_default                     {0}
 #define TeleopCmd_init_zero                      {0, 0}
-#define RobotState_init_zero                     {_RobotState_State_MIN}
-#define Command_init_zero                        {false, TeleopCmd_init_zero, false, RobotState_init_zero}
+#define RobotState_init_zero                     {_RunState_MIN}
+#define Command_init_zero                        {0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define RobotState_state_cmd_tag                 1
+#define Command_test_tag                         1
+#define RobotState_run_state_tag                 1
 #define TeleopCmd_left_power_tag                 1
 #define TeleopCmd_right_power_tag                2
-#define Command_teleop_cmd_tag                   1
-#define Command_robot_state_tag                  2
 
 /* Struct field encoding specification for nanopb */
 #define TeleopCmd_FIELDLIST(X, a) \
@@ -67,17 +65,14 @@ X(a, STATIC,   SINGULAR, FLOAT,    right_power,       2)
 #define TeleopCmd_DEFAULT NULL
 
 #define RobotState_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UENUM,    state_cmd,         1)
+X(a, STATIC,   SINGULAR, UENUM,    run_state,         1)
 #define RobotState_CALLBACK NULL
 #define RobotState_DEFAULT NULL
 
 #define Command_FIELDLIST(X, a) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  teleop_cmd,        1) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  robot_state,       2)
+X(a, STATIC,   SINGULAR, FLOAT,    test,              1)
 #define Command_CALLBACK NULL
 #define Command_DEFAULT NULL
-#define Command_teleop_cmd_MSGTYPE TeleopCmd
-#define Command_robot_state_MSGTYPE RobotState
 
 extern const pb_msgdesc_t TeleopCmd_msg;
 extern const pb_msgdesc_t RobotState_msg;
@@ -89,7 +84,7 @@ extern const pb_msgdesc_t Command_msg;
 #define Command_fields &Command_msg
 
 /* Maximum encoded size of messages (where known) */
-#define Command_size                             16
+#define Command_size                             5
 #define RobotState_size                          2
 #define TeleopCmd_size                           10
 

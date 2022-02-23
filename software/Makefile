@@ -1,6 +1,9 @@
+LIST = command position# sensor_data
 all:
-	cd proto; python3 ~/programs/nanopb/generator/nanopb_generator.py command.proto
-	cd proto; python3 ~/programs/nanopb/generator/nanopb_generator.py position.proto
-	mv -v proto/command.pb* ./mte380_main/
-	mv -v proto/position.pb* ./mte380_main/
+	for i in $(LIST); do \
+		cd proto; python3 $${NANOPB_GENERATOR_PATH:-~/programs/nanopb/generator/nanopb_generator.py} $$i.proto; \
+		cd ..; \
+		mv -v proto/$$i.pb.h ./mte380_main/; \
+		mv -v proto/$$i.pb.c ./mte380_main/; \
+	done
 	protoc --python_out=./dashboard ./proto/*
