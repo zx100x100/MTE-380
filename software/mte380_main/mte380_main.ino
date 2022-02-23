@@ -19,10 +19,6 @@ void setup() {
   Serial.begin(115200);
   sensor_init();
   drive_init(2, 4);
-<<<<<<< HEAD
-=======
-  /* bluetooth_setup(); */
->>>>>>> 1b02b63bb6d6ec40731a0fc67adaf2662be04a12
   wifi_init();
   host_server();
 }
