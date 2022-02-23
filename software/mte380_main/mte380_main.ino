@@ -1,14 +1,9 @@
 #include "sensor_data.h"
 #include "drive.h"
-<<<<<<< HEAD
 #include "wifi_server.h"
 #include "position.pb.h"
 #include "navigation.h"
 #include "command.pb.h"
-=======
-/* #include "bluetooth.h" */
-#include "wifi_server.h"
->>>>>>> 1b02b63bb6d6ec40731a0fc67adaf2662be04a12
 
 sensor_data_t sensor_data;
 drive_command_t drive_command;

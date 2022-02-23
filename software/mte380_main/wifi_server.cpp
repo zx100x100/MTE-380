@@ -1,16 +1,8 @@
-<<<<<<< HEAD
 #include <WiFi.h>
 #include <Arduino.h>
 #include <proto/pb_common.h>
 #include <proto/pb.h>
 #include <proto/pb_encode.h>
-=======
-#include <chrono>
-#include <thread>
-#include <iostream>
-#include <WiFi.h>
-#include <Arduino.h>
->>>>>>> 1b02b63bb6d6ec40731a0fc67adaf2662be04a12
 
 #include "wifi_server.h"
 
@@ -20,21 +12,14 @@ WiFiServer server(23);
 bool alreadyConnected = false;
 
 // Set your Static IP address
-<<<<<<< HEAD
 IPAddress local_IP(192, 168, 86, 111);
 // Set your Gateway IP address
 IPAddress gateway(192, 168, 86, 1);
-=======
-IPAddress local_IP(192, 168, 1, 111);
-// Set your Gateway IP address
-IPAddress gateway(192, 168, 1, 1);
->>>>>>> 1b02b63bb6d6ec40731a0fc67adaf2662be04a12
 
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);   // optional
 IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
-<<<<<<< HEAD
 #define POSITION_BUF_SIZE 60
 
 void serialize_position(pb_ostream_t& stream, Position& position){
