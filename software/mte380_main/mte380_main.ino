@@ -1,9 +1,14 @@
 #include "sensor_data.h"
 #include "drive.h"
+<<<<<<< HEAD
 #include "wifi_server.h"
 #include "position.pb.h"
 #include "navigation.h"
 #include "command.pb.h"
+=======
+/* #include "bluetooth.h" */
+#include "wifi_server.h"
+>>>>>>> 1b02b63bb6d6ec40731a0fc67adaf2662be04a12
 
 sensor_data_t sensor_data;
 drive_command_t drive_command;
@@ -14,6 +19,10 @@ void setup() {
   Serial.begin(115200);
   sensor_init();
   drive_init(2, 4);
+<<<<<<< HEAD
+=======
+  /* bluetooth_setup(); */
+>>>>>>> 1b02b63bb6d6ec40731a0fc67adaf2662be04a12
   wifi_init();
   host_server();
 }
@@ -28,8 +37,6 @@ void loop() {
   navigation_update_pos(sensor_data, position);
   /* pos_hb(sensor_data) */
   //control_hb(position)
-
-
   drive_command.left_power = 0;//255;
   drive_command.right_power = 0;//255;
   set_drive(drive_command);
