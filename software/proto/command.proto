@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+message TeleopCmd{
+  float left_power = 1;
+  float right_power = 2;
+}
+
+message RobotState{
+  enum State{
+    E_STOP = 0;
+    STOP = 1;
+    RUN = 2;
+  }
+  State state_cmd = 1;
+}
+
+message Command{
+  TeleopCmd teleop_cmd = 1;
+  RobotState robot_state = 2;
+}
