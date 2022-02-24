@@ -2,9 +2,13 @@
 
 #include "imu.h"
 
+Imu::Imu(){
+}
 
 // TODO do we need this to return a bool (success/fail?)
-Imu::Imu(){
+Imu::Imu(Hms* hms):
+  hms(hms)
+{
   imuData = ImuData_init_zero;
   bool success = true;
   //ACCELL

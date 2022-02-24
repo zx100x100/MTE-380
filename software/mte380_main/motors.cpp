@@ -2,20 +2,23 @@
 
 #include "motors.h"
 
-Motors::Motors(GuidanceData& guidanceData, int leftDrivePin, int rightDrivePin)
-  :guidanceData(guidanceData)
-  ,leftDrivePin(leftDrivePin)
-  ,rightDrivePin(rightDrivePin)
+#define LEFT_DRIVE_PIN 2
+#define RIGHT_DRIVE_PIN 4
+
+Motors::Motors(GuidanceData& guidanceData,
+               Hms* hms):
+  guidanceData(guidanceData),
+  hms(hms)
 {
   setAllToZero();
 }
 
 void Motors::setAllToZero(){
-  analogWrite(leftDrivePin, 0);
-  analogWrite(rightDrivePin, 0);
+  analogWrite(LEFT_DRIVE_PIN, 0);
+  analogWrite(RIGHT_DRIVE_PIN, 0);
 }
 
 void Motors::update(){
-  analogWrite(leftDrivePin, guidanceData.leftPower);
-  analogWrite(rightDrivePin, guidanceData.rightPower);
+  analogWrite(LEFT_DRIVE_PIN, guidanceData.leftPower);
+  analogWrite(RIGHT_DRIVE_PIN, guidanceData.rightPower);
 }

@@ -4,18 +4,19 @@
 #include <stdint.h>
 #include <Arduino.h>
 
+#include "hms.h"
 #include "guidance_data.pb.h"
 
 class Motors{
   public:
-    Motors();
-    Motors(GuidanceData& guidanceData, int leftDrivePin, int rightDrivePin);
+    Motors(GuidanceData& guidanceData,
+           Hms* hms);
     void update();
 
   private:
-    int leftDrivePin;
-    int rightDrivePin;
     GuidanceData& guidanceData;
+    Hms* hms;
+
     void setAllToZero();
 
 };

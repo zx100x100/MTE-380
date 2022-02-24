@@ -6,55 +6,62 @@
 
 #include "imu_data.pb.h"
 #include "tof_data.pb.h"
-#include "tcp_server.h"
+#include "telemetry_server.h"
+#include "cmd_data.pb.h"
 
 #define CMD_BUF_SIZE 30
 #define OUTPUT_BUF_SIZE 300
 const uint8_t delimit[3] = {uint8_t('|'),uint8_t('|'),uint8_t('|')};
+const uint8_t delimitSingle[1] = {uint8_t(':')};
 
-TcpServer::TcpServer(Sensors& sensors,
+TelemetryServer::TelemetryServer(Sensors& sensors,
                           NavData& navData,
                           GuidanceData& guidanceData,
-                          CmdData& cmdData)
-  : sensors(sensors)
-  , navData(navData)
-  , guidanceData(guidanceData)
-  , cmdData(cmdData){
+                          CmdData& cmdData,
+                          Hms* hms):
+  sensors(sensors),
+  navData(navData),
+  guidanceData(guidanceData),
+  cmdData(cmdData),
+  hms(hms){
+}
+
+void TelemetryServer::init(){
   if (!WiFi.config(localIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA (static IP) Failed to configure");
   }
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("Connecting to WiFi ..");
+  int wifiConnectionTicks = 0;
+  const int maxWifiConnectionTicksBeforeReboot = 20;
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
-    delay(1000);
+    delay(200);
+    if (wifiConnectionTicks++ >= maxWifiConnectionTicksBeforeReboot){
+      ESP.restart();
+    }
   }
   Serial.println(WiFi.localIP());
   server.begin();
 }
 
 void delimitData(pb_ostream_t& stream){
-  if (!pb_write(&stream, delimit, 3)){
+  if (!pb_write(&stream, delimitSingle, 1)){
     Serial.printf("write fail: %s\n", PB_GET_ERROR(&stream));
     return;
   }
 }
 
-void TcpServer::serializeData(pb_ostream_t& stream){
+void TelemetryServer::serializeData(pb_ostream_t& stream){
   if (!pb_encode(&stream, NavData_fields, &navData)){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;
   }
   delimitData(stream);
+  /* delimitData(stream); */
 
   if (!pb_encode(&stream, GuidanceData_fields, &guidanceData)){
-    Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
-    return;
-  }
-  delimitData(stream);
-  
-  if (!pb_encode(&stream, CmdData_fields, &cmdData)){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;
   }
@@ -75,15 +82,16 @@ void TcpServer::serializeData(pb_ostream_t& stream){
       delimitData(stream);
     }
   }
+  Serial.print("errstr: "); Serial.println(hms->data.errorInfo);
 }
 
-void TcpServer::update(){
+void TelemetryServer::update(){
   if (!client){
     client = server.available();
   }
   if (client) {
     if (!alreadyConnected) {
-      client.flush(); // clear out the input buffer
+      /* client.flush(); // clear out the input buffer */
       Serial.println("New client");
       alreadyConnected = true;
       return;
@@ -92,7 +100,7 @@ void TcpServer::update(){
       int receiveBytes = client.available();
       // Serial.print("receiveBytes:");
       // Serial.print(receiveBytes);
-      if (receiveBytes > 0){ // input available, update cmd
+      if (receiveBytes > 0){ // input available, update cmd, send back telemetry
         uint8_t inputBuffer[CMD_BUF_SIZE];
         int i = 0;
         while (client.available() > 0) {
@@ -106,18 +114,21 @@ void TcpServer::update(){
           Serial.printf("Decoding Cmd fail: %s\n", PB_GET_ERROR(&instream));
           return;
         }
-        // Serial.print("RunState: "); Serial.println(cmd.run_state);
-      }
+        Serial.print("RunState: "); Serial.println(cmdData.runState);
 
-      // output
-      // Serial.print("send.");
-      pb_ostream_t stream;
-      uint8_t buffer[OUTPUT_BUF_SIZE];
-      stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-      serializeData(stream);
-      client.write(buffer, stream.bytes_written);
-      Serial.print("written:"); Serial.println(stream.bytes_written);
-      client.flush();
+        // output
+        // Serial.print("send.");
+        pb_ostream_t stream;
+        uint8_t buffer[OUTPUT_BUF_SIZE];
+        stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+        serializeData(stream);
+        client.flush();
+        /* long ts1 = millis(); */
+        client.write(buffer, stream.bytes_written);
+        /* long ts2 = millis(); */
+        /* Serial.print("dt: "); Serial.println(ts2-ts1); */
+        /* Serial.print("written:"); Serial.println(stream.bytes_written); */
+      }
     }
   }
   else{

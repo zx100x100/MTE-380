@@ -4,11 +4,11 @@
 #include "guidance_data.pb.h"
 #include "nav_data.pb.h"
 #include "cmd_data.pb.h"
+#include "hms.h"
 
 class Guidance{
   public:
-    Guidance();
-    Guidance(NavData& navData, CmdData& cmdData);
+    Guidance(NavData& navData, CmdData& cmdData, Hms* hms);
     void update();
     GuidanceData& getData();
 
@@ -16,6 +16,7 @@ class Guidance{
     GuidanceData guidanceData;
     NavData& navData;
     CmdData& cmdData;
+    Hms* hms;
 };
 
 #endif

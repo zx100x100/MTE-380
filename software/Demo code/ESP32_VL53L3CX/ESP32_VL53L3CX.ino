@@ -38,7 +38,7 @@ Change the I2C_BUFFER_LENGTH macro value to 256
 VL53LX vl53lx(&Wire, XSHUT_PIN);
 
 // Holds latest measured distances (up to 4)
-#define  MAX_OBJECTS  4
+#define  MAX_OBJECTS  1
 uint16_t dist[MAX_OBJECTS];
 
 

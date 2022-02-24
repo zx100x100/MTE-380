@@ -1,5 +1,5 @@
-#ifndef TCP_SERVER_H
-#define TCP_SERVER_H
+#ifndef TELEMETRY_SERVER_H
+#define TELEMETRY_SERVER_H
 
 #include <WiFi.h>
 
@@ -7,17 +7,18 @@
 #include "cmd_data.pb.h"
 #include "guidance_data.pb.h"
 #include "sensors.h"
+#include "hms.h"
 
-class TcpServer{
+class TelemetryServer{
   private:
-    const char* ssid = "K";
+    const char* ssid = "EMU";
     const char* password = "12341234";
     WiFiServer server = WiFiServer(23);
     WiFiClient client;
     bool alreadyConnected = false;
 
-    IPAddress localIP = IPAddress(192, 168, 86, 111); // static IP of esp
-    IPAddress gateway = IPAddress(192, 168, 86, 1); // gateway IP
+    IPAddress localIP = IPAddress(192, 168, 100, 111); // static IP of esp
+    IPAddress gateway = IPAddress(192, 168, 100, 1); // gateway IP
 
     IPAddress subnet = IPAddress(255, 255, 0, 0);
     IPAddress primaryDNS = IPAddress(8, 8, 8, 8);   // optional
@@ -27,15 +28,17 @@ class TcpServer{
     NavData& navData;
     GuidanceData& guidanceData;
     CmdData& cmdData;
+    Hms* hms;
 
     void serializeData(pb_ostream_t& stream);
 
   public:
-    TcpServer();
-    TcpServer(Sensors& sensors,
+    TelemetryServer(Sensors& sensors,
               NavData& navData,
               GuidanceData& guidanceData,
-              CmdData& cmdData);
+              CmdData& cmdData,
+              Hms* hms);
+    void init();
     void update();
 };
 

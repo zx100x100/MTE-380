@@ -1,8 +1,10 @@
 #include "fusion.h"
 #include "nav.h"
 
-Nav::Nav(Sensors &sensors)
-  :sensors(sensors){
+Nav::Nav(Sensors& sensors, Hms* hms):
+  sensors(sensors),
+  hms(hms)
+{
   navData = NavData_init_zero;
   fusion = Fusion();
   /* fusion.setup(); */
@@ -43,20 +45,35 @@ void Nav::updateImu(){
 
 void Nav::update(){
   navData.posX = 1;
-  navData.posY = 1;
-  navData.posZ = 1;
-  navData.velX = 2;
-  navData.velY = 2;
-  navData.velZ = 2;
-  navData.accX = 3;
-  navData.accY = 3;
-  navData.accZ = 3;
-  navData.angXy = 4;
-  navData.angXz = 4;
-  navData.angYz = 4;
-  navData.angVelXy = 5;
-  navData.angVelXz = 5;
-  navData.angVelYz = 5;
+  navData.posY = 0;
+  navData.posZ = 0;
+  navData.velX = 0;
+  navData.velY = 0;
+  navData.velZ = 0;
+  navData.accX = 0;
+  navData.accY = 0;
+  navData.accZ = 0;
+  navData.angXy = 0;
+  navData.angXz = 0;
+  navData.angYz = 0;
+  navData.angVelXy = 0;
+  navData.angVelXz = 0;
+  navData.angVelYz = 0;
+  /* navData.posX = 1; */
+  /* navData.posY = 1; */
+  /* navData.posZ = 1; */
+  /* navData.velX = 2; */
+  /* navData.velY = 2; */
+  /* navData.velZ = 2; */
+  /* navData.accX = 3; */
+  /* navData.accY = 3; */
+  /* navData.accZ = 3; */
+  /* navData.angXy = 4; */
+  /* navData.angXz = 4; */
+  /* navData.angYz = 4; */
+  /* navData.angVelXy = 5; */
+  /* navData.angVelXz = 5; */
+  /* navData.angVelYz = 5; */
 }
 
 NavData& Nav::getData(){
