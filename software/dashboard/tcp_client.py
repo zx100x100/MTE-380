@@ -1,35 +1,36 @@
 import socket
 import time
 
-from proto.position_pb2 import (Position)
-from proto.command_pb2 import (Command,
-                               TeleopCmd,
-                               RobotState,
-                               RunState)
+from proto.nav_data_pb2 import (NavData)
+from proto.cmd_data_pb2 import (CmdData,
+                           Teleop,
+                           RunState)
+from proto.imu_data import ImuData
+from proto.tof_data import TofData
+from proto.guidance_data import GuidanceData
 
 
 HOST = "192.168.86.111"  # The server's hostname or IP address
 PORT = 23  # The port used by the server
 
-#  pos = Position()
+#  pos = Nav()
 #  pos.loc_x = 1.0
 #  pos.loc_y = 1.0
 #  serialized = pos.SerializeToString()
 #  print(serialized)
-#  pos2 = Position()
+#  pos2 = Nav()
 #  pos2.ParseFromString(serialized)
 #  print(f'pos decoded: {pos2.loc_x}')
 
-command = Command()
-#  run_state = RunState.STOP
-#  command.robot_state.run_state = run_state
-#  command.teleop_cmd.left_power = 1.0
-#  command.teleop_cmd.right_power = 1.0
-command.test = 1.0
+cmd = Cmd()
+run_state = RunState.STOP
+cmd.run_state = RunState.STOP
+cmd.teleop.left_power = 1.0
+cmd.teleop.right_power = 1.0
 
-command_serialized = command.SerializeToString()
+cmd_serialized = cmd.SerializeToString()
 
-print(f'command_serialized: {command_serialized}')
+print(f'cmd_serialized: {cmd_serialized}')
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
@@ -37,17 +38,22 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     while True:
         try:
             print("Receiving:")
-            str_data = s.recv(60)
-            position = Position()
-            #  print(f'equal? {str_data == serialized}')
+            str_data = s.recv(300)
+            decoded = [
+                NavData(),
+                GuidanceData(),
+                CmdData(),
+                ImuData()
+            ] + [TofData() for i in range 4]
+
             print(f"Received {str_data}")
-            position.ParseFromString(str_data)
+            blocks = str_data.split('|||')
+            for data_block, data_obj in zip(blocks, decoded):
+                data_obj.ParseFromString(data_block)
+            print(decoded[0].posX)
         except Exception as e:
             print(f'e: {e}')
 
-        #  print(f'position: {position.loc_x}')
-        #  print(f'acc: {position.acc_x}')
-        #  print(f'position: {position.loc_x} {position.loc_y}')
-        s.sendall(command_serialized)
+        s.sendall(cmd_serialized)
         time.sleep(1)
 

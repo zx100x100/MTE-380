@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message Teleop{
+  float leftPower = 1;
+  float rightPower = 2;
+}
+  
+enum RunState{
+  E_STOP = 0;
+  STOP = 1;
+  AUTO = 2;
+  TELEOP = 3;
+}
+
+message CmdData{
+  Teleop teleop = 1;
+  RunState runState = 2;
+}
