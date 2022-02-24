@@ -3,18 +3,18 @@
 
 #include "tof.h"
 #include "imu.h"
-#include "sensor_data.h"
 
 class Sensors{
   public:
     Sensors();
     // void init();
-    SensorData& getData();
+    // Sensors& getData();
     void update();
-  private:
     Imu imu;
-    Tof tofs[4];
-    SensorData sensorData;
+    Tof tof[4];
+    long timestamp;
+  private:
+    // SensorData sensorData;
 };
 
 #endif

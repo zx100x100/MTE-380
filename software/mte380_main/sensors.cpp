@@ -2,26 +2,22 @@
 
 Sensors::Sensors(){
   imu = Imu();
-  TofData tofData[4];
   for (int i=0; i<4; i++){
-    tofs[i] = Tof();
-    tofData[i] = tofs[i].getData();
+    tof[i] = Tof();
   }
-  sensorData = SensorData(imu.getData(), tofData);
-
+  timestamp = 0;
 }
 
-SensorData& Sensors::getData(){
-  return sensorData;
-}
+// SensorData& Sensors::getData(){
+  // return sensorData;
+// }
 
 /* void Sensors::init(){ */
 /* } */
-
 void Sensors::update(){
   imu.poll();
   for (int i=0; i<4; i++){
-    tofs[i].poll();
+    tof[i].poll();
   }
-  sensorData.timestamp = micros();
+  timestamp = micros();
 }

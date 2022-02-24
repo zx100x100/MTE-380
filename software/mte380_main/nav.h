@@ -2,12 +2,12 @@
 #define NAVIGATION_H
 
 #include "nav_data.pb.h"
-#include "sensor_data.h"
+#include "sensors.h"
 #include "fusion.h"
 
 class Nav{
   public:
-    Nav(SensorData &sensorData);
+    Nav(Sensors &sensors);
     void update();
     void updateImu();
     void init();
@@ -15,7 +15,7 @@ class Nav{
 
   private:
     NavData navData;
-    SensorData& sensorData;
+    Sensors& sensors;
     Fusion fusion;
 };
 

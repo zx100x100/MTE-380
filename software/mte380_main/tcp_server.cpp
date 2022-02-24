@@ -9,14 +9,14 @@
 #include "tcp_server.h"
 
 #define CMD_BUF_SIZE 30
-#define OUTPUT_BUF_SIZE = 300
-const uint8_t delimit[3] = {uint8_t("|"),uint8_t("|"),uint8_t("|")};
+#define OUTPUT_BUF_SIZE 300
+const uint8_t delimit[3] = {uint8_t('|'),uint8_t('|'),uint8_t('|')};
 
-void TcpServer::TcpServer(SensorData& sensorData,
+TcpServer::TcpServer(Sensors& sensors,
                           NavData& navData,
                           GuidanceData& guidanceData,
                           CmdData& cmdData)
-  : sensorData(sensorData)
+  : sensors(sensors)
   , navData(navData)
   , guidanceData(guidanceData)
   , cmdData(cmdData){
@@ -60,14 +60,14 @@ void TcpServer::serializeData(pb_ostream_t& stream){
   }
   delimitData(stream);
   
-  if (!pb_encode(&stream, ImuData_fields, &sensorData.imuData)){
+  if (!pb_encode(&stream, ImuData_fields, &sensors.imu.getData())){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;
   }
   delimitData(stream);
   
   for (int i=0; i<4; i++){
-    if (!pb_encode(&stream, TofData_fields, &sensorData.tofData[i])){
+    if (!pb_encode(&stream, TofData_fields, &sensors.tof[i].getData())){
       Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
       return;
     }

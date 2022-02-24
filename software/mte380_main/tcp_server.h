@@ -6,7 +6,7 @@
 #include "nav_data.pb.h"
 #include "cmd_data.pb.h"
 #include "guidance_data.pb.h"
-#include "sensor_data.h"
+#include "sensors.h"
 
 class TcpServer{
   private:
@@ -23,7 +23,7 @@ class TcpServer{
     IPAddress primaryDNS = IPAddress(8, 8, 8, 8);   // optional
     IPAddress secondaryDNS = IPAddress(8, 8, 4, 4); // optional
 
-    SensorData& sensorData;
+    Sensors& sensors;
     NavData& navData;
     GuidanceData& guidanceData;
     CmdData& cmdData;
@@ -32,7 +32,7 @@ class TcpServer{
 
   public:
     TcpServer();
-    TcpServer(SensorData& sensorData,
+    TcpServer(Sensors& sensors,
               NavData& navData,
               GuidanceData& guidanceData,
               CmdData& cmdData);

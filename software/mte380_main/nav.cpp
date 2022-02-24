@@ -1,8 +1,8 @@
 #include "fusion.h"
 #include "nav.h"
 
-Nav::Nav(SensorData &sensorData)
-  :sensorData(sensorData){
+Nav::Nav(Sensors &sensors)
+  :sensors(sensors){
   navData = NavData_init_zero;
   fusion = Fusion();
   /* fusion.setup(); */
@@ -12,11 +12,11 @@ Nav::Nav(SensorData &sensorData)
 }
 
 void Nav::init(){
-  fusion.setup(sensorData.imuData.accelX, sensorData.imuData.accelY, sensorData.imuData.accelZ);
+  fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 }
 
 void Nav::updateImu(){
-  ImuData &latest = sensorData.imuData;
+  ImuData &latest = sensors.imu.getData();
   // fusion.update(latest.gyroX, latest.gyroY, latest.gyroZ, latest.accelX, latest.accelY, latest.accelZ);
   // float x[3], y[3], z[3];
   // fusion.getXaxis( true, x );

@@ -11,10 +11,10 @@
 
 //subsystems
 Sensors sensors;
-Nav nav(sensors.getData());
+Nav nav(sensors);
 CmdData cmdData = CmdData_init_zero;
 Guidance guidance(nav.getData(), cmdData);
-TcpServer tcpServer(sensors.getData(), nav.getData(), guidance.getData(), cmdData);
+TcpServer tcpServer(sensors, nav.getData(), guidance.getData(), cmdData);
 Motors motors(guidance.getData(), LEFT_DRIVE_PIN, RIGHT_DRIVE_PIN);
 
 void setup() {
