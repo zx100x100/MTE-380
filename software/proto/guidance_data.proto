@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+message GuidanceData {
+  float errVel = 1; // PID inputs
+  float errDrift = 2;
+  
+  float kP_vel = 3; // PID constants for velocity PID
+  float kI_vel = 4;
+  float kD_vel = 5;
+
+  float kP_drift = 6; // PID constants for drift PID
+  float kI_drift = 7;
+  float kD_drift = 8;
+
+  float leftOutputVel = 9; // left motor output from velocity PID
+  float rightOutputVel = 10; // right motor output from velocity PID
+  float leftOutputDrift = 11; // left motor output from drift PID
+  float rightOutputDrift = 12; // right motor output from drift PID
+
+  float leftPower = 13; // combined left motor output from vel and drift PIDs
+  float rightPower = 14; // combined right motor output from vel and drift PIDs
+
+  uint32 segNum = 15; // current arena segment number
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+message NavData {
+  float posX = 1;
+  float posY = 2;
+  float posZ = 3;
+  float velX = 4;
+  float velY = 5;
+  float velZ = 6;
+  float accX = 7;
+  float accY = 8;
+  float accZ = 9;
+  float angXy = 10;
+  float angXz = 11;
+  float angYz = 12;
+  float angVelXy = 13; // angular velocity
+  float angVelXz = 14;
+  float angVelYz = 15;
+}

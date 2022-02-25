@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message ImuData {
+  float accelX = 1;
+  float accelY = 2;
+  float accelZ = 3;
+      
+  float magX = 4;
+  float magY = 5;
+  float magZ = 6;
+      
+  float gyroX = 7;
+  float gyroY = 8;
+  float gyroZ = 9;
+}

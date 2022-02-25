@@ -1,19 +1,15 @@
-#include "sensor_data.h"
-
 #include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_LSM303_U.h>
-#include <Adafruit_L3GD20_U.h>
 
-/* Assign a unique ID to this sensor at the same time */
-Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(01);
-/* Assign a unique ID to this sensor at the same time */
-Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(02);
-/* Assign a unique ID to this sensor at the same time */
-Adafruit_L3GD20_Unified gyro = Adafruit_L3GD20_Unified(03);
+#include "imu.h"
 
-bool sensor_init(void)
+Imu::Imu(){
+}
+
+// TODO do we need this to return a bool (success/fail?)
+Imu::Imu(Hms* hms):
+  hms(hms)
 {
+  imuData = ImuData_init_zero;
   bool success = true;
   //ACCELL
   if(!accel.begin())
@@ -38,34 +34,36 @@ bool sensor_init(void)
     success = false;
   }
 
-  display_sensor_details();
-  return success;
+  displayDetails();
+  /* return success; */
 }
 
-void sensor_poll(sensor_data_t &sensor_data)
-{
-  sensor_data.timestamp = micros();
+void Imu::poll(){
+  /* imuData.timestamp = micros(); */
   sensors_event_t event;
   
   accel.getEvent(&event);
-  sensor_data.accel_x = event.acceleration.x;
-  sensor_data.accel_y = event.acceleration.y;
-  sensor_data.accel_z = event.acceleration.z;
+  imuData.accelX = event.acceleration.x;
+  imuData.accelY = event.acceleration.y;
+  imuData.accelZ = event.acceleration.z;
   
 
   mag.getEvent(&event);
-  sensor_data.mag_x = event.magnetic.x;
-  sensor_data.mag_y = event.magnetic.y;
-  sensor_data.mag_z = event.magnetic.z;
+  imuData.magX = event.magnetic.x;
+  imuData.magY = event.magnetic.y;
+  imuData.magZ = event.magnetic.z;
   
   gyro.getEvent(&event);
-  sensor_data.gyro_x = event.gyro.x;
-  sensor_data.gyro_y = event.gyro.y;
-  sensor_data.gyro_z = event.gyro.z;
+  imuData.gyroX = event.gyro.x;
+  imuData.gyroY = event.gyro.y;
+  imuData.gyroZ = event.gyro.z;
 }
 
-void display_sensor_details(void)
-{
+ImuData &Imu::getData(){
+  return imuData;
+}
+
+void Imu::displayDetails(){
   //ACCEL
   sensor_t sensor;
   accel.getSensor(&sensor);
