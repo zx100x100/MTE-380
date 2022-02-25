@@ -1,0 +1,210 @@
+import pygame as pg
+from collections import deque
+import math
+import traceback
+
+from size_constants import *
+
+Y_LABEL_WIDTH = 80
+PLOT_BACKGROUND_COLOUR = (255,255,255) # where the actual data goes (inner)
+DATA_POINT_COLOUR = (200,0,200) # where the actual data goes (inner)
+Y_LABEL_BACKGROUND_COLOUR = (0,200,60)
+TITLE_PAD = 40
+PAD = (TITLE_PAD, 0, 0, Y_LABEL_WIDTH)
+BACKGROUND_COLOUR = (100,100,120) # only shows up for TITLE!
+TITLE_COLOUR = (0,0,0)
+AXIS_LABEL_COLOUR = (25,25,25)
+AXIS_LABEL_FONTSIZE = 16
+DATA_POINT_SIZE = 1 # pixels of diameter/width per data point square/circle
+PLOT_SIZE = (200,200) # pixels for the size of the inner plot
+DISPLAY_DATA_POINTS = PLOT_SIZE[0]
+DATA_POINT_SIZE = 1
+TICK_SIZE = (Y_LABEL_WIDTH,15)
+DISPLAY_MIN_N_TICKS = 3
+DISPLAY_MAX_N_TICKS = 6
+MIN_TICKS_BETW_RESCALES = 10 # prevent twitchy rescales
+
+PLOT_MARGIN = (10, 0, 10, 10)
+
+class TelemetryPlot:
+    def __init__(self, title, row, col, tick_increment):
+        self.title = title
+        self.tick_increment = tick_increment
+        self.plot_size = PLOT_SIZE
+        self.row = row
+        self.col = col
+        total_width = PAD[TRBL.L.value]+self.plot_size[0]+PAD[TRBL.R.value]
+        total_height = PAD[TRBL.T.value]+self.plot_size[1]+PAD[TRBL.B.value]
+        self.rect = pg.Rect(ARENA_SIZE_PIXELS+PLOT_MARGIN[TRBL.L.value] + col*(PLOT_MARGIN[TRBL.L.value] + total_width + PLOT_MARGIN[TRBL.R.value]),
+                            PLOT_MARGIN[TRBL.T.value]+row*(PLOT_MARGIN[TRBL.T.value] + total_height + PLOT_MARGIN[TRBL.B.value]),
+                     total_width,
+                     total_height)
+        #  print(f'self.rect: {self.rect}')
+        #  print(f'total_width: {total_width}')
+        self.title_font = pg.font.SysFont('Arial', 30)
+        self.axis_label_font = pg.font.SysFont('Arial', AXIS_LABEL_FONTSIZE)
+        self.values = deque([5,6,7],maxlen=DISPLAY_DATA_POINTS)
+        self.plot_image = self.generate_plot_image()
+        self.plot_image_rect = self.plot_image.get_rect()
+        self.plot_image_rect.bottom = self.rect.bottom
+        self.plot_image_rect.right = self.rect.right
+        self.background_image = self.generate_background_image()
+        self.y_label_area_image = self.generate_y_label_area_image()
+        self.y_label_area_image_rect = self.y_label_area_image.get_rect()
+        self.y_label_area_image_rect.left = self.rect.left
+        self.y_label_area_image_rect.bottom = self.rect.bottom
+        self.scale_factor = 1
+        self.display_scale_min = min(self.values)
+        self.display_scale_min = max(self.values)
+        self.display_scale_pad = 0.3 # 30% - how much to display beyond data
+        self.display_tick_pad = 0.15 # 10% - how far to place ticks beyond data
+        self.pixel_scale_factor = None
+        self.new_value = None
+        self.ticks = {}
+        self.ticks_since_last_rescale = 0 # prevent twitchy rescaling
+
+    def update_value(self, new_value):
+        self.new_value = new_value
+
+    def render_init(self, screen):
+        screen.blit(self.background_image, self.rect)
+        screen.blit(self.plot_image, self.plot_image_rect)
+        screen.blit(self.y_label_area_image, self.y_label_area_image_rect)
+
+    def erase_update_render(self, screen):
+        try:
+            if self.pixel_scale_factor is not None:
+                for i in range(len(self.values)):
+                    #  pass # erase broken rn
+                    breadth = self.display_scale_max-self.display_scale_min
+                    minn = self.display_scale_min-breadth*self.display_scale_pad
+                    dist_from_bot = self.values[-i]-minn
+                    scaled_dist_from_bot = int(dist_from_bot*self.pixel_scale_factor)
+                    height = self.rect.bottom-scaled_dist_from_bot
+                    pixel_pos = (self.rect.right-i,height)
+                    screen.set_at(pixel_pos, PLOT_BACKGROUND_COLOUR)
+
+            if self.new_value is not None:
+                self.values.append(self.new_value)
+                self.new_value = None
+            
+            new_min = min(self.values)
+            new_max = max(self.values)
+            if new_max == new_min:
+                self.values[0] = -0.01
+                new_min = min(self.values)
+                new_max = max(self.values)
+            breadth = new_max-new_min
+
+            #  print(f'breadth: {breadth}')
+
+            new_min_for_display = new_min - breadth*self.display_scale_pad
+            #  print(f'new_min_for_display: {new_min_for_display}')
+            new_max_for_display = new_max + breadth*self.display_scale_pad
+            #  print(f'new_max_for_display: {new_max_for_display}')
+            new_min_for_ticks = new_min - breadth*self.display_tick_pad
+            new_max_for_ticks = new_max + breadth*self.display_tick_pad
+
+            if new_min != self.display_scale_min or new_max != self.display_scale_max:
+                new_fullscale = new_max_for_display-new_min_for_display
+                new_pixel_scale_factor = self.plot_size[1]/new_fullscale
+
+                #  print(f'new_min: {new_min}')
+                #  print(f'new_max: {new_max}')
+                first_tick = (math.ceil(new_min_for_ticks/self.tick_increment))*self.tick_increment
+
+                last_tick = (math.floor(new_max_for_ticks / self.tick_increment))*self.tick_increment
+                if self.ticks_since_last_rescale > MIN_TICKS_BETW_RESCALES:
+                    n=0
+                    while (last_tick-first_tick)/self.tick_increment < DISPLAY_MIN_N_TICKS:
+                        if n>5:
+                            break
+                        n += 1
+                        first_tick = (math.ceil(new_min_for_ticks/self.tick_increment))*self.tick_increment
+
+                        last_tick = (math.floor(new_max_for_ticks / self.tick_increment))*self.tick_increment
+                        self.ticks_since_last_rescale = 0
+
+                    while (last_tick-first_tick)/self.tick_increment > DISPLAY_MAX_N_TICKS:
+                        if n>5:
+                            break
+                        n += 1
+                        self.tick_increment *= 2
+                        first_tick = (math.ceil(new_min_for_ticks/self.tick_increment))*self.tick_increment
+
+                        last_tick = (math.floor(new_max_for_ticks/self.tick_increment))*self.tick_increment
+                        self.ticks_since_last_rescale = 0
+
+                new_tick = first_tick
+                new_ticks = {}
+                screen.blit(self.y_label_area_image, self.y_label_area_image_rect)
+                tick_breadth = last_tick-first_tick
+                n_ticks = tick_breadth/self.tick_increment
+                #  if n_ticks > DISPLAY_MAX_N_TICKS:
+                #  print(f'skip_by: {skip_by}')
+                while(new_tick) <= last_tick:
+                    new_tick_str = f'{new_tick:.5f}'
+                    print(f'new_tick_str: {new_tick_str}')
+                    try:
+                        new_ticks[new_tick_str] = self.ticks[new_tick]
+                    except KeyError:
+                        new_ticks[new_tick_str] = self.generate_tick(new_tick)
+
+                    new_tick_offset = (new_tick-new_min_for_display)*new_pixel_scale_factor+TICK_SIZE[1]/2
+                    new_tick_height = self.rect.bottom - new_tick_offset
+                    print(f'new - min: {new_tick-new_min_for_display}')
+                    print(f'scalefac: {new_pixel_scale_factor}')
+                    print(f'offset: {new_tick_offset}')
+                    print(f'height: {new_tick_height}')
+                    screen.blit(new_ticks[new_tick_str], (self.rect.left,new_tick_height))
+                    new_tick += self.tick_increment
+
+                self.ticks = new_ticks
+                self.pixel_scale_factor = new_pixel_scale_factor
+            self.display_scale_max = new_max
+            self.display_scale_min = new_min
+
+            for i in range(len(self.values)):
+                minn = self.display_scale_min-breadth*self.display_scale_pad
+                dist_from_bot = self.values[-i]-minn
+                scaled_dist_from_bot = int(dist_from_bot*self.pixel_scale_factor)
+                height = self.rect.bottom-scaled_dist_from_bot
+                pixel_pos = (self.rect.right-i,height)
+                #  print(f'pixel_pos: {pixel_pos}')
+                #  print(f'self.rect: {self.rect}')
+                screen.set_at(pixel_pos,DATA_POINT_COLOUR)
+            self.ticks_since_last_rescale += 1
+        except Exception as e:
+            #  pass
+            print(f"ERROR UPDATING PLOTS: {e}")
+            print(f"{traceback.format_exc()}")
+
+# (200,0,200)
+        #  self.values.append()
+    def generate_tick(self,val):
+        image = pg.Surface((TICK_SIZE[0],TICK_SIZE[1])).convert_alpha()
+        image.fill(Y_LABEL_BACKGROUND_COLOUR)
+        tick_label_surf = self.axis_label_font.render(f'{val:.3f}-', False, TITLE_COLOUR)
+        label_rect = tick_label_surf.get_rect()
+        image.blit(tick_label_surf, (TICK_SIZE[0]-label_rect.width, TICK_SIZE[1]/2 - label_rect.height/2))
+        return image
+
+    def generate_y_label_area_image(self):
+        image = pg.Surface((Y_LABEL_WIDTH,self.plot_size[1])).convert_alpha()
+        image.fill(Y_LABEL_BACKGROUND_COLOUR)
+        return image
+
+    def generate_plot_image(self):
+        image = pg.Surface((self.plot_size[0], self.plot_size[1])).convert_alpha()
+        image.fill(PLOT_BACKGROUND_COLOUR)
+        return image
+
+    def generate_background_image(self):
+        image = pg.Surface(self.rect.size).convert_alpha()
+        image.fill(BACKGROUND_COLOUR)
+        title_surf = self.title_font.render(self.title, False, TITLE_COLOUR)
+        image.blit(title_surf,(0,5))
+        #  value_surf = self.title_font.render(f'{self.values[-1]:.4f}', False, TITLE_COLOUR)
+        #  width_of_val = value_surf.get_rect().width
+        #  image.blit(value_surf,(self.rect.width-width_of_val,5))
+        return image

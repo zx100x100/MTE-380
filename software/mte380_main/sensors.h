@@ -15,9 +15,9 @@ class Sensors{
     Imu imu;
     Tof tof[4];
     long timestamp;
+    Hms* hms;
   private:
     // SensorData sensorData;
-    Hms* hms;
     void updateBatteryVoltage();
 };
 

@@ -9,7 +9,7 @@ from proto.tof_data_pb2 import TofData
 from proto.guidance_data_pb2 import GuidanceData
 
 
-HOST = "192.168.100.111"  # The server's hostname or IP address
+HOST = "192.168.243.111"  # The server's hostname or IP address
 PORT = 23  # The port used by the server
 
 #  pos = Nav()

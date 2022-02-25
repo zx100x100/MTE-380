@@ -11,8 +11,7 @@
 
 #define CMD_BUF_SIZE 30
 #define OUTPUT_BUF_SIZE 300
-const uint8_t delimit[3] = {uint8_t('|'),uint8_t('|'),uint8_t('|')};
-const uint8_t delimitSingle[1] = {uint8_t(':')};
+const uint8_t delimit[3] = {uint8_t(':'),uint8_t(':'),uint8_t(':')};
 
 TelemetryServer::TelemetryServer(Sensors& sensors,
                           NavData& navData,
@@ -27,6 +26,7 @@ TelemetryServer::TelemetryServer(Sensors& sensors,
 }
 
 void TelemetryServer::init(){
+  WiFi.disconnect();
   if (!WiFi.config(localIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA (static IP) Failed to configure");
   }
@@ -34,10 +34,10 @@ void TelemetryServer::init(){
   WiFi.begin(ssid, password);
   Serial.println("Connecting to WiFi ..");
   int wifiConnectionTicks = 0;
-  const int maxWifiConnectionTicksBeforeReboot = 20;
+  const int maxWifiConnectionTicksBeforeReboot = 40;
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
-    delay(200);
+    delay(100);
     if (wifiConnectionTicks++ >= maxWifiConnectionTicksBeforeReboot){
       ESP.restart();
     }
@@ -47,7 +47,7 @@ void TelemetryServer::init(){
 }
 
 void delimitData(pb_ostream_t& stream){
-  if (!pb_write(&stream, delimitSingle, 1)){
+  if (!pb_write(&stream, delimit, 3)){
     Serial.printf("write fail: %s\n", PB_GET_ERROR(&stream));
     return;
   }
@@ -82,7 +82,6 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
       delimitData(stream);
     }
   }
-  Serial.print("errstr: "); Serial.println(hms->data.errorInfo);
 }
 
 void TelemetryServer::update(){

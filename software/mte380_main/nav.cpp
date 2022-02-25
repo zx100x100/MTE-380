@@ -14,11 +14,13 @@ Nav::Nav(Sensors& sensors, Hms* hms):
 }
 
 void Nav::init(){
-  fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
+  /* fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ); */
 }
 
 void Nav::updateImu(){
-  ImuData &latest = sensors.imu.getData();
+
+  /* ImuData &latest = sensors.imu.getData(); */
+
   // fusion.update(latest.gyroX, latest.gyroY, latest.gyroZ, latest.accelX, latest.accelY, latest.accelZ);
   // float x[3], y[3], z[3];
   // fusion.getXaxis( true, x );

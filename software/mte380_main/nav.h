@@ -13,12 +13,12 @@ class Nav{
     void updateImu();
     void init();
     NavData& getData();
+    Hms* hms; // todo move back to private
 
   private:
     NavData navData;
     Fusion fusion;
     Sensors& sensors;
-    Hms* hms;
 };
 
 #endif

@@ -12,13 +12,15 @@
 class TelemetryServer{
   private:
     const char* ssid = "EMU";
+    /* const char* ssid = "Heatspeet"; */
+    /* const char* password = "alloneword"; */
     const char* password = "12341234";
     WiFiServer server = WiFiServer(23);
     WiFiClient client;
     bool alreadyConnected = false;
 
-    IPAddress localIP = IPAddress(192, 168, 100, 111); // static IP of esp
-    IPAddress gateway = IPAddress(192, 168, 100, 1); // gateway IP
+    IPAddress localIP = IPAddress(192, 168, 243, 111); // static IP of esp
+    IPAddress gateway = IPAddress(192, 168, 243, 1); // gateway IP
 
     IPAddress subnet = IPAddress(255, 255, 0, 0);
     IPAddress primaryDNS = IPAddress(8, 8, 8, 8);   // optional

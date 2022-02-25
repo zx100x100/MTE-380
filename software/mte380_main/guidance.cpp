@@ -12,6 +12,7 @@ void Guidance::update(){
   // calculate everything, then
   float outputLeft = 0;
   float outputRight = 0; // TODO replace w/ real vals
+  hms->hmsData.batteryVoltage = 1.0;
 
   if (cmdData.runState == CmdData_RunState_TELEOP){
     guidanceData.leftPower = cmdData.teleop.leftPower;
@@ -19,8 +20,10 @@ void Guidance::update(){
   }
   else if (cmdData.runState == CmdData_RunState_AUTO){
     guidanceData.leftPower = outputLeft;
-    guidanceData.rightPower = outputLeft;
+    guidanceData.rightPower = outputRight;
   }
+  Serial.print("guidanceData.leftPower:"); Serial.println(guidanceData.leftPower);
+  Serial.print("guidanceData.rightPower:"); Serial.println(guidanceData.rightPower);
 
   // FAKE DATA
   guidanceData.errVel = 1;

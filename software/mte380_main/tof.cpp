@@ -16,7 +16,7 @@ TofData& Tof::getData(){
 
 void Tof::poll(){
   tofData.dist = 5;
-  /* hms->data.errorInfo"blah"; */
-  hms->data.batteryVoltage = 2.0;
+  /* hms.data().errorInfo"blah"; */
+  /* hms->data.batteryVoltage = 2.0; */
   return;
 }
