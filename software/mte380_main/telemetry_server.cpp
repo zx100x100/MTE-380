@@ -67,6 +67,12 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
   }
   delimitData(stream);
   
+  if (!pb_encode(&stream, HmsData_fields, hms->data)){
+    Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
+    return;
+  }
+  delimitData(stream);
+  
   if (!pb_encode(&stream, ImuData_fields, &sensors.imu.getData())){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;

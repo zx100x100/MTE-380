@@ -1,7 +1,7 @@
 import pygame as pg
 import numpy as np
 
-from size_constants import *
+from constants import *
 ROBOT_COLOUR = (0,0,0,60)
 ROBOT_HEADING_COLOUR = (0,255,0)
 ROBOT_HEADING_ARC_COLOUR = (200,0,200)

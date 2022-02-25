@@ -24,9 +24,9 @@ typedef struct _CmdData_Teleop {
 } CmdData_Teleop;
 
 typedef struct _CmdData { 
+    CmdData_RunState runState; 
     bool has_teleop;
     CmdData_Teleop teleop; 
-    CmdData_RunState runState; 
 } CmdData;
 
 
@@ -41,21 +41,21 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define CmdData_init_default                     {false, CmdData_Teleop_init_default, _CmdData_RunState_MIN}
+#define CmdData_init_default                     {_CmdData_RunState_MIN, false, CmdData_Teleop_init_default}
 #define CmdData_Teleop_init_default              {0, 0}
-#define CmdData_init_zero                        {false, CmdData_Teleop_init_zero, _CmdData_RunState_MIN}
+#define CmdData_init_zero                        {_CmdData_RunState_MIN, false, CmdData_Teleop_init_zero}
 #define CmdData_Teleop_init_zero                 {0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define CmdData_Teleop_leftPower_tag             1
 #define CmdData_Teleop_rightPower_tag            2
-#define CmdData_teleop_tag                       1
-#define CmdData_runState_tag                     2
+#define CmdData_runState_tag                     1
+#define CmdData_teleop_tag                       2
 
 /* Struct field encoding specification for nanopb */
 #define CmdData_FIELDLIST(X, a) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  teleop,            1) \
-X(a, STATIC,   SINGULAR, UENUM,    runState,          2)
+X(a, STATIC,   SINGULAR, UENUM,    runState,          1) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  teleop,            2)
 #define CmdData_CALLBACK NULL
 #define CmdData_DEFAULT NULL
 #define CmdData_teleop_MSGTYPE CmdData_Teleop

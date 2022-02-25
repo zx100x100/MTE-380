@@ -2,7 +2,7 @@ import pygame as pg
 import functools
 import math
 
-from size_constants import *
+from constants import *
 
 
 LINE_COLOUR = (150,150,150)

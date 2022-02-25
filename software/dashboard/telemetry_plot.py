@@ -3,28 +3,28 @@ from collections import deque
 import math
 import traceback
 
-from size_constants import *
+from constants import *
 
 Y_LABEL_WIDTH = 80
 PLOT_BACKGROUND_COLOUR = (255,255,255) # where the actual data goes (inner)
 DATA_POINT_COLOUR = (200,0,200) # where the actual data goes (inner)
 Y_LABEL_BACKGROUND_COLOUR = (0,200,60)
-TITLE_PAD = 40
-PAD = (TITLE_PAD, 0, 0, Y_LABEL_WIDTH)
+TITLE_RECT_HEIGHT = 30
+PAD = (TITLE_RECT_HEIGHT, 0, 0, Y_LABEL_WIDTH)
 BACKGROUND_COLOUR = (100,100,120) # only shows up for TITLE!
 TITLE_COLOUR = (0,0,0)
 AXIS_LABEL_COLOUR = (25,25,25)
 AXIS_LABEL_FONTSIZE = 16
 DATA_POINT_SIZE = 1 # pixels of diameter/width per data point square/circle
-PLOT_SIZE = (200,200) # pixels for the size of the inner plot
+PLOT_SIZE = (200,140) # pixels for the size of the inner plot
 DISPLAY_DATA_POINTS = PLOT_SIZE[0]
 DATA_POINT_SIZE = 1
 TICK_SIZE = (Y_LABEL_WIDTH,15)
 DISPLAY_MIN_N_TICKS = 3
-DISPLAY_MAX_N_TICKS = 6
+DISPLAY_MAX_N_TICKS = 5
 MIN_TICKS_BETW_RESCALES = 10 # prevent twitchy rescales
 
-PLOT_MARGIN = (10, 0, 10, 10)
+PLOT_MARGIN = (GLOBAL_MARGIN, 0, 0, GLOBAL_MARGIN)
 
 class TelemetryPlot:
     def __init__(self, title, row, col, tick_increment):
@@ -41,7 +41,7 @@ class TelemetryPlot:
                      total_height)
         #  print(f'self.rect: {self.rect}')
         #  print(f'total_width: {total_width}')
-        self.title_font = pg.font.SysFont('Arial', 30)
+        self.title_font = pg.font.SysFont('Arial', 20)
         self.axis_label_font = pg.font.SysFont('Arial', AXIS_LABEL_FONTSIZE)
         self.values = deque([5,6,7],maxlen=DISPLAY_DATA_POINTS)
         self.plot_image = self.generate_plot_image()
@@ -81,7 +81,7 @@ class TelemetryPlot:
                     dist_from_bot = self.values[-i]-minn
                     scaled_dist_from_bot = int(dist_from_bot*self.pixel_scale_factor)
                     height = self.rect.bottom-scaled_dist_from_bot
-                    pixel_pos = (self.rect.right-i,height)
+                    pixel_pos = (self.rect.right-i-1,height)
                     screen.set_at(pixel_pos, PLOT_BACKGROUND_COLOUR)
 
             if self.new_value is not None:
@@ -144,7 +144,7 @@ class TelemetryPlot:
                 #  print(f'skip_by: {skip_by}')
                 while(new_tick) <= last_tick:
                     new_tick_str = f'{new_tick:.5f}'
-                    print(f'new_tick_str: {new_tick_str}')
+                    #  print(f'new_tick_str: {new_tick_str}')
                     try:
                         new_ticks[new_tick_str] = self.ticks[new_tick]
                     except KeyError:
@@ -152,10 +152,10 @@ class TelemetryPlot:
 
                     new_tick_offset = (new_tick-new_min_for_display)*new_pixel_scale_factor+TICK_SIZE[1]/2
                     new_tick_height = self.rect.bottom - new_tick_offset
-                    print(f'new - min: {new_tick-new_min_for_display}')
-                    print(f'scalefac: {new_pixel_scale_factor}')
-                    print(f'offset: {new_tick_offset}')
-                    print(f'height: {new_tick_height}')
+                    #  print(f'new - min: {new_tick-new_min_for_display}')
+                    #  print(f'scalefac: {new_pixel_scale_factor}')
+                    #  print(f'offset: {new_tick_offset}')
+                    #  print(f'height: {new_tick_height}')
                     screen.blit(new_ticks[new_tick_str], (self.rect.left,new_tick_height))
                     new_tick += self.tick_increment
 
@@ -169,7 +169,7 @@ class TelemetryPlot:
                 dist_from_bot = self.values[-i]-minn
                 scaled_dist_from_bot = int(dist_from_bot*self.pixel_scale_factor)
                 height = self.rect.bottom-scaled_dist_from_bot
-                pixel_pos = (self.rect.right-i,height)
+                pixel_pos = (self.rect.right-i-1,height)
                 #  print(f'pixel_pos: {pixel_pos}')
                 #  print(f'self.rect: {self.rect}')
                 screen.set_at(pixel_pos,DATA_POINT_COLOUR)
@@ -184,7 +184,7 @@ class TelemetryPlot:
     def generate_tick(self,val):
         image = pg.Surface((TICK_SIZE[0],TICK_SIZE[1])).convert_alpha()
         image.fill(Y_LABEL_BACKGROUND_COLOUR)
-        tick_label_surf = self.axis_label_font.render(f'{val:.3f}-', False, TITLE_COLOUR)
+        tick_label_surf = self.axis_label_font.render(f'{val:.3f}-', True, TITLE_COLOUR)
         label_rect = tick_label_surf.get_rect()
         image.blit(tick_label_surf, (TICK_SIZE[0]-label_rect.width, TICK_SIZE[1]/2 - label_rect.height/2))
         return image
@@ -202,8 +202,10 @@ class TelemetryPlot:
     def generate_background_image(self):
         image = pg.Surface(self.rect.size).convert_alpha()
         image.fill(BACKGROUND_COLOUR)
-        title_surf = self.title_font.render(self.title, False, TITLE_COLOUR)
-        image.blit(title_surf,(0,5))
+        title_surf = self.title_font.render(self.title, True, TITLE_COLOUR)
+        title_height = title_surf.get_rect().height
+        title_top_offset = (TITLE_RECT_HEIGHT - title_height)/2
+        image.blit(title_surf,(5,title_top_offset))
         #  value_surf = self.title_font.render(f'{self.values[-1]:.4f}', False, TITLE_COLOUR)
         #  width_of_val = value_surf.get_rect().width
         #  image.blit(value_surf,(self.rect.width-width_of_val,5))

@@ -2,7 +2,7 @@ import pygame as pg
 import functools
 import math
 
-from size_constants import *
+from constants import *
 from tile import Tile
 from segment import CornerCircle
 from segment import Line

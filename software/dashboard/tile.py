@@ -1,6 +1,6 @@
 import pygame as pg
 
-from size_constants import *
+from constants import *
 
 class Tile:
     def __init__(self, row, col):
