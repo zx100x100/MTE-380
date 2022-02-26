@@ -19,7 +19,6 @@ void Motors::setAllToZero(){
 }
 
 void Motors::update(){
-  Serial.print("guidanceData.leftPOwer(motorUpdate):");Serial.println(guidanceData.leftPower);
   analogWrite(LEFT_DRIVE_PIN, guidanceData.leftPower);
   analogWrite(RIGHT_DRIVE_PIN, guidanceData.rightPower);
 }
