@@ -3,6 +3,8 @@ import functools
 import math
 
 from constants import *
+from util import (angle_between_positions,
+                  angle_to_pg_angle)
 
 
 LINE_COLOUR = (150,150,150)

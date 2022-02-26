@@ -1,4 +1,5 @@
 import pygame as pg
+from util import pos_inside_rect
 
 from constants import *
 
@@ -17,6 +18,7 @@ ITEM_HEIGHT = 14
 ITEM_VALUE_RECT_HEIGHT = ITEM_HEIGHT
 ITEM_VALUE_BG_COLOUR = (140,140,140)
 ITEM_VALUE_FONT_COLOUR = (0,0,0)
+CLICKED_ITEM_VALUE_FONT_COLOUR = (255,0,0)
 ITEM_LABEL_FONT_COLOUR = (255,255,255)
 READOUT_BG_COLOUR = (70,70,70)
 CONTROL_LABEL_FONT_COLOUR = (70,70,70)
@@ -27,6 +29,7 @@ TITLE_FONT_SIZE = 20
 class ReadoutItem:
     def __init__(self, name, proto, is_msg):
         self.rect = pg.Rect(0,0,READOUT_WIDTH, ITEM_HEIGHT)
+        self.clicked = False
         self.value_rect = pg.Rect(self.rect.width - ITEM_VALUE_H_MARGIN - ITEM_VALUE_RECT_WIDTH,
                                   0,
                                   ITEM_VALUE_RECT_WIDTH,
@@ -63,12 +66,13 @@ class ReadoutItem:
         return image
     
     def generate_value_text_image(self):
+        #  print('regen')
         if self.is_msg:
             return self.value_image # blank
         image = pg.Surface(self.value_rect.size).convert_alpha()
         image.fill((0,0,0,0))
         # TODO handle different types here so text fits nice eg. .02f
-        value_surf = self.value_font.render(f'{self.value}', True, ITEM_VALUE_FONT_COLOUR)
+        value_surf = self.value_font.render(f'{self.value}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
         value_height = value_surf.get_rect().height
         value_top_offset = (ITEM_VALUE_RECT_HEIGHT - value_height)/2
         image.blit(value_surf,(ITEM_VALUE_L_PAD,value_top_offset))
@@ -76,6 +80,14 @@ class ReadoutItem:
 
     def update_value_text_image(self):
         self.value_text_image = self.generate_value_text_image()
+
+    def set_clicked(self):
+        print('set_click')
+        self.clicked = True
+
+    def set_not_clicked(self):
+        print('not clicked')
+        self.clicked = False
 
     @property
     def value(self):
@@ -124,6 +136,17 @@ class Readout:
             v_offset += ITEM_HEIGHT+ITEM_T_MARGIN
         return image
 
+    def handle_click(self, pos):
+        v_offset = TITLE_HEIGHT
+        for item in self.items:
+            global_rect = item.rect.move(self.rect.left,self.rect.top+v_offset)
+            print(global_rect)
+            if pos_inside_rect(pos, global_rect):
+                return item
+            v_offset += ITEM_HEIGHT + ITEM_T_MARGIN
+        return False
+
+
     def render_init(self):
         self.screen.blit(self.bg_image, self.rect)
         v_offset = TITLE_HEIGHT
@@ -137,7 +160,7 @@ class Readout:
             item.update_value_text_image()
             self.screen.blit(item.value_image, (self.rect.left+item.value_rect.left, self.rect.top+v_offset))
             self.screen.blit(item.value_text_image, (self.rect.left+item.value_rect.left, self.rect.top+v_offset))
-            v_offset += ITEM_HEIGHT
+            v_offset += ITEM_HEIGHT + ITEM_T_MARGIN
 
 
 class ReadoutGroup:
@@ -162,7 +185,15 @@ class ReadoutGroup:
     def render(self):
         for r in self.readouts:
             r.render()
-        
+
+    def handle_click(self, pos):
+        for readout in self.readouts:
+            item = readout.handle_click(pos)
+            if item:
+                print('found!')
+                print(f'item: {item}')
+                return item
+        return False
 
 
 class ProtobufReadouts:
@@ -189,12 +220,13 @@ class ProtobufReadouts:
             i.position(col)
             i.render_init()
 
-    #  def handle_click(self, pos):
-        #  for toggle in self.toggles:
-            #  rect = toggle.toggle_rect_globally_positioned
-            #  if pos_inside_rect(pos, rect):
-                #  toggle.toggle()
+    def render(self):
+        for group in self.readout_groups:
+            group.render()
 
-    #  def render(self):
-        #  for toggle in self.toggles:
-            #  toggle.render()
+    def handle_click(self, pos):
+        for readout_group in self.readout_groups:
+            item = readout_group.handle_click(pos)
+            if item:
+                return item
+        return False

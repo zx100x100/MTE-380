@@ -27,8 +27,9 @@ MIN_TICKS_BETW_RESCALES = 10 # prevent twitchy rescales
 PLOT_MARGIN = (GLOBAL_MARGIN, 0, 0, GLOBAL_MARGIN)
 
 class TelemetryPlot:
-    def __init__(self, title, row, col, tick_increment):
-        self.title = title
+    def __init__(self, proto, row, col, tick_increment):
+        self.proto = proto
+        self.title = self.proto.name
         self.tick_increment = tick_increment
         self.plot_size = PLOT_SIZE
         self.row = row
@@ -43,7 +44,7 @@ class TelemetryPlot:
         #  print(f'total_width: {total_width}')
         self.title_font = pg.font.SysFont('Arial', 20)
         self.axis_label_font = pg.font.SysFont('Arial', AXIS_LABEL_FONTSIZE)
-        self.values = deque([5,6,7],maxlen=DISPLAY_DATA_POINTS)
+        self.values = deque([proto.value],maxlen=DISPLAY_DATA_POINTS)
         self.plot_image = self.generate_plot_image()
         self.plot_image_rect = self.plot_image.get_rect()
         self.plot_image_rect.bottom = self.rect.bottom
@@ -63,9 +64,6 @@ class TelemetryPlot:
         self.ticks = {}
         self.ticks_since_last_rescale = 0 # prevent twitchy rescaling
 
-    def update_value(self, new_value):
-        self.new_value = new_value
-
     def render_init(self, screen):
         screen.blit(self.background_image, self.rect)
         screen.blit(self.plot_image, self.plot_image_rect)
@@ -84,9 +82,9 @@ class TelemetryPlot:
                     pixel_pos = (self.rect.right-i-1,height)
                     screen.set_at(pixel_pos, PLOT_BACKGROUND_COLOUR)
 
-            if self.new_value is not None:
-                self.values.append(self.new_value)
-                self.new_value = None
+            #  if self.new_value is not None:
+            self.values.append(self.proto.value)
+            #  self.new_value = None
             
             new_min = min(self.values)
             new_max = max(self.values)

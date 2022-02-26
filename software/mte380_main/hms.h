@@ -9,8 +9,7 @@ class Hms{
   public:
     Hms();
     void logError(int err, char str[80]);
-    HmsData& data();
-    HmsData hmsData;
+    HmsData data;
 
   private:
     NavData navData;

@@ -17,7 +17,7 @@ class Sensors{
     long timestamp;
     Hms* hms;
   private:
-    // SensorData sensorData;
+    // TODO update IMU and TOFs
     void updateBatteryVoltage();
 };
 

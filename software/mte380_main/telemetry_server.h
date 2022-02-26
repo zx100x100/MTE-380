@@ -19,8 +19,8 @@ class TelemetryServer{
     WiFiClient client;
     bool alreadyConnected = false;
 
-    IPAddress localIP = IPAddress(192, 168, 243, 111); // static IP of esp
-    IPAddress gateway = IPAddress(192, 168, 243, 1); // gateway IP
+    IPAddress localIP = IPAddress(192, 168, 232, 111); // static IP of esp
+    IPAddress gateway = IPAddress(192, 168, 232, 1); // gateway IP
 
     IPAddress subnet = IPAddress(255, 255, 0, 0);
     IPAddress primaryDNS = IPAddress(8, 8, 8, 8);   // optional

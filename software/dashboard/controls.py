@@ -1,5 +1,7 @@
 import pygame as pg
 
+from util import pos_inside_rect
+
 from constants import *
 CONTROL_WIDTH = CONTROL_ITEM_WIDTH
 CONTROL_HEIGHT = CONTROL_ITEM_HEIGHT
@@ -79,7 +81,6 @@ class Toggle:
     
 
     def render(self):
-        print(self.rect)
         self.screen.blit(self.image, self.rect)
 
     def toggle(self, force_enable=None):
@@ -92,28 +93,22 @@ class Toggle:
         if self.callback is not None:
             self.callback()
 
-def pos_inside_rect(pos, rect):
-    if pos[0] > rect.right or pos[0] < rect.left:
-        return False
-    if pos[1] > rect.bottom or pos[1] < rect.top:
-        return False
-    return True
-
-
 class Controls:
     def __init__(self, app):
         self.app = app
         self.screen = self.app.screen
-        self.propeller_toggle = Toggle("propeller", False, 0, self.screen)
-        self.teleop_toggle = Toggle("teleop", False, 1, self.screen)
-        self.comms_toggle = Toggle("comms", self.app.comms_enabled, 2, self.screen, callback=self.app.toggle_comms)
-        self.toggles = [self.propeller_toggle, self.teleop_toggle, self.comms_toggle]
+        self.enable_toggle = Toggle("enable", False, 0, self.screen, callback=self.app.toggle_robot_enable)
+        self.propeller_toggle = Toggle("propeller", False, 1, self.screen)
+        self.teleop_toggle = Toggle("teleop", True, 2, self.screen, callback=self.app.toggle_teleop)
+        self.comms_toggle = Toggle("comms", self.app.comms_enabled, 3, self.screen, callback=self.app.toggle_comms)
+        self.toggles = [self.enable_toggle, self.propeller_toggle, self.teleop_toggle, self.comms_toggle]
 
     def handle_click(self, pos):
         for toggle in self.toggles:
             rect = toggle.toggle_rect_globally_positioned
             if pos_inside_rect(pos, rect):
                 toggle.toggle()
+                return True
 
     def render(self):
         for toggle in self.toggles:

@@ -18,10 +18,10 @@ Sensors::Sensors(Hms* hms):
 void Sensors::updateBatteryVoltage(){
   // analogRead(V_SENSE_PIN);
   float voltage = 1.0;
-  HmsData data = hms->hmsData; // HAVE TO ASSIGN THIS OR IT CRASHES... WHY>????? IDKKKKKKK
+  HmsData data = hms->data; // HAVE TO ASSIGN THIS OR IT CRASHES... WHY>????? IDKKKKKKK
   data.batteryVoltage = voltage;
   if (data.batteryVoltage < MIN_CELL_VOLTAGE*data.nCells){
-    hms->logError(HmsData_Error_LOW_BATTERY, "blah");
+    hms->logError(HmsData_Error_LOW_BATTERY, "charge ur shit");
   }
 }
 

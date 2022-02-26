@@ -1,8 +1,10 @@
 from enum import Enum
 import numpy as np
 
+HOST = "192.168.232.111"  # The server's hostname or IP address
+
 COMMS_DEFAULT_ON = False
-COMMS_TIMEOUT = 1
+COMMS_TIMEOUT = 3
 SCREEN_SIZE = (1366,710)
 ARENA_SIZE_INCHES = 72
 PIXELS_PER_INCH = 5
@@ -18,30 +20,6 @@ print(f'SCREEN_SIZE: {SCREEN_SIZE}')
 CONTROL_ITEM_HEIGHT = 30
 CONTROL_ITEM_WIDTH = 160
 GLOBAL_MARGIN = 8
-
-def pixels_to_tiles(pixel_loc):
-    return (pixel_loc[0]/PIXELS_PER_TILE, pixel_loc[1]/PIXELS_PER_TILE)
-
-def tiles_to_pixels(tile_loc):
-    return (tile_loc[0]*PIXELS_PER_TILE, tile_loc[1]*PIXELS_PER_TILE)
-
-def angle_between_positions(pos1, pos2):
-    # positive angle from x axis going clockwise to position in our weird inverted y axis
-    x = pos2[0]-pos1[0]
-    y = pos2[1]-pos1[1]
-
-    theta = np.rad2deg(np.arctan2(y,x))
-    if theta < 360:
-        theta += 360
-    return theta % 360
-
-def angle_to_pg_angle(angle):
-    # counterclockwise angle from x in degrees (our angle syste) to pygame's definition of an angle which is ccw from x in rad
-    return np.deg2rad(360-(angle % 360))
-
-#  print(f'-1,-1(225?): {vector_angle_between_positions((0,0),(-1,-1))}')
-#  print(f'-1,1(135?): {vector_angle_between_positions((0,0),(-1,1))}')
-#  print(f'1,1(45?): {vector_angle_between_positions((0,0),(1,1))}')
 
 class TRBL(Enum): # helper because I never learned how to count
     T = 0 # top

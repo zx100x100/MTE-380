@@ -23,20 +23,17 @@ Motors motors = Motors(guidance.getData(), &hms);
 void setup() {
   Serial.begin(115200);
 
+  cmdData.runState = CmdData_RunState_E_STOP;
   nav.init();
   telemetryServer.init();
 }
 
 void loop() {
-  int ts1 = millis();
   sensors.update();
   nav.update();
   guidance.update();
   motors.update();
-  int ts2 = millis();
   telemetryServer.update();
-  int ts3 = millis();
-  /* Serial.print("ts2-ts1="); Serial.print(ts2-ts1); Serial.print(","); */
-  /* Serial.print("ts3-ts2="); Serial.print(ts3-ts2); Serial.print(","); */
-  /* Serial.print("ts3-ts1="); Serial.print(ts3-ts1); Serial.println(""); */
+
+  delay(400);
 }

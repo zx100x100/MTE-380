@@ -67,7 +67,7 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
   }
   delimitData(stream);
   
-  if (!pb_encode(&stream, HmsData_fields, hms->data)){
+  if (!pb_encode(&stream, HmsData_fields, &hms->data)){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;
   }
@@ -96,16 +96,21 @@ void TelemetryServer::update(){
   }
   if (client) {
     if (!alreadyConnected) {
-      /* client.flush(); // clear out the input buffer */
-      Serial.println("New client");
+      // commented out because idk why we needed it, and
+      // our logic is that we only send data after receiving data,
+      // ... and since the dashboard is gonna wait for new data from us
+      // after sending its own first command, having a flush here makes
+      // the dashboard freeze entirely.
+      // client.flush(); // clear out the input buffer
+      Serial.println("New client for tcp telemetry server");
       alreadyConnected = true;
       return;
     }
     else{
+      // TODO CHANGE THIS BEHAVIOR OR AT LEAST MAKE SURE DOING IT THIS WAY ISNT MAKING TICKRATES LESS CONSISTENT
       int receiveBytes = client.available();
-      // Serial.print("receiveBytes:");
-      // Serial.print(receiveBytes);
       if (receiveBytes > 0){ // input available, update cmd, send back telemetry
+        // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
         int i = 0;
         while (client.available() > 0) {
@@ -119,24 +124,18 @@ void TelemetryServer::update(){
           Serial.printf("Decoding Cmd fail: %s\n", PB_GET_ERROR(&instream));
           return;
         }
-        Serial.print("RunState: "); Serial.println(cmdData.runState);
 
-        // output
-        // Serial.print("send.");
+        // SEND DATA --------------------------------------
         pb_ostream_t stream;
         uint8_t buffer[OUTPUT_BUF_SIZE];
         stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
         serializeData(stream);
         client.flush();
-        /* long ts1 = millis(); */
-        client.write(buffer, stream.bytes_written);
-        /* long ts2 = millis(); */
-        /* Serial.print("dt: "); Serial.println(ts2-ts1); */
-        /* Serial.print("written:"); Serial.println(stream.bytes_written); */
+        client.write(buffer, stream.bytes_written); // takes 0-2 ms
       }
     }
   }
   else{
-    Serial.println("unavailable");
+    Serial.println("No TCP client connected.");
   }
 }
