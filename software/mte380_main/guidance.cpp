@@ -14,12 +14,12 @@ void Guidance::update(){
   float outputRight = 0; // TODO replace w/ real vals
 
   if (cmdData.runState == CmdData_RunState_TELEOP){
-    Serial.println("tele");
+    Serial.print("tele");
     guidanceData.leftPower = cmdData.teleop.leftPower;
     guidanceData.rightPower = cmdData.teleop.rightPower;
   }
   else if (cmdData.runState == CmdData_RunState_AUTO){
-    Serial.println("auto");
+    Serial.print("auto");
     guidanceData.leftPower = outputLeft;
     guidanceData.rightPower = outputRight;
   }

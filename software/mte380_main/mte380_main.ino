@@ -35,5 +35,5 @@ void loop() {
   motors.update();
   telemetryServer.update();
 
-  delay(400);
+  /* delay(400); */
 }

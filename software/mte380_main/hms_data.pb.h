@@ -17,9 +17,9 @@ typedef enum _HmsData_Error {
 
 /* Struct definitions */
 typedef struct _HmsData { 
-    char errorInfo[80]; 
     float batteryVoltage; 
-    uint32_t nCells; /* Error error = 4; */
+    uint32_t nCells; 
+    char errorInfo[80]; /* Error error = 4; */
 } HmsData;
 
 
@@ -34,19 +34,19 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define HmsData_init_default                     {"", 0, 0}
-#define HmsData_init_zero                        {"", 0, 0}
+#define HmsData_init_default                     {0, 0, ""}
+#define HmsData_init_zero                        {0, 0, ""}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define HmsData_errorInfo_tag                    1
-#define HmsData_batteryVoltage_tag               2
-#define HmsData_nCells_tag                       3
+#define HmsData_batteryVoltage_tag               1
+#define HmsData_nCells_tag                       2
+#define HmsData_errorInfo_tag                    3
 
 /* Struct field encoding specification for nanopb */
 #define HmsData_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, STRING,   errorInfo,         1) \
-X(a, STATIC,   SINGULAR, FLOAT,    batteryVoltage,    2) \
-X(a, STATIC,   SINGULAR, UINT32,   nCells,            3)
+X(a, STATIC,   SINGULAR, FLOAT,    batteryVoltage,    1) \
+X(a, STATIC,   SINGULAR, UINT32,   nCells,            2) \
+X(a, STATIC,   SINGULAR, STRING,   errorInfo,         3)
 #define HmsData_CALLBACK NULL
 #define HmsData_DEFAULT NULL
 

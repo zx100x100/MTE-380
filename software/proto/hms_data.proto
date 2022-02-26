@@ -5,8 +5,8 @@ message HmsData {
     LOW_BATTERY = 0;
     OFF_TRACK = 1; // robot off track
   }
-  string errorInfo = 1;
-  float batteryVoltage = 2;
-  uint32 nCells = 3;
+  float batteryVoltage = 1;
+  uint32 nCells = 2;
+  string errorInfo = 3;
   // Error error = 4;
 }

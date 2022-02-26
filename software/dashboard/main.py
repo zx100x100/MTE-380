@@ -76,6 +76,7 @@ class App:
         self.imu_data = ImuData()
         self.tof_data = [TofData() for i in range(4)]
 
+        self.error_info = None
         self.protobuf_readouts = ProtobufReadouts(self)
         self.previously_clicked_item = None
 
@@ -114,8 +115,11 @@ class App:
                 self.controls.comms_toggle.toggle(force_enable=False)
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.comms_connected and not just_connected:
-            self.socket.shutdown(socket.SHUT_RDWR)
-            self.socket.close()
+            try:
+                self.socket.shutdown(socket.SHUT_RDWR)
+                self.socket.close()
+            except Exception as e:
+                print(f"Failed to disconnect comms: {e}")
             self.comms_connected = False
 
 
@@ -165,17 +169,18 @@ class App:
                                 
 
         #  if self.keys[pg.K_RSHIFT] or self.keys[pg.K_LSHIFT]:
+        TELEOP_POWER = 255
         if self.cmd_data.runState is CmdData.RunState.TELEOP:
             if self.keys[QWAS['left_fwd']]:
-                self.cmd_data.teleop.leftPower = 100;
+                self.cmd_data.teleop.leftPower = TELEOP_POWER;
             elif self.keys[QWAS['left_back']]:
-                self.cmd_data.teleop.leftPower = -100;
+                self.cmd_data.teleop.leftPower = -TELEOP_POWER;
             else:
                 self.cmd_data.teleop.leftPower = 0;
             if self.keys[QWAS['right_fwd']]:
-                self.cmd_data.teleop.rightPower = 100;
+                self.cmd_data.teleop.rightPower = TELEOP_POWER;
             elif self.keys[QWAS['right_back']]:
-                self.cmd_data.teleop.rightPower = -100;
+                self.cmd_data.teleop.rightPower = -TELEOP_POWER;
             else:
                 self.cmd_data.teleop.rightPower = 0;
         else:

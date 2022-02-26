@@ -1,8 +1,9 @@
 from telemetry_plot import TelemetryPlot
 from util import pos_inside_rect
 
-MAX_PLOTS = 4
-COLUMNS = 2
+ROWS = 2
+COLUMNS = 3
+MAX_PLOTS = ROWS * COLUMNS
 
 class TelemetryPlots:
     def __init__(self, app):

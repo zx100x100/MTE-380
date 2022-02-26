@@ -2,8 +2,8 @@
 
 #include "motors.h"
 
-#define LEFT_DRIVE_PIN 2
-#define RIGHT_DRIVE_PIN 4
+#define LEFT_DRIVE_PIN 4
+#define RIGHT_DRIVE_PIN 2
 
 Motors::Motors(GuidanceData& guidanceData,
                Hms* hms):

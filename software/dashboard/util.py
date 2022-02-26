@@ -27,3 +27,6 @@ def pos_inside_rect(pos, rect):
     if pos[1] > rect.bottom or pos[1] < rect.top:
         return False
     return True
+
+def text_into_lines():
+    pass

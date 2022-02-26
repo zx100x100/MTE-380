@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14proto/hms_data.proto\"m\n\x07HmsData\x12\x11\n\terrorInfo\x18\x01 \x01(\t\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x02 \x01(\x02\x12\x0e\n\x06nCells\x18\x03 \x01(\r\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tOFF_TRACK\x10\x01\x62\x06proto3'
+  serialized_pb=b'\n\x14proto/hms_data.proto\"m\n\x07HmsData\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x01 \x01(\x02\x12\x0e\n\x06nCells\x18\x02 \x01(\r\x12\x11\n\terrorInfo\x18\x03 \x01(\t\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tOFF_TRACK\x10\x01\x62\x06proto3'
 )
 
 
@@ -59,23 +59,23 @@ _HMSDATA = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='errorInfo', full_name='HmsData.errorInfo', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='batteryVoltage', full_name='HmsData.batteryVoltage', index=1,
-      number=2, type=2, cpp_type=6, label=1,
+      name='batteryVoltage', full_name='HmsData.batteryVoltage', index=0,
+      number=1, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='nCells', full_name='HmsData.nCells', index=2,
-      number=3, type=13, cpp_type=3, label=1,
+      name='nCells', full_name='HmsData.nCells', index=1,
+      number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='errorInfo', full_name='HmsData.errorInfo', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),

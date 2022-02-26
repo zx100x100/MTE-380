@@ -1,7 +1,7 @@
 from enum import Enum
 import numpy as np
 
-HOST = "192.168.232.111"  # The server's hostname or IP address
+HOST = "192.168.183.111"  # The server's hostname or IP address
 
 COMMS_DEFAULT_ON = False
 COMMS_TIMEOUT = 3

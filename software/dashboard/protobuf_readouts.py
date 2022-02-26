@@ -1,5 +1,6 @@
 import pygame as pg
 from util import pos_inside_rect
+from proto.hms_data_pb2 import HmsData
 
 from constants import *
 
@@ -9,11 +10,11 @@ READOUT_H_MARGIN = GLOBAL_MARGIN
 READOUT_T_MARGIN = GLOBAL_MARGIN
 TITLE_HEIGHT = 24
 TITLE_L_MARGIN = 8
-ITEM_R_PAD = 5
+ITEM_H_PAD = 5
 ITEM_T_MARGIN = 2
-ITEM_VALUE_RECT_WIDTH = 40
+ITEM_VALUE_RECT_WIDTH = 70
 ITEM_VALUE_H_MARGIN = 5
-ITEM_VALUE_L_PAD = 5
+ITEM_VALUE_L_PAD = 2
 ITEM_HEIGHT = 14
 ITEM_VALUE_RECT_HEIGHT = ITEM_HEIGHT
 ITEM_VALUE_BG_COLOUR = (140,140,140)
@@ -22,9 +23,14 @@ CLICKED_ITEM_VALUE_FONT_COLOUR = (255,0,0)
 ITEM_LABEL_FONT_COLOUR = (255,255,255)
 READOUT_BG_COLOUR = (70,70,70)
 CONTROL_LABEL_FONT_COLOUR = (70,70,70)
-ITEM_LABEL_FONT_SIZE = 13
+ITEM_LABEL_FONT_SIZE = 12
 ITEM_VALUE_FONT_SIZE = 12
 TITLE_FONT_SIZE = 20
+MAX_ITEMS_PER_READOUT = (READOUT_HEIGHT-TITLE_HEIGHT)/(ITEM_HEIGHT+ITEM_T_MARGIN)
+ERROR_INFO_FIELD_NAME = "errorInfo"
+ERROR_INFO_FONT_SIZE = ITEM_VALUE_FONT_SIZE = 12
+ERROR_INFO_LINE_HEIGHT = 14
+ERROR_INFO_T_PAD = 5
 
 class ReadoutItem:
     def __init__(self, name, proto, is_msg):
@@ -39,10 +45,18 @@ class ReadoutItem:
         self.value_font = pg.font.SysFont('Arial', ITEM_VALUE_FONT_SIZE)
         self.name = name
         self.proto = proto
+        self.is_enum = self.detect_whether_item_is_enum()
+        self.is_error_info = self.name == ERROR_INFO_FIELD_NAME
+
         self.bg_image = self.generate_bg_image()
         self.value_image = self.generate_value_image()
         self.value_text_image = self.generate_value_text_image()
         self.name = name
+
+    def detect_whether_item_is_enum(self):
+        if self.is_msg:
+            return False
+        return self.proto.DESCRIPTOR.fields_by_name[self.name].enum_type is not None
 
     def generate_bg_image(self):
         image = pg.Surface(self.rect.size).convert_alpha()
@@ -52,6 +66,8 @@ class ReadoutItem:
         label_top_offset = (self.rect.height - label_rect.height)/2
         if self.is_msg:
             label_rect.left = self.rect.left + ITEM_VALUE_H_MARGIN
+        elif self.is_error_info:
+            label_rect.centerx = self.rect.centerx
         else:
             label_rect.right = self.rect.width - ITEM_VALUE_RECT_WIDTH - 2 * ITEM_VALUE_H_MARGIN
         image.blit(label_surf,label_rect)
@@ -59,22 +75,21 @@ class ReadoutItem:
 
     def generate_value_image(self):
         image = pg.Surface(self.value_rect.size).convert_alpha()
-        if self.is_msg:
+        if self.is_msg or self.is_error_info:
             image.fill((0,0,0,0))
         else:
             image.fill(ITEM_VALUE_BG_COLOUR)
         return image
     
     def generate_value_text_image(self):
-        #  print('regen')
-        if self.is_msg:
+        if self.is_msg or self.is_error_info:
             return self.value_image # blank
         image = pg.Surface(self.value_rect.size).convert_alpha()
         image.fill((0,0,0,0))
         # TODO handle different types here so text fits nice eg. .02f
         value_surf = self.value_font.render(f'{self.value}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
         value_height = value_surf.get_rect().height
-        value_top_offset = (ITEM_VALUE_RECT_HEIGHT - value_height)/2
+        value_top_offset = (ITEM_VALUE_RECT_HEIGHT - value_height)/2+2
         image.blit(value_surf,(ITEM_VALUE_L_PAD,value_top_offset))
         return image
 
@@ -82,44 +97,92 @@ class ReadoutItem:
         self.value_text_image = self.generate_value_text_image()
 
     def set_clicked(self):
-        print('set_click')
         self.clicked = True
 
     def set_not_clicked(self):
-        print('not clicked')
         self.clicked = False
 
     @property
     def value(self):
+        if self.is_enum:
+            enum_type = self.proto.DESCRIPTOR.fields_by_name[self.name].enum_type
+            return enum_type.values_by_number[getattr(self.proto, self.name)].name
+        if self.is_error_info:
+            return self.parse_error_info(getattr(self.proto, self.name))
         return getattr(self.proto, self.name)
+
+    def parse_error_info(self, value):
+        if not value:
+            value = "1:blah;1:blah2"
+        lines = []
+        for error_info in value.split(";"):
+            sep_ind = error_info.find(":")
+            error_code_str, error_desc = error_info[:sep_ind], error_info[sep_ind+1:]
+            error_enum_name = HmsData.Error.Name(int(error_code_str))
+            #  print(f'error_enum_val: {error_desc}')
+            lines.append(f'{error_enum_name}:')
+            lines.append(f' {error_desc}')
+        return lines
+
 
 class Readout:
     def __init__(self, proto, submsgs=[]):
-        self.rect = pg.Rect(0,0,READOUT_WIDTH,READOUT_HEIGHT)
         self.n = None
         self.proto = proto
-        self.title = type(self.proto).__name__
         self.title_font = pg.font.SysFont('Arial', TITLE_FONT_SIZE)
+        self.items = self.get_items()
+        self.rect, self.double_wide = self.generate_rect()
+        self.title = type(self.proto).__name__
+        self.toplefts = None # toplets of each item, assigned during positioning
+        
+    def generate_rect(self):
+        if len(self.items)>MAX_ITEMS_PER_READOUT:
+            rect = pg.Rect(0,0,READOUT_WIDTH*2+READOUT_H_MARGIN,READOUT_HEIGHT)
+            double_wide = True
+        else:
+            rect = pg.Rect(0,0,READOUT_WIDTH,READOUT_HEIGHT)
+            double_wide = False
+        return (rect, double_wide)
 
+    def get_items(self):
         fields = self.proto.DESCRIPTOR.fields_by_name.keys()
-        data_pairs = dict([(name,getattr(proto, name)) for name in fields])
-        self.items = []
+        data_pairs = dict([(name,getattr(self.proto, name)) for name in fields])
+        items = []
         for k, v in data_pairs.items():
             if len(str(type(v))) > 13 and str(type(v))[8:13] == 'proto':
-                self.items.append(ReadoutItem(name=k, proto=v, is_msg=True))
+                items.append(ReadoutItem(name=k, proto=v, is_msg=True))
                 subfields = v.DESCRIPTOR.fields_by_name.keys()
                 sub_data_pairs = dict([(name,getattr(v, name)) for name in subfields])
                 for sub_k, sub_v in sub_data_pairs.items():
-                    self.items.append(ReadoutItem(name=sub_k, proto=v, is_msg=False))
+                    items.append(ReadoutItem(name=sub_k, proto=v, is_msg=False))
             else:
-                self.items.append(ReadoutItem(name=k, proto=proto, is_msg=False))
+                items.append(ReadoutItem(name=k, proto=self.proto, is_msg=False))
+        return items
         
     def position(self, col, row, n):
         self.col = col
         self.row = row
         self.rect.height = self.rect.height/n-(n-1)*READOUT_T_MARGIN
         self.rect.top = ARENA_SIZE_PIXELS+READOUT_T_MARGIN+(self.rect.height+READOUT_T_MARGIN)*row
-        self.rect.left = READOUT_H_MARGIN+col*(self.rect.width+READOUT_H_MARGIN)
+        self.rect.left = READOUT_H_MARGIN+col*(READOUT_WIDTH+READOUT_H_MARGIN)
+        self.toplefts = self.get_topleft_of_each_item()
+        self.item_topleft_pairs = list(zip(self.items, self.toplefts))
+        self.handle_error_info()
+
+    def handle_error_info(self):
+        error_info = [i for i in self.items if i.is_error_info]
+        if error_info:
+            error_info = error_info[0]
+            error_info_topleft = [i[1] for i in self.item_topleft_pairs if i[0] is error_info][0]
+            topleft = (error_info_topleft[0]+ITEM_H_PAD, error_info_topleft[1]+ITEM_HEIGHT+ITEM_T_MARGIN)
+            height = self.rect.bottom - topleft[1] - READOUT_T_MARGIN / 2
+            width = self.rect.width - ITEM_H_PAD*2
+            error_info_rect = pg.Rect(topleft[0],topleft[1], width, height)
+
+            error_info_bg = pg.Surface(error_info_rect.size).convert_alpha()
+            error_info_bg.fill(ITEM_VALUE_BG_COLOUR)
+            self.app.error_info = (error_info, error_info_bg, error_info_rect)
+
         self.bg_image = self.generate_bg_image()
 
     def generate_bg_image(self):
@@ -129,38 +192,44 @@ class Readout:
         title_height = title_surf.get_rect().height
         title_top_offset = (TITLE_HEIGHT - title_height)/2
         image.blit(title_surf,(TITLE_L_MARGIN, title_top_offset))
-        v_offset = TITLE_HEIGHT
-        for item in self.items:
-            image.blit(item.bg_image, (0, v_offset))
-            image.blit(item.value_image, (item.value_rect.left, v_offset))
-            v_offset += ITEM_HEIGHT+ITEM_T_MARGIN
+        for item, topleft in self.item_topleft_pairs:
+            image.blit(item.bg_image, (topleft[0]-self.rect.left,topleft[1]-self.rect.top))
+            image.blit(item.value_image, (topleft[0]-self.rect.left+item.value_rect.left, topleft[1]-self.rect.top))
         return image
 
     def handle_click(self, pos):
-        v_offset = TITLE_HEIGHT
-        for item in self.items:
-            global_rect = item.rect.move(self.rect.left,self.rect.top+v_offset)
-            print(global_rect)
+        for item, topleft in self.item_topleft_pairs:
+            global_rect = pg.Rect(topleft[0],topleft[1],item.rect.width, item.rect.height)
             if pos_inside_rect(pos, global_rect):
                 return item
-            v_offset += ITEM_HEIGHT + ITEM_T_MARGIN
         return False
+
+    def get_topleft_of_each_item(self):
+        toplefts = []
+        v_offset = TITLE_HEIGHT
+        h_offset = 0
+        for n, item in enumerate(self.items):
+            h_offset_total = h_offset + self.rect.left#+item.value_rect.left
+            v_offset_total = v_offset + self.rect.top
+            topleft = (h_offset_total, v_offset_total)
+            toplefts.append(topleft)
+            if (h_offset == 0) and (n+2>MAX_ITEMS_PER_READOUT):
+                h_offset = READOUT_WIDTH+READOUT_H_MARGIN
+                v_offset = TITLE_HEIGHT
+            else:
+                v_offset += ITEM_HEIGHT + ITEM_T_MARGIN
+        return toplefts
 
 
     def render_init(self):
+        print(f'self.rect.left:{self.rect.left}')
         self.screen.blit(self.bg_image, self.rect)
-        v_offset = TITLE_HEIGHT
-        for item in self.items:
-            self.screen.blit(item.value_text_image, (self.rect.left+item.value_rect.left, self.rect.top+v_offset))
-            v_offset += ITEM_HEIGHT + ITEM_T_MARGIN
 
     def render(self):
-        v_offset = TITLE_HEIGHT
-        for item in self.items:
+        for item, topleft in self.item_topleft_pairs:
             item.update_value_text_image()
-            self.screen.blit(item.value_image, (self.rect.left+item.value_rect.left, self.rect.top+v_offset))
-            self.screen.blit(item.value_text_image, (self.rect.left+item.value_rect.left, self.rect.top+v_offset))
-            v_offset += ITEM_HEIGHT + ITEM_T_MARGIN
+            self.screen.blit(item.value_image, (topleft[0]+item.value_rect.left,topleft[1]))
+            self.screen.blit(item.value_text_image, (topleft[0]+item.value_rect.left,topleft[1]))
 
 
 class ReadoutGroup:
@@ -190,8 +259,6 @@ class ReadoutGroup:
         for readout in self.readouts:
             item = readout.handle_click(pos)
             if item:
-                print('found!')
-                print(f'item: {item}')
                 return item
         return False
 
@@ -206,23 +273,42 @@ class ProtobufReadouts:
         self.hms_readout = Readout(self.app.hms_data)
         self.imu_readout = Readout(self.app.imu_data)
         self.tof_readouts = [Readout(self.app.tof_data[i]) for i in range(4)]
+        self.error_info_font = pg.font.SysFont('Arial', ERROR_INFO_FONT_SIZE)
 
         readout_columns = [[self.cmd_readout],
                            [self.nav_readout],
                            [self.guidance_readout],
                            [self.hms_readout],
                            [self.imu_readout],
-                           self.tof_readouts] # CHANGE THIS LINE!
+                           self.tof_readouts]
 
         self.readout_groups = [ReadoutGroup(i, self.app) for i in readout_columns]
         #  self.comms_toggle = Toggle("comms", self.app.comms_enabled, 2, self.screen, callback=self.app.toggle_comms)
-        for col,i in enumerate(self.readout_groups):
-            i.position(col)
-            i.render_init()
+        col = 0
+        for readout_group in self.readout_groups:
+            readout_group.position(col)
+            readout_group.render_init()
+            if readout_group.readouts[0].double_wide:
+                col += 1
+            col += 1
 
     def render(self):
         for group in self.readout_groups:
             group.render()
+
+        if self.app.error_info is not None:
+            item, bg_image, rect = self.app.error_info
+            self.app.screen.blit(bg_image, rect)
+
+            print(item.value)
+            for n, line in enumerate(item.value):
+                line_image = self.error_info_font.render(line, True, ITEM_VALUE_FONT_COLOUR)
+                left = rect.left + ITEM_VALUE_L_PAD
+                top = rect.top + n * ERROR_INFO_LINE_HEIGHT + ERROR_INFO_T_PAD
+                self.app.screen.blit(line_image, (left, top))
+
+            #  words = error_
+
 
     def handle_click(self, pos):
         for readout_group in self.readout_groups:
