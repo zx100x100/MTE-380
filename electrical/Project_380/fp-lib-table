@@ -1,4 +1,6 @@
 (fp_lib_table
   (lib (name "ESP32-footprints-Lib")(type "KiCad")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/ESP32-kiCAD-Footprints-master/ESP32-Footprints/ESP32-footprints-Lib.pretty")(options "")(descr ""))
   (lib (name "footprints")(type "KiCad")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/ul_MP6519GQ-Z/KiCAD/2022-02-23_21-07-47/footprints.pretty")(options "")(descr ""))
+  (lib (name "footprints_1")(type "KiCad")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/ul_TB67H451FNG-EL/KiCAD/2022-02-23_19-28-06/footprints.pretty")(options "")(descr ""))
+  (lib (name "NX3L4051PW_118")(type "KiCad")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/NX3L4051PW_118")(options "")(descr ""))
 )

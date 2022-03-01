@@ -2,4 +2,5 @@
   (lib (name "2022-02-23_19-28-06")(type "Legacy")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/ul_TB67H451FNG-EL/KiCAD/2022-02-23_19-28-06/2022-02-23_19-28-06.lib")(options "")(descr ""))
   (lib (name "ESP32-footprints-Shem-Lib")(type "Legacy")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/ESP32-kiCAD-Footprints-master/ESP32-Footprints/ESP32-footprints-Shem-Lib.lib")(options "")(descr ""))
   (lib (name "2022-02-23_21-07-47")(type "Legacy")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/ul_MP6519GQ-Z/KiCAD/2022-02-23_21-07-47/2022-02-23_21-07-47.lib")(options "")(descr ""))
+  (lib (name "NX3L4051PW_118")(type "Legacy")(uri "C:/Users/kiran/Documents/Repositories/MTE-380/electrical/Libraries/NX3L4051PW_118/NX3L4051PW_118.lib")(options "")(descr ""))
 )
