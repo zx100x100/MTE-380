@@ -66,6 +66,7 @@ class TelemetryClient(threading.Thread):
             self.data.decode_incoming(rx_raw)
         except Exception as e:
             print(f"Failed to pull data: {e}")
+            print(f"rx_raw: {rx_raw}")
     
     def pull_fake(self):
         self.data.pull_fake()

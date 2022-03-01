@@ -16,7 +16,7 @@ from telemetry_client import TelemetryClient
 from constants import *
 
 # 720 x 720 @ 10 PIXELS_PER_INCH
-FPS = 60
+FPS = 10
 SPF = 1/FPS
 FAKE = True
 FAKE_STATIC = False

@@ -35,6 +35,7 @@ class TelemetryPlots:
                                       self.plots[i].row,
                                       self.plots[i].col, 3)
         self.plots[i].render_init(self.app.screen)
+        self.app.previously_clicked_item = None
 
     def render(self, screen):
         for plot in self.plots:

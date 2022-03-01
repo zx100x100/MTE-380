@@ -55,10 +55,7 @@ class ReadoutItem:
 
         self.is_numeric = type(self.value) in (int, float)
 
-        if self.is_numeric:
-            self.values = deque([self.value],maxlen=MAX_DATA_POINTS)
-        else:
-            self.values = deque([self.value])
+        self.values = deque([self.value],maxlen=DISPLAY_DATA_POINTS)
         self.plotted_latest_value = False
 
     def update_value(self):

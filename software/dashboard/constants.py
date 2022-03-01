@@ -5,7 +5,9 @@ from proto.cmd_data_pb2 import CmdData
 SERVER_HOST = "192.168.63.111"  # The server's hostname or IP address
 SERVER_PORT = 23
 
-MAX_DATA_POINTS = 1000
+#  MAX_DATA_POINTS = 100
+PLOT_SIZE = (200,140) # pixels for the size of the inner plot
+DISPLAY_DATA_POINTS = PLOT_SIZE[0]
 SCREEN_SIZE = (1366,710)
 ARENA_SIZE_INCHES = 72
 PIXELS_PER_INCH = 5

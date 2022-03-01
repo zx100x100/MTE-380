@@ -25,7 +25,7 @@ CONTROL_Y_MARGIN = GLOBAL_MARGIN
 
 CONTROL_LABEL_FONT_SIZE = 18
 
-BUTTON_DISABLED_BG_COLOUR = (40,40,40)
+BUTTON_DISABLED_BG_COLOUR = (70,70,70)
 START_BUTTON_BG_COLOUR = (0,200,0)
 STOP_BUTTON_BG_COLOUR = (200,0,0)
 
@@ -136,10 +136,16 @@ class Button:
         self.title_font = pg.font.SysFont('Arial', CONTROL_LABEL_FONT_SIZE)
         self.image = self.generate_image()
 
+    def refresh_state(self):
+        self.image = self.generate_image()
+        self.render()
 
     def generate_image(self):
         image = pg.Surface(self.rect.size).convert_alpha()
-        image.fill(self.bg_colour)
+        if self.disabled:
+            image.fill(BUTTON_DISABLED_BG_COLOUR)
+        else:
+            image.fill(self.bg_colour)
         title_surf = self.title_font.render(self.title, True, CONTROL_LABEL_FONT_COLOUR)
         title_height = title_surf.get_rect().height
         title_top_offset = (CONTROL_HEIGHT - title_height)/2
@@ -168,7 +174,7 @@ class Controls:
         connect_button = Button(text_callback=self.connect_button_text,
                                 click_callback=self.connect_button_click,
                                 colour_callback=self.connect_button_colour)
-        start_button = Button(text_callback=self.start_button_text,
+        self.start_button = Button(text_callback=self.start_button_text,
                               click_callback=self.start_button_click,
                               colour_callback=self.start_button_colour,
                               is_disabled_callback=self.start_button_disabled)
@@ -177,7 +183,7 @@ class Controls:
         #  self.propeller_toggle = Toggle("propeller", False, self.screen)
         #  self.comms_toggle = Toggle("comms", self.app.comms_enabled, 3, self.screen, callback=self.app.toggle_comms)
         #  self.elements = [self.enable_toggle, self.propeller_toggle, self.teleop_toggle, self.comms_toggle]
-        self.elements = [connect_button, start_button, teleop_toggle]
+        self.elements = [connect_button, self.start_button, teleop_toggle]
         self.position_elements()
 
     def toggle_teleop(self):
@@ -187,8 +193,10 @@ class Controls:
     def connect_button_click(self):
         if self.app.telemetry_client.connected:
             self.app.telemetry_client.disconnect()
+            self.start_button.refresh_state()
         else:
             self.app.telemetry_client.connect()
+            self.start_button.refresh_state()
     
     def connect_button_text(self):
         return 'Disconnect' if self.app.telemetry_client.connected else 'Connect'
@@ -239,8 +247,8 @@ class Controls:
 
     
     def start_button_disabled(self):
-        return False
-        #  return not self.app.telemetry_client.connected
+        #  return False
+        return not self.app.telemetry_client.connected
 
     def position_elements(self):
         for n,element in enumerate(self.elements):
