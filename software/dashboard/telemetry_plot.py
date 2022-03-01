@@ -1,5 +1,6 @@
 import pygame as pg
 from collections import deque
+from itertools import islice
 import math
 import traceback
 
@@ -22,14 +23,15 @@ DATA_POINT_SIZE = 1
 TICK_SIZE = (Y_LABEL_WIDTH,15)
 DISPLAY_MIN_N_TICKS = 3
 DISPLAY_MAX_N_TICKS = 5
-MIN_TICKS_BETW_RESCALES = 10 # prevent twitchy rescales
+MIN_TICKS_BETW_RESCALES = 50 # prevent twitchy rescales
 
 PLOT_MARGIN = (GLOBAL_MARGIN, 0, 0, GLOBAL_MARGIN)
 
 class TelemetryPlot:
-    def __init__(self, proto, row, col, tick_increment):
-        self.proto = proto
-        self.title = self.proto.name
+    def __init__(self, pb_item, row, col, tick_increment=3.0):
+        #  self.proto = proto
+        self.pb_item = pb_item
+        self.title = self.pb_item.name
         self.tick_increment = tick_increment
         self.plot_size = PLOT_SIZE
         self.row = row
@@ -44,7 +46,10 @@ class TelemetryPlot:
         #  print(f'total_width: {total_width}')
         self.title_font = pg.font.SysFont('Arial', 20)
         self.axis_label_font = pg.font.SysFont('Arial', AXIS_LABEL_FONTSIZE)
-        self.values = deque([proto.value],maxlen=DISPLAY_DATA_POINTS)
+
+        # TODO: make self.values an @attribute that grabs DISPLAY_DATA_POINTS
+        #  self.values = deque([proto.value],maxlen=DISPLAY_DATA_POINTS)
+
         self.plot_image = self.generate_plot_image()
         self.plot_image_rect = self.plot_image.get_rect()
         self.plot_image_rect.bottom = self.rect.bottom
@@ -56,7 +61,7 @@ class TelemetryPlot:
         self.y_label_area_image_rect.bottom = self.rect.bottom
         self.scale_factor = 1
         self.display_scale_min = min(self.values)
-        self.display_scale_min = max(self.values)
+        self.display_scale_max = max(self.values)
         self.display_scale_pad = 0.3 # 30% - how much to display beyond data
         self.display_tick_pad = 0.15 # 10% - how far to place ticks beyond data
         self.pixel_scale_factor = None
@@ -64,34 +69,73 @@ class TelemetryPlot:
         self.ticks = {}
         self.ticks_since_last_rescale = 0 # prevent twitchy rescaling
 
+        new_min = min(self.values)
+        new_max = max(self.values)
+        if new_max == new_min:
+            new_min = min(self.values)
+            new_max = new_min+0.01
+        breadth = new_max-new_min
+        new_min_for_display = new_min - breadth*self.display_scale_pad
+        new_max_for_display = new_max + breadth*self.display_scale_pad
+        new_fullscale = new_max_for_display-new_min_for_display
+        new_pixel_scale_factor = self.plot_size[1]/new_fullscale
+        self.pixel_scale_factor = new_pixel_scale_factor
+
+    # return MAX_DATA_POINTS items from the end of the values deque
+    # except move the entire slice left by one since we use this to erase
+    # the previous state
+    @property
+    def old_values(self):
+        length = len(self.pb_item.values)
+        first_ele = max(length - DISPLAY_DATA_POINTS - 1, 0)
+        #  print(f'first_ele: {first_ele}')
+        return deque(islice(self.pb_item.values, first_ele, len(self.pb_item.values)-1))
+
+    # return MAX_DATA_POINTS items from the end of the values deque
+    @property
+    def values(self):
+        length = len(self.pb_item.values)
+        first_ele = length - DISPLAY_DATA_POINTS
+        if first_ele<1:
+            return self.pb_item.values
+        return deque(islice(self.pb_item.values, first_ele, len(self.pb_item.values)))
+
     def render_init(self, screen):
         screen.blit(self.background_image, self.rect)
         screen.blit(self.plot_image, self.plot_image_rect)
         screen.blit(self.y_label_area_image, self.y_label_area_image_rect)
 
     def erase_update_render(self, screen):
+        #  print('eur.',end='')
+        self.ticks_since_last_rescale += 1
+        if self.pb_item.plotted_latest_value:
+            return
+        else:
+            self.pb_item.plotted_latest_value = True
         try:
+            #  print(f'self.values: {self.values}')
             if self.pixel_scale_factor is not None:
-                for i in range(len(self.values)):
+                for i in range(len(self.old_values)):
                     #  pass # erase broken rn
                     breadth = self.display_scale_max-self.display_scale_min
                     minn = self.display_scale_min-breadth*self.display_scale_pad
-                    dist_from_bot = self.values[-i]-minn
+                    #  print(f'self.old_values: {self.old_values}')
+                    #  print(len(self.old_values))
+                    #  print(f'i: {i}')
+                    dist_from_bot = self.old_values[-(i+1)]-minn
                     scaled_dist_from_bot = int(dist_from_bot*self.pixel_scale_factor)
                     height = self.rect.bottom-scaled_dist_from_bot
                     pixel_pos = (self.rect.right-i-1,height)
+                    
+                    #  print(f'erase_pixel_pos: {pixel_pos}')
                     screen.set_at(pixel_pos, PLOT_BACKGROUND_COLOUR)
-
-            #  if self.new_value is not None:
-            self.values.append(self.proto.value)
-            #  self.new_value = None
+                    #  screen.set_at(pixel_pos, (0,255,0))
             
             new_min = min(self.values)
             new_max = max(self.values)
             if new_max == new_min:
-                self.values[0] = -0.01
                 new_min = min(self.values)
-                new_max = max(self.values)
+                new_max = new_min+0.01
             breadth = new_max-new_min
 
             #  print(f'breadth: {breadth}')
@@ -107,8 +151,6 @@ class TelemetryPlot:
                 new_fullscale = new_max_for_display-new_min_for_display
                 new_pixel_scale_factor = self.plot_size[1]/new_fullscale
 
-                #  print(f'new_min: {new_min}')
-                #  print(f'new_max: {new_max}')
                 first_tick = (math.ceil(new_min_for_ticks/self.tick_increment))*self.tick_increment
 
                 last_tick = (math.floor(new_max_for_ticks / self.tick_increment))*self.tick_increment
@@ -120,8 +162,9 @@ class TelemetryPlot:
                         n += 1
                         first_tick = (math.ceil(new_min_for_ticks/self.tick_increment))*self.tick_increment
 
-                        last_tick = (math.floor(new_max_for_ticks / self.tick_increment))*self.tick_increment
+                        last_tick = (math.floor(new_max_for_ticks/self.tick_increment))*self.tick_increment
                         self.ticks_since_last_rescale = 0
+                        self.tick_increment /= 2
 
                     while (last_tick-first_tick)/self.tick_increment > DISPLAY_MAX_N_TICKS:
                         if n>5:
@@ -162,16 +205,18 @@ class TelemetryPlot:
             self.display_scale_max = new_max
             self.display_scale_min = new_min
 
+            print('out.')
+            #  print(f'self.values: {self.values}')
             for i in range(len(self.values)):
                 minn = self.display_scale_min-breadth*self.display_scale_pad
-                dist_from_bot = self.values[-i]-minn
+                dist_from_bot = self.values[-(i+1)]-minn
                 scaled_dist_from_bot = int(dist_from_bot*self.pixel_scale_factor)
                 height = self.rect.bottom-scaled_dist_from_bot
                 pixel_pos = (self.rect.right-i-1,height)
                 #  print(f'pixel_pos: {pixel_pos}')
                 #  print(f'self.rect: {self.rect}')
                 screen.set_at(pixel_pos,DATA_POINT_COLOUR)
-            self.ticks_since_last_rescale += 1
+                #  print(f'out_pixel_pos: {pixel_pos}')
         except Exception as e:
             #  pass
             print(f"ERROR UPDATING PLOTS: {e}")

@@ -25,6 +25,7 @@ typedef struct _GuidanceData {
     float rightOutputDrift; /* right motor output from drift PID */
     float leftPower; /* combined left motor output from vel and drift PIDs */
     float rightPower; /* combined right motor output from vel and drift PIDs */
+    float propPower; /* combined right motor output from vel and drift PIDs */
     uint32_t segNum; /* current arena segment number */
 } GuidanceData;
 
@@ -34,8 +35,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define GuidanceData_errVel_tag                  1
@@ -52,7 +53,8 @@ extern "C" {
 #define GuidanceData_rightOutputDrift_tag        12
 #define GuidanceData_leftPower_tag               13
 #define GuidanceData_rightPower_tag              14
-#define GuidanceData_segNum_tag                  15
+#define GuidanceData_propPower_tag               15
+#define GuidanceData_segNum_tag                  16
 
 /* Struct field encoding specification for nanopb */
 #define GuidanceData_FIELDLIST(X, a) \
@@ -70,7 +72,8 @@ X(a, STATIC,   SINGULAR, FLOAT,    leftOutputDrift,  11) \
 X(a, STATIC,   SINGULAR, FLOAT,    rightOutputDrift,  12) \
 X(a, STATIC,   SINGULAR, FLOAT,    leftPower,        13) \
 X(a, STATIC,   SINGULAR, FLOAT,    rightPower,       14) \
-X(a, STATIC,   SINGULAR, UINT32,   segNum,           15)
+X(a, STATIC,   SINGULAR, FLOAT,    propPower,        15) \
+X(a, STATIC,   SINGULAR, UINT32,   segNum,           16)
 #define GuidanceData_CALLBACK NULL
 #define GuidanceData_DEFAULT NULL
 
@@ -80,7 +83,7 @@ extern const pb_msgdesc_t GuidanceData_msg;
 #define GuidanceData_fields &GuidanceData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define GuidanceData_size                        76
+#define GuidanceData_size                        82
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -1,5 +1,6 @@
 from telemetry_plot import TelemetryPlot
 from util import pos_inside_rect
+from protobuf_readouts import ReadoutItem
 
 ROWS = 2
 COLUMNS = 3
@@ -20,7 +21,7 @@ class TelemetryPlots:
         for plot in self.plots:
             plot.render_init(screen)
 
-    def append_plot_if_fits(self, new_proto):
+    def append_plot_if_fits(self, new_proto: ReadoutItem):
         if len(self.plots) < MAX_PLOTS:
             row = int(len(self.plots)/COLUMNS)
             col = len(self.plots) - (row) * COLUMNS
@@ -45,5 +46,3 @@ class TelemetryPlots:
                 if self.app.previously_clicked_item is not None:
                     self.replace_plot(i, self.app.previously_clicked_item)
                 return True
-
-

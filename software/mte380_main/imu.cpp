@@ -39,7 +39,7 @@ Imu::Imu(Hms* hms):
 }
 
 void Imu::poll(){
-  /* imuData.timestamp = micros(); */
+  // imuData.timestamp = micros();
   sensors_event_t event;
   
   accel.getEvent(&event);
@@ -57,9 +57,13 @@ void Imu::poll(){
   imuData.gyroX = event.gyro.x;
   imuData.gyroY = event.gyro.y;
   imuData.gyroZ = event.gyro.z;
+  // Serial.print("imuData ptr:");
+  // Serial.print((unsigned long)&imuData);
+  Serial.print("imuData.accelZ:");
+  Serial.println(imuData.accelZ);
 }
 
-ImuData &Imu::getData(){
+ImuData& Imu::getData(){
   return imuData;
 }
 

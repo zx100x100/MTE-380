@@ -73,6 +73,11 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
   }
   delimitData(stream);
   
+
+  Serial.print("imuData ptr:");
+  Serial.print((unsigned long)&sensors.imu.getData());
+  Serial.print(" ");
+  Serial.print(sensors.imu.getData().gyroZ);
   if (!pb_encode(&stream, ImuData_fields, &sensors.imu.getData())){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;
@@ -110,6 +115,7 @@ void TelemetryServer::update(){
       // TODO CHANGE THIS BEHAVIOR OR AT LEAST MAKE SURE DOING IT THIS WAY ISNT MAKING TICKRATES LESS CONSISTENT
       int receiveBytes = client.available();
       if (receiveBytes > 0){ // input available, update cmd, send back telemetry
+        Serial.println("Received cmd data");
         // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
         int i = 0;

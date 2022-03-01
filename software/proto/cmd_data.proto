@@ -1,16 +1,13 @@
 syntax = "proto3";
 
 message CmdData{
-  message Teleop{
-    float leftPower = 1;
-    float rightPower = 2;
-  }
   enum RunState{
     E_STOP = 0;
-    STOP = 1;
-    AUTO = 2;
-    TELEOP = 3;
+    AUTO = 1;
+    TELEOP = 2;
   }
-  RunState runState = 1;
-  Teleop teleop = 2;
+  int32 placeholder = 1;
+  float leftPower = 2;
+  float rightPower = 3;
+  RunState runState = 4;
 }

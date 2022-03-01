@@ -1,10 +1,11 @@
 from enum import Enum
 import numpy as np
+from proto.cmd_data_pb2 import CmdData
 
-HOST = "192.168.183.111"  # The server's hostname or IP address
+SERVER_HOST = "192.168.63.111"  # The server's hostname or IP address
+SERVER_PORT = 23
 
-COMMS_DEFAULT_ON = False
-COMMS_TIMEOUT = 3
+MAX_DATA_POINTS = 1000
 SCREEN_SIZE = (1366,710)
 ARENA_SIZE_INCHES = 72
 PIXELS_PER_INCH = 5
@@ -20,6 +21,9 @@ print(f'SCREEN_SIZE: {SCREEN_SIZE}')
 CONTROL_ITEM_HEIGHT = 30
 CONTROL_ITEM_WIDTH = 160
 GLOBAL_MARGIN = 8
+
+STOPPED_STATES = [CmdData.RunState.E_STOP]
+STARTED_STATES = [CmdData.RunState.AUTO, CmdData.RunState.TELEOP]
 
 class TRBL(Enum): # helper because I never learned how to count
     T = 0 # top

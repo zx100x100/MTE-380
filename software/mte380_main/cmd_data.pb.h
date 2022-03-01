@@ -12,21 +12,16 @@
 /* Enum definitions */
 typedef enum _CmdData_RunState { 
     CmdData_RunState_E_STOP = 0, 
-    CmdData_RunState_STOP = 1, 
-    CmdData_RunState_AUTO = 2, 
-    CmdData_RunState_TELEOP = 3 
+    CmdData_RunState_AUTO = 1, 
+    CmdData_RunState_TELEOP = 2 
 } CmdData_RunState;
 
 /* Struct definitions */
-typedef struct _CmdData_Teleop { 
+typedef struct _CmdData { 
+    int32_t placeholder; 
     float leftPower; 
     float rightPower; 
-} CmdData_Teleop;
-
-typedef struct _CmdData { 
     CmdData_RunState runState; 
-    bool has_teleop;
-    CmdData_Teleop teleop; 
 } CmdData;
 
 
@@ -41,41 +36,31 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define CmdData_init_default                     {_CmdData_RunState_MIN, false, CmdData_Teleop_init_default}
-#define CmdData_Teleop_init_default              {0, 0}
-#define CmdData_init_zero                        {_CmdData_RunState_MIN, false, CmdData_Teleop_init_zero}
-#define CmdData_Teleop_init_zero                 {0, 0}
+#define CmdData_init_default                     {0, 0, 0, _CmdData_RunState_MIN}
+#define CmdData_init_zero                        {0, 0, 0, _CmdData_RunState_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define CmdData_Teleop_leftPower_tag             1
-#define CmdData_Teleop_rightPower_tag            2
-#define CmdData_runState_tag                     1
-#define CmdData_teleop_tag                       2
+#define CmdData_placeholder_tag                  1
+#define CmdData_leftPower_tag                    2
+#define CmdData_rightPower_tag                   3
+#define CmdData_runState_tag                     4
 
 /* Struct field encoding specification for nanopb */
 #define CmdData_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UENUM,    runState,          1) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  teleop,            2)
+X(a, STATIC,   SINGULAR, INT32,    placeholder,       1) \
+X(a, STATIC,   SINGULAR, FLOAT,    leftPower,         2) \
+X(a, STATIC,   SINGULAR, FLOAT,    rightPower,        3) \
+X(a, STATIC,   SINGULAR, UENUM,    runState,          4)
 #define CmdData_CALLBACK NULL
 #define CmdData_DEFAULT NULL
-#define CmdData_teleop_MSGTYPE CmdData_Teleop
-
-#define CmdData_Teleop_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    leftPower,         1) \
-X(a, STATIC,   SINGULAR, FLOAT,    rightPower,        2)
-#define CmdData_Teleop_CALLBACK NULL
-#define CmdData_Teleop_DEFAULT NULL
 
 extern const pb_msgdesc_t CmdData_msg;
-extern const pb_msgdesc_t CmdData_Teleop_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define CmdData_fields &CmdData_msg
-#define CmdData_Teleop_fields &CmdData_Teleop_msg
 
 /* Maximum encoded size of messages (where known) */
-#define CmdData_Teleop_size                      10
-#define CmdData_size                             14
+#define CmdData_size                             23
 
 #ifdef __cplusplus
 } /* extern "C" */

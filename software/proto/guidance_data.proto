@@ -19,6 +19,7 @@ message GuidanceData {
 
   float leftPower = 13; // combined left motor output from vel and drift PIDs
   float rightPower = 14; // combined right motor output from vel and drift PIDs
+  float propPower = 15; // combined right motor output from vel and drift PIDs
 
-  uint32 segNum = 15; // current arena segment number
+  uint32 segNum = 16; // current arena segment number
 }

@@ -9,8 +9,5 @@
 PB_BIND(CmdData, CmdData, AUTO)
 
 
-PB_BIND(CmdData_Teleop, CmdData_Teleop, AUTO)
-
-
 
 

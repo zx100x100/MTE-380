@@ -25,12 +25,23 @@ CONTROL_Y_MARGIN = GLOBAL_MARGIN
 
 CONTROL_LABEL_FONT_SIZE = 18
 
+BUTTON_DISABLED_BG_COLOUR = (40,40,40)
+START_BUTTON_BG_COLOUR = (0,200,0)
+STOP_BUTTON_BG_COLOUR = (200,0,0)
+
+STOP_BUTTON_BG_COLOUR = (200,0,0)
+CONNECT_BUTTON_BG_COLOUR = (100,100,255)
+DISCONNECT_BUTTON_BG_COLOUR = (150,0,0)
+
 class Toggle:
-    def __init__(self, title, on, n, screen, callback=None):
+    def __init__(self, title, on, callback=None):
         self.on = on
         self.title = title
-        self.screen = screen
-        self.n = n
+        self.callback = callback # for special behavior when clicked
+
+    def position(self, app, n):
+        self.app = app
+        self.screen = self.app.screen
         self.rect = pg.Rect(0,0,CONTROL_WIDTH, CONTROL_HEIGHT)
         self.rect.bottom = SCREEN_SIZE[1]-CONTROL_Y_MARGIN
         #  total_width 
@@ -42,9 +53,9 @@ class Toggle:
         self.toggle_rect.centery = self.rect.height/2
 
         # globally positioned version of the above for convenient click detection
-        self.toggle_rect_globally_positioned = pg.Rect(0,0,TOGGLE_WIDTH,TOGGLE_HEIGHT)
-        self.toggle_rect_globally_positioned.left = self.rect.left + self.toggle_rect.left
-        self.toggle_rect_globally_positioned.centery = self.rect.centery
+        self.click_rect_globally_positioned = pg.Rect(0,0,TOGGLE_WIDTH,TOGGLE_HEIGHT)
+        self.click_rect_globally_positioned.left = self.rect.left + self.toggle_rect.left
+        self.click_rect_globally_positioned.centery = self.rect.centery
 
         self.slider_rect = pg.Rect(0,0,TOGGLE_SLIDER_WIDTH, TOGGLE_SLIDER_HEIGHT)
         self.slider_rect.centery = self.rect.height/2
@@ -52,7 +63,6 @@ class Toggle:
         self.horizontally_adjust_rect()
         self.image = self.generate_image()
 
-        self.callback = callback # for special behavior when clicked
 
     def horizontally_adjust_rect(self):
         if self.on:
@@ -83,34 +93,167 @@ class Toggle:
     def render(self):
         self.screen.blit(self.image, self.rect)
 
-    def toggle(self, force_enable=None):
+    def click(self):
         self.on = not self.on
-        if force_enable is not None:
-            self.on = force_enable
         self.horizontally_adjust_rect()
         self.image = self.generate_image()
         self.render()
         if self.callback is not None:
             self.callback()
 
+class Button:
+    def __init__(self, text_callback, click_callback, colour_callback=lambda: CONTROL_BG_COLOUR, is_disabled_callback=lambda: False):
+        self.text_callback = text_callback # for special behavior when clicked
+        self.click_callback = click_callback # for special behavior when clicked
+        self.is_disabled_callback = is_disabled_callback # for when button should be disabled
+        self.colour_callback = colour_callback # for when button should be disabled
+
+    @property
+    def disabled(self):
+        return self.is_disabled_callback()
+    
+    @property
+    def bg_colour(self):
+        return self.colour_callback()
+    
+    @property
+    def disabled(self):
+        return self.is_disabled_callback()
+
+    @property
+    def title(self):
+        return self.text_callback()
+
+    def position(self, app, n):
+        self.n = n
+        self.app = app
+        self.screen = app.screen
+        self.rect = pg.Rect(0,0,CONTROL_WIDTH, CONTROL_HEIGHT)
+        self.rect.bottom = SCREEN_SIZE[1]-CONTROL_Y_MARGIN
+        self.rect.left = CONTROL_X_MARGIN+(CONTROL_WIDTH+CONTROL_X_MARGIN)*n
+        self.click_rect_globally_positioned = self.rect
+
+        self.title_font = pg.font.SysFont('Arial', CONTROL_LABEL_FONT_SIZE)
+        self.image = self.generate_image()
+
+
+    def generate_image(self):
+        image = pg.Surface(self.rect.size).convert_alpha()
+        image.fill(self.bg_colour)
+        title_surf = self.title_font.render(self.title, True, CONTROL_LABEL_FONT_COLOUR)
+        title_height = title_surf.get_rect().height
+        title_top_offset = (CONTROL_HEIGHT - title_height)/2
+        image.blit(title_surf,(5,title_top_offset))
+        
+        return image
+    
+
+    def render(self):
+        self.screen.blit(self.image, self.rect)
+
+    def click(self):
+        if not self.disabled:
+            self.click_callback()
+            self.image = self.generate_image()
+            self.render()
+        else:
+            pass
+
 class Controls:
     def __init__(self, app):
         self.app = app
         self.screen = self.app.screen
-        self.enable_toggle = Toggle("enable", False, 0, self.screen, callback=self.app.toggle_robot_enable)
-        self.propeller_toggle = Toggle("propeller", False, 1, self.screen)
-        self.teleop_toggle = Toggle("teleop", True, 2, self.screen, callback=self.app.toggle_teleop)
-        self.comms_toggle = Toggle("comms", self.app.comms_enabled, 3, self.screen, callback=self.app.toggle_comms)
-        self.toggles = [self.enable_toggle, self.propeller_toggle, self.teleop_toggle, self.comms_toggle]
+        self.teleop = True
+
+        connect_button = Button(text_callback=self.connect_button_text,
+                                click_callback=self.connect_button_click,
+                                colour_callback=self.connect_button_colour)
+        start_button = Button(text_callback=self.start_button_text,
+                              click_callback=self.start_button_click,
+                              colour_callback=self.start_button_colour,
+                              is_disabled_callback=self.start_button_disabled)
+        teleop_toggle = Toggle("teleop", self.teleop, callback=self.toggle_teleop)
+        #  self.enable_toggle = Toggle("enable", False, 0, self.screen, callback=self.app.toggle_robot_enable)
+        #  self.propeller_toggle = Toggle("propeller", False, self.screen)
+        #  self.comms_toggle = Toggle("comms", self.app.comms_enabled, 3, self.screen, callback=self.app.toggle_comms)
+        #  self.elements = [self.enable_toggle, self.propeller_toggle, self.teleop_toggle, self.comms_toggle]
+        self.elements = [connect_button, start_button, teleop_toggle]
+        self.position_elements()
+
+    def toggle_teleop(self):
+        self.teleop = not self.teleop
+        self.set_run_state()
+
+    def connect_button_click(self):
+        if self.app.telemetry_client.connected:
+            self.app.telemetry_client.disconnect()
+        else:
+            self.app.telemetry_client.connect()
+    
+    def connect_button_text(self):
+        return 'Disconnect' if self.app.telemetry_client.connected else 'Connect'
+    
+    def connect_button_colour(self):
+        if self.app.telemetry_client.connected:
+            return DISCONNECT_BUTTON_BG_COLOUR
+        else:
+            return CONNECT_BUTTON_BG_COLOUR
+
+    def robot_is_started(self):
+        return self.app.data.cmd.pb.runState in STARTED_STATES
+    
+    def start_button_text(self):
+        if self.robot_is_started():
+            return 'Stop'
+        else:
+            return 'Start'
+    
+    def start_button_colour(self):
+        if self.robot_is_started():
+            return STOP_BUTTON_BG_COLOUR
+        else:
+            return START_BUTTON_BG_COLOUR
+    
+    def start_button_click(self):
+        self.inverse_run_state()
+    
+    def set_run_state(self):
+        if self.robot_is_started():
+            # then we should stop the robot
+            if self.teleop:
+                self.app.data.cmd.pb.runState = CmdData.RunState.TELEOP
+            else:
+                self.app.data.cmd.pb.runState = CmdData.RunState.AUTO
+        else:
+            self.app.data.cmd.pb.runState = CmdData.RunState.E_STOP
+
+    def inverse_run_state(self):
+        if self.robot_is_started():
+            # then we should stop the robot
+            self.app.data.cmd.pb.runState = CmdData.RunState.E_STOP
+        else:
+            if self.teleop:
+                self.app.data.cmd.pb.runState = CmdData.RunState.TELEOP
+            else:
+                self.app.data.cmd.pb.runState = CmdData.RunState.AUTO
+
+    
+    def start_button_disabled(self):
+        return False
+        #  return not self.app.telemetry_client.connected
+
+    def position_elements(self):
+        for n,element in enumerate(self.elements):
+            element.position(self.app, n)
 
     def handle_click(self, pos):
-        for toggle in self.toggles:
-            rect = toggle.toggle_rect_globally_positioned
+        for element in self.elements:
+            rect = element.click_rect_globally_positioned
             if pos_inside_rect(pos, rect):
-                toggle.toggle()
+                element.click()
                 return True
 
-    def render(self):
-        for toggle in self.toggles:
+    def render_init(self):
+        for toggle in self.elements:
             toggle.render()
 

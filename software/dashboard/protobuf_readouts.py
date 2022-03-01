@@ -1,6 +1,7 @@
 import pygame as pg
 from util import pos_inside_rect
 from proto.hms_data_pb2 import HmsData
+from collections import deque
 
 from constants import *
 
@@ -33,14 +34,13 @@ ERROR_INFO_LINE_HEIGHT = 14
 ERROR_INFO_T_PAD = 5
 
 class ReadoutItem:
-    def __init__(self, name, proto, is_msg):
+    def __init__(self, name, proto):
         self.rect = pg.Rect(0,0,READOUT_WIDTH, ITEM_HEIGHT)
         self.clicked = False
         self.value_rect = pg.Rect(self.rect.width - ITEM_VALUE_H_MARGIN - ITEM_VALUE_RECT_WIDTH,
                                   0,
                                   ITEM_VALUE_RECT_WIDTH,
                                   ITEM_VALUE_RECT_HEIGHT)
-        self.is_msg = is_msg
         self.label_font = pg.font.SysFont('Arial', ITEM_LABEL_FONT_SIZE)
         self.value_font = pg.font.SysFont('Arial', ITEM_VALUE_FONT_SIZE)
         self.name = name
@@ -53,9 +53,19 @@ class ReadoutItem:
         self.value_text_image = self.generate_value_text_image()
         self.name = name
 
+        self.is_numeric = type(self.value) in (int, float)
+
+        if self.is_numeric:
+            self.values = deque([self.value],maxlen=MAX_DATA_POINTS)
+        else:
+            self.values = deque([self.value])
+        self.plotted_latest_value = False
+
+    def update_value(self):
+        self.values.append(self.value)
+        self.plotted_latest_value = False
+
     def detect_whether_item_is_enum(self):
-        if self.is_msg:
-            return False
         return self.proto.DESCRIPTOR.fields_by_name[self.name].enum_type is not None
 
     def generate_bg_image(self):
@@ -64,9 +74,7 @@ class ReadoutItem:
         label_surf = self.label_font.render(self.name, True, ITEM_LABEL_FONT_COLOUR)
         label_rect = label_surf.get_rect()
         label_top_offset = (self.rect.height - label_rect.height)/2
-        if self.is_msg:
-            label_rect.left = self.rect.left + ITEM_VALUE_H_MARGIN
-        elif self.is_error_info:
+        if self.is_error_info:
             label_rect.centerx = self.rect.centerx
         else:
             label_rect.right = self.rect.width - ITEM_VALUE_RECT_WIDTH - 2 * ITEM_VALUE_H_MARGIN
@@ -75,14 +83,14 @@ class ReadoutItem:
 
     def generate_value_image(self):
         image = pg.Surface(self.value_rect.size).convert_alpha()
-        if self.is_msg or self.is_error_info:
+        if self.is_error_info:
             image.fill((0,0,0,0))
         else:
             image.fill(ITEM_VALUE_BG_COLOUR)
         return image
     
     def generate_value_text_image(self):
-        if self.is_msg or self.is_error_info:
+        if self.is_error_info:
             return self.value_image # blank
         image = pg.Surface(self.value_rect.size).convert_alpha()
         image.fill((0,0,0,0))
@@ -109,6 +117,7 @@ class ReadoutItem:
             return enum_type.values_by_number[getattr(self.proto, self.name)].name
         if self.is_error_info:
             return self.parse_error_info(getattr(self.proto, self.name))
+        #  print(self.proto.DESCRIPTOR.fields_by_name.items())
         return getattr(self.proto, self.name)
 
     def parse_error_info(self, value):
@@ -126,14 +135,20 @@ class ReadoutItem:
 
 
 class Readout:
-    def __init__(self, proto, submsgs=[]):
+    def __init__(self, proto, app):
         self.n = None
         self.proto = proto
+        self.app = app
+        self.screen = app.screen
         self.title_font = pg.font.SysFont('Arial', TITLE_FONT_SIZE)
         self.items = self.get_items()
         self.rect, self.double_wide = self.generate_rect()
         self.title = type(self.proto).__name__
         self.toplefts = None # toplets of each item, assigned during positioning
+
+    def update_vals(self):
+        for item in self.items:
+            item.update_value()
         
     def generate_rect(self):
         if len(self.items)>MAX_ITEMS_PER_READOUT:
@@ -149,14 +164,7 @@ class Readout:
         data_pairs = dict([(name,getattr(self.proto, name)) for name in fields])
         items = []
         for k, v in data_pairs.items():
-            if len(str(type(v))) > 13 and str(type(v))[8:13] == 'proto':
-                items.append(ReadoutItem(name=k, proto=v, is_msg=True))
-                subfields = v.DESCRIPTOR.fields_by_name.keys()
-                sub_data_pairs = dict([(name,getattr(v, name)) for name in subfields])
-                for sub_k, sub_v in sub_data_pairs.items():
-                    items.append(ReadoutItem(name=sub_k, proto=v, is_msg=False))
-            else:
-                items.append(ReadoutItem(name=k, proto=self.proto, is_msg=False))
+            items.append(ReadoutItem(name=k, proto=self.proto))
         return items
         
     def position(self, col, row, n):
@@ -182,6 +190,7 @@ class Readout:
             error_info_bg = pg.Surface(error_info_rect.size).convert_alpha()
             error_info_bg.fill(ITEM_VALUE_BG_COLOUR)
             self.app.error_info = (error_info, error_info_bg, error_info_rect)
+            print('err_info')
 
         self.bg_image = self.generate_bg_image()
 
@@ -222,7 +231,7 @@ class Readout:
 
 
     def render_init(self):
-        print(f'self.rect.left:{self.rect.left}')
+        #  print(f'self.rect.left:{self.rect.left}')
         self.screen.blit(self.bg_image, self.rect)
 
     def render(self):
@@ -238,14 +247,11 @@ class ReadoutGroup:
         self.col = None
         self.app = app
         self.screen = self.app.screen
-        for readout in self.readouts:
-            readout.app = app
-            readout.screen = app.screen
 
     def position(self, col):
         self.col = col
-        for row, readout in enumerate(self.readouts):
-            readout.position(col, row, len(self.readouts))
+        for row, r in enumerate(self.readouts):
+            r.position(col, row, len(self.readouts))
     
     def render_init(self):
         for r in self.readouts:
@@ -264,26 +270,24 @@ class ReadoutGroup:
 
 
 class ProtobufReadouts:
-    def __init__(self, app):
+    def __init__(self, app, pb_data_columns):
         self.app = app
         self.screen = self.app.screen
-        self.cmd_readout = Readout(self.app.cmd_data)
-        self.nav_readout = Readout(self.app.nav_data)
-        self.guidance_readout = Readout(self.app.guidance_data)
-        self.hms_readout = Readout(self.app.hms_data)
-        self.imu_readout = Readout(self.app.imu_data)
-        self.tof_readouts = [Readout(self.app.tof_data[i]) for i in range(4)]
         self.error_info_font = pg.font.SysFont('Arial', ERROR_INFO_FONT_SIZE)
 
-        readout_columns = [[self.cmd_readout],
-                           [self.nav_readout],
-                           [self.guidance_readout],
-                           [self.hms_readout],
-                           [self.imu_readout],
-                           self.tof_readouts]
+        self.init_readout_groups(pb_data_columns)
+
+    def init_readout_groups(self, pb_data_columns):
+        readout_columns = []
+        for column in pb_data_columns:
+            readout_column = []
+            for pb_data in column:
+                readout = Readout(pb_data.pb, self.app)
+                pb_data.set_readout(readout)
+                readout_column.append(readout)
+            readout_columns.append(readout_column)
 
         self.readout_groups = [ReadoutGroup(i, self.app) for i in readout_columns]
-        #  self.comms_toggle = Toggle("comms", self.app.comms_enabled, 2, self.screen, callback=self.app.toggle_comms)
         col = 0
         for readout_group in self.readout_groups:
             readout_group.position(col)
@@ -300,7 +304,7 @@ class ProtobufReadouts:
             item, bg_image, rect = self.app.error_info
             self.app.screen.blit(bg_image, rect)
 
-            print(item.value)
+            #  print(item.value)
             for n, line in enumerate(item.value):
                 line_image = self.error_info_font.render(line, True, ITEM_VALUE_FONT_COLOUR)
                 left = rect.left + ITEM_VALUE_L_PAD

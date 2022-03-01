@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19proto/guidance_data.proto\"\xaf\x02\n\x0cGuidanceData\x12\x0e\n\x06\x65rrVel\x18\x01 \x01(\x02\x12\x10\n\x08\x65rrDrift\x18\x02 \x01(\x02\x12\x0e\n\x06kP_vel\x18\x03 \x01(\x02\x12\x0e\n\x06kI_vel\x18\x04 \x01(\x02\x12\x0e\n\x06kD_vel\x18\x05 \x01(\x02\x12\x10\n\x08kP_drift\x18\x06 \x01(\x02\x12\x10\n\x08kI_drift\x18\x07 \x01(\x02\x12\x10\n\x08kD_drift\x18\x08 \x01(\x02\x12\x15\n\rleftOutputVel\x18\t \x01(\x02\x12\x16\n\x0erightOutputVel\x18\n \x01(\x02\x12\x17\n\x0fleftOutputDrift\x18\x0b \x01(\x02\x12\x18\n\x10rightOutputDrift\x18\x0c \x01(\x02\x12\x11\n\tleftPower\x18\r \x01(\x02\x12\x12\n\nrightPower\x18\x0e \x01(\x02\x12\x0e\n\x06segNum\x18\x0f \x01(\rb\x06proto3'
+  serialized_pb=b'\n\x19proto/guidance_data.proto\"\xc2\x02\n\x0cGuidanceData\x12\x0e\n\x06\x65rrVel\x18\x01 \x01(\x02\x12\x10\n\x08\x65rrDrift\x18\x02 \x01(\x02\x12\x0e\n\x06kP_vel\x18\x03 \x01(\x02\x12\x0e\n\x06kI_vel\x18\x04 \x01(\x02\x12\x0e\n\x06kD_vel\x18\x05 \x01(\x02\x12\x10\n\x08kP_drift\x18\x06 \x01(\x02\x12\x10\n\x08kI_drift\x18\x07 \x01(\x02\x12\x10\n\x08kD_drift\x18\x08 \x01(\x02\x12\x15\n\rleftOutputVel\x18\t \x01(\x02\x12\x16\n\x0erightOutputVel\x18\n \x01(\x02\x12\x17\n\x0fleftOutputDrift\x18\x0b \x01(\x02\x12\x18\n\x10rightOutputDrift\x18\x0c \x01(\x02\x12\x11\n\tleftPower\x18\r \x01(\x02\x12\x12\n\nrightPower\x18\x0e \x01(\x02\x12\x11\n\tpropPower\x18\x0f \x01(\x02\x12\x0e\n\x06segNum\x18\x10 \x01(\rb\x06proto3'
 )
 
 
@@ -132,8 +132,15 @@ _GUIDANCEDATA = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='segNum', full_name='GuidanceData.segNum', index=14,
-      number=15, type=13, cpp_type=3, label=1,
+      name='propPower', full_name='GuidanceData.propPower', index=14,
+      number=15, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='segNum', full_name='GuidanceData.segNum', index=15,
+      number=16, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -151,7 +158,7 @@ _GUIDANCEDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=30,
-  serialized_end=333,
+  serialized_end=352,
 )
 
 DESCRIPTOR.message_types_by_name['GuidanceData'] = _GUIDANCEDATA

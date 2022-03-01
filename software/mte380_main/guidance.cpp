@@ -15,8 +15,8 @@ void Guidance::update(){
 
   if (cmdData.runState == CmdData_RunState_TELEOP){
     Serial.print("tele");
-    guidanceData.leftPower = cmdData.teleop.leftPower;
-    guidanceData.rightPower = cmdData.teleop.rightPower;
+    guidanceData.leftPower = cmdData.leftPower;
+    guidanceData.rightPower = cmdData.rightPower;
   }
   else if (cmdData.runState == CmdData_RunState_AUTO){
     Serial.print("auto");
