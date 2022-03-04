@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <Arduino.h>
+#include <ESP32Servo.h>
 
 #include "hms.h"
 #include "guidance_data.pb.h"
@@ -16,6 +17,7 @@ class Motors{
   private:
     GuidanceData& guidanceData;
     Hms* hms;
+    Servo propServo;
 
     void setAllToZero();
 

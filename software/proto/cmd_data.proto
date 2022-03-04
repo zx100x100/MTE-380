@@ -9,5 +9,6 @@ message CmdData{
   int32 placeholder = 1;
   float leftPower = 2;
   float rightPower = 3;
-  RunState runState = 4;
+  float propPower = 4;
+  RunState runState = 5;
 }

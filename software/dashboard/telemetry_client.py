@@ -2,15 +2,16 @@ import threading
 import socket
 import time
 
-from constants import (SERVER_HOST, SERVER_PORT)
 COMMS_TIMEOUT = 4
 
 class TelemetryClient(threading.Thread):
-    def __init__(self, data):
+    def __init__(self, data, server_ip, server_port):
         super().__init__()
         self.data = data
         self.connected = False
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_ip = server_ip
+        self.server_port = server_port
 
     def run(self):
         while True:
@@ -26,7 +27,7 @@ class TelemetryClient(threading.Thread):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(COMMS_TIMEOUT)
-            self.socket.connect((SERVER_HOST,SERVER_PORT))
+            self.socket.connect((self.server_ip,self.server_port))
             self.socket.settimeout(None)
             self.connected = True
 
@@ -66,7 +67,6 @@ class TelemetryClient(threading.Thread):
             self.data.decode_incoming(rx_raw)
         except Exception as e:
             print(f"Failed to pull data: {e}")
-            print(f"rx_raw: {rx_raw}")
     
     def pull_fake(self):
         self.data.pull_fake()
