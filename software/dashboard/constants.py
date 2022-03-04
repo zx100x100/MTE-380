@@ -2,9 +2,6 @@ from enum import Enum
 import numpy as np
 from proto.cmd_data_pb2 import CmdData
 
-SERVER_HOST = "192.168.63.111"  # The server's hostname or IP address
-SERVER_PORT = 23
-
 #  MAX_DATA_POINTS = 100
 PLOT_SIZE = (200,140) # pixels for the size of the inner plot
 DISPLAY_DATA_POINTS = PLOT_SIZE[0]

@@ -103,18 +103,19 @@ void Guidance::update(){
   gd.rightTotalPID = constrain(gd.rightTotalPID, MAX_OUTPUT_POWER);
 
   if (cmdData.runState == CmdData_RunState_TELEOP){
-    Serial.print("tele");
-    gd.leftPower = cmdData.leftPower;
-    gd.rightPower = cmdData.rightPower;
+    guidanceData.leftPower = cmdData.leftPower;
+    guidanceData.rightPower = cmdData.rightPower;
+    guidanceData.propPower = cmdData.propPower;
   }
   else if (cmdData.runState == CmdData_RunState_AUTO){
-    Serial.print("auto");
-    gd.leftPower = gd.leftTotalPID;
-    gd.rightPower = gd.rightTotalPID;
+    guidanceData.leftPower = outputLeft;
+    guidanceData.rightPower = outputRight;
+    guidanceData.propPower = 0; // temp
   }
   else{
-    gd.leftPower = 0;
-    gd.rightPower = 0;
+    guidanceData.leftPower = 0;
+    guidanceData.rightPower = 0;
+    guidanceData.propPower = 0;
   }
   // Serial.print("gd.leftPower:"); Serial.println(gd.leftPower);
   // Serial.print("gd.rightPower:"); Serial.println(gd.rightPower);

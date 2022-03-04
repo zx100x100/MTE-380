@@ -21,6 +21,7 @@ typedef struct _CmdData {
     int32_t placeholder; 
     float leftPower; 
     float rightPower; 
+    float propPower; 
     CmdData_RunState runState; 
 } CmdData;
 
@@ -36,21 +37,23 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define CmdData_init_default                     {0, 0, 0, _CmdData_RunState_MIN}
-#define CmdData_init_zero                        {0, 0, 0, _CmdData_RunState_MIN}
+#define CmdData_init_default                     {0, 0, 0, 0, _CmdData_RunState_MIN}
+#define CmdData_init_zero                        {0, 0, 0, 0, _CmdData_RunState_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define CmdData_placeholder_tag                  1
 #define CmdData_leftPower_tag                    2
 #define CmdData_rightPower_tag                   3
-#define CmdData_runState_tag                     4
+#define CmdData_propPower_tag                    4
+#define CmdData_runState_tag                     5
 
 /* Struct field encoding specification for nanopb */
 #define CmdData_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    placeholder,       1) \
 X(a, STATIC,   SINGULAR, FLOAT,    leftPower,         2) \
 X(a, STATIC,   SINGULAR, FLOAT,    rightPower,        3) \
-X(a, STATIC,   SINGULAR, UENUM,    runState,          4)
+X(a, STATIC,   SINGULAR, FLOAT,    propPower,         4) \
+X(a, STATIC,   SINGULAR, UENUM,    runState,          5)
 #define CmdData_CALLBACK NULL
 #define CmdData_DEFAULT NULL
 
@@ -60,7 +63,7 @@ extern const pb_msgdesc_t CmdData_msg;
 #define CmdData_fields &CmdData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define CmdData_size                             23
+#define CmdData_size                             28
 
 #ifdef __cplusplus
 } /* extern "C" */
