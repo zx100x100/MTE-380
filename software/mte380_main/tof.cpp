@@ -2,7 +2,6 @@
 
 // IF SOMETHING IS WEIRD. CHECK HERE
 #define PLACEHOLDER_PIN 0 // DO NOT TRUST THIS
-#define PLACEHOLDER_MUX_ADDR 1 // this is absolute BS
 
 #define TCAADDR 0x70
 
@@ -16,10 +15,6 @@ Tof::Tof():
 
 Tof::Tof(Hms* hms):
   hms(hms),
-<<<<<<< Updated upstream
-  mux_address(mux_addr),
-=======
->>>>>>> Stashed changes
   sensor_vl53lx_sat(&Wire, PLACEHOLDER_PIN)
 {
   tofData = TofData_init_zero;

@@ -37,6 +37,9 @@ Change the I2C_BUFFER_LENGTH macro value to 256
 #define  DEVICE_I2C_ADDR  0x12
 VL53LX vl53lx(&Wire, XSHUT_PIN);
 
+#define MUX_ADDRESS 2
+#define TCAADDR 0x70
+
 // Holds latest measured distances (up to 4)
 #define  MAX_OBJECTS  1
 uint16_t dist[MAX_OBJECTS];
@@ -58,6 +61,9 @@ void IRAM_ATTR intaISR() {
 
 void setup()
 {
+
+  delay(200);
+   
    int i;
    VL53LX_Error rc;
    VL53LX_Version_t ver;
@@ -77,6 +83,13 @@ void setup()
    // Initialize the I2C bus
    Wire.begin();
    Wire.setClock(400000);
+
+   // SELECT TOF FROM MUX
+   Wire.beginTransmission(TCAADDR);
+   Wire.write(1 << MUX_ADDRESS);
+   Wire.endTransmission();
+   delay(200);
+   Serial.print("wire");
 
    // Configure the VL53LX
    vl53lx.begin();
@@ -116,10 +129,12 @@ void loop()
    int objectsFound = 0, j, status;
    bool dataChanged = false;
 
-   if (intaINT) {
+   if (1) {
 
       status = vl53lx.VL53LX_GetMeasurementDataReady(&NewDataReady);
       if (status == 0  &&  NewDataReady != 0) {
+        
+        Serial.print('y');
 
          status       = vl53lx.VL53LX_GetMultiRangingData(rangingData);
          objectsFound = rangingData->NumberOfObjectsFound;
@@ -144,7 +159,16 @@ void loop()
                dataChanged = false;
                Serial.printf("%d %d %d %d\n", dist[0], dist[1], dist[2], dist[3]);
             }
+            else{
+              Serial.print("c");
+            }
          }
+         else{
+          Serial.print("0");
+         }
+      }
+      else{
+        Serial.print('n');
       }
 
       intaINT = false;

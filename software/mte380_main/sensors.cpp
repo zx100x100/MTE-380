@@ -8,15 +8,25 @@
 #define REAR_TOF 5
 #define L_BACK_TOF 3
 #define L_FRONT_TOF 2
+uint8_t mux_addresses[4] = { FRONT_TOF, REAR_TOF, L_BACK_TOF, L_FRONT_TOF };
+
+#define TCAADDR 0x70
 
 Sensors::Sensors(Hms* hms):
   hms(hms)
 {
   imu = Imu(hms);
-  uint8_t mux_addresses[4] = { FRONT_TOF, REAR_TOF, L_BACK_TOF, L_FRONT_TOF };
-  for (int i=0; i<4; i++){
-    tof[i] = Tof(hms, mux_addresses[i]);
-  }
+
+  Wire.begin();
+
+//
+//  for (int i=0; i<4; i++){
+//    Wire.beginTransmission(TCAADDR);
+//    Wire.write(1 << mux_addresses[i]);
+//    Wire.endTransmission();
+//    delay(100);
+//    tof[i] = Tof(hms);
+//  }
   timestamp = 0;
 }
 
@@ -37,9 +47,12 @@ void Sensors::updateBatteryVoltage(){
 
 void Sensors::update(){
   imu.poll();
-  for (int i=0; i<4; i++){
-    tof[i].poll();
-  }
+//  for (int i=0; i<4; i++){
+//    Wire.beginTransmission(TCAADDR);
+//    Wire.write(1 << mux_addresses[i]);
+//    Wire.endTransmission();
+//    tof[i].poll();
+//  }
   updateBatteryVoltage();
 
   timestamp = micros();

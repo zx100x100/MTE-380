@@ -12,25 +12,24 @@ def is_windows():
 
 def get_ssid():
     if is_windows():
-        network_Information = str(subprocess.check_output(["netsh","wlan","show","network"]))
-        network_Information = network_Information.replace('\\r','')
-        network_Information = network_Information.replace("b' ",'')
-        network_Information = network_Information.replace(":",'\n')
-        network_Information = network_Information.replace("\\n",'\n')
-        network_Information = network_Information.splitlines()
-        return network_Information[6][1:]
+        current_network = subprocess.check_output(['netsh', 'wlan', 'show', 'interfaces']).decode('utf-8').split('\n')
+        ssid_line = [x for x in current_network if 'SSID' in x and 'BSSID' not in x]
+        if ssid_line:
+            ssid_list = ssid_line[0].split(':')
+            return ssid_list[1].strip()
     else:
         return os.popen("sudo iwgetid -r").read()[:-1]
         #  subprocess.check_output(['sudo', 'iwgetid']).split('"')[1]
     #  print("Connected Wifi SSID: " + output.split('"')[1])
 
-def get_subnet():
+def get_byte_n(n):
     # JANK CODE TO GET SUBNET
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
-    subnet = s.getsockname()[0].split('.')[2]
+    byte = s.getsockname()[0].split('.')[n]
     s.close()
-    return subnet
+    print(byte)
+    return byte
 
 
 def get_firmware_network_info_path():
@@ -39,15 +38,15 @@ def get_firmware_network_info_path():
     network_info_path = firmware_path / 'network_info.h'
     return network_info_path
 
-def copy_constants_into_firmware(subnet):
+def copy_constants_into_firmware(bytes):
     path = get_firmware_network_info_path()
     lines = ['#ifndef NETWORK_INFO_H',
              '#define NETWORK_INFO_H',
-             '',
-             f'#define SERVER_PORT {SERVER_PORT}',
-             f'#define SERVER_HOST_BYTE {SERVER_HOST_BYTE}',
-             f'#define SERVER_SUBNET {subnet}'
-             '',
+             '']
+    for i in range(4):
+        lines.append(f'#define SERVER_BYTE{i} {bytes[i]}')
+
+    lines += [f'#define SERVER_PORT {SERVER_PORT}',
              '#endif']
     with open(path, 'w') as f:
         f.write('\n'.join(lines) + '\n')
@@ -59,7 +58,9 @@ def network_setup():
         print(f"Wrong network! {ssid} should be EMU")
         sys.exit()
 
-    subnet = get_subnet()
-    copy_constants_into_firmware(subnet)
+    ip_bytes = [get_byte_n(i) for i in range(3)]
+    ip_bytes.append(SERVER_HOST_BYTE)
+    ip_bytes = [str(i) for i in ip_bytes]
+    copy_constants_into_firmware(ip_bytes)
 
-    return "192.168.{subnet}.{SERVER_HOST_BYTE}"
+    return ".".join(ip_bytes)
