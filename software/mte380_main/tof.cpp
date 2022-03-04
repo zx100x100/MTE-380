@@ -1,33 +1,28 @@
 #include "tof.h"
 
 // IF SOMETHING IS WEIRD. CHECK HERE
-#define PLACEHOLDER_PIN 100 // DO NOT TRUST THIS
+#define PLACEHOLDER_PIN 0 // DO NOT TRUST THIS
 #define PLACEHOLDER_MUX_ADDR 1 // this is absolute BS
 
 #define TCAADDR 0x70
 
 
-
 /* Tof::Tof(){ */
 /* } */
 Tof::Tof():
-  sensor_vl53lx_sat(&Wire, PLACEHOLDER_MUX_ADDR)
+  sensor_vl53lx_sat(&Wire, PLACEHOLDER_PIN)
 {  
 }
 
-Tof::Tof(Hms* hms, uint8_t mux_addr):
+Tof::Tof(Hms* hms):
   hms(hms),
+<<<<<<< Updated upstream
   mux_address(mux_addr),
+=======
+>>>>>>> Stashed changes
   sensor_vl53lx_sat(&Wire, PLACEHOLDER_PIN)
 {
   tofData = TofData_init_zero;
-
-  Wire.begin();
-
-  Wire.beginTransmission(TCAADDR);
-  Wire.write(1 << mux_address);
-  Wire.endTransmission();
-  delay(100);
 
   // Configure VL53LX satellite component.
   sensor_vl53lx_sat.begin();
