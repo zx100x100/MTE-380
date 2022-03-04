@@ -135,7 +135,6 @@ class TelemetryPlot:
             new_min = min(self.values)
             new_max = max(self.values)
             if new_max == new_min:
-                new_min = min(self.values)
                 new_max = new_min+0.01
             breadth = new_max-new_min
 

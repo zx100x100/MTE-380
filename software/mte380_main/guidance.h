@@ -17,6 +17,9 @@ class Guidance{
     NavData& navData;
     CmdData& cmdData;
     Hms* hms;
+
+    unsigned long lastTimestamp;
+    unsigned long deltaT;
 };
 
 #endif
