@@ -8,6 +8,7 @@
 #include "guidance_data.pb.h"
 #include "sensors.h"
 #include "hms.h"
+#include "network_info.h"
 
 class TelemetryServer{
   private:
@@ -15,12 +16,12 @@ class TelemetryServer{
     /* const char* ssid = "Heatspeet"; */
     /* const char* password = "alloneword"; */
     const char* password = "12341234";
-    WiFiServer server = WiFiServer(23);
+    WiFiServer server = WiFiServer(SERVER_PORT);
     WiFiClient client;
     bool alreadyConnected = false;
 
-    IPAddress localIP = IPAddress(192, 168, 63, 111); // static IP of esp
-    IPAddress gateway = IPAddress(192, 168, 63, 1); // gateway IP
+    IPAddress localIP = IPAddress(192, 168, SERVER_SUBNET, SERVER_HOST_BYTE); // static IP of esp
+    IPAddress gateway = IPAddress(192, 168, SERVER_SUBNET, 1); // gateway IP
 
     IPAddress subnet = IPAddress(255, 255, 0, 0);
     IPAddress primaryDNS = IPAddress(8, 8, 8, 8);   // optional
@@ -31,6 +32,8 @@ class TelemetryServer{
     GuidanceData& guidanceData;
     CmdData& cmdData;
     Hms* hms;
+
+    unsigned long lastCommandTime; 
 
     void serializeData(pb_ostream_t& stream);
 

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14proto/cmd_data.proto\"\x98\x01\n\x07\x43mdData\x12\x13\n\x0bplaceholder\x18\x01 \x01(\x05\x12\x11\n\tleftPower\x18\x02 \x01(\x02\x12\x12\n\nrightPower\x18\x03 \x01(\x02\x12#\n\x08runState\x18\x04 \x01(\x0e\x32\x11.CmdData.RunState\",\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x62\x06proto3'
+  serialized_pb=b'\n\x14proto/cmd_data.proto\"\xab\x01\n\x07\x43mdData\x12\x13\n\x0bplaceholder\x18\x01 \x01(\x05\x12\x11\n\tleftPower\x18\x02 \x01(\x02\x12\x12\n\nrightPower\x18\x03 \x01(\x02\x12\x11\n\tpropPower\x18\x04 \x01(\x02\x12#\n\x08runState\x18\x05 \x01(\x0e\x32\x11.CmdData.RunState\",\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x62\x06proto3'
 )
 
 
@@ -49,8 +49,8 @@ _CMDDATA_RUNSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=133,
-  serialized_end=177,
+  serialized_start=152,
+  serialized_end=196,
 )
 _sym_db.RegisterEnumDescriptor(_CMDDATA_RUNSTATE)
 
@@ -85,8 +85,15 @@ _CMDDATA = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='runState', full_name='CmdData.runState', index=3,
-      number=4, type=14, cpp_type=8, label=1,
+      name='propPower', full_name='CmdData.propPower', index=3,
+      number=4, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='runState', full_name='CmdData.runState', index=4,
+      number=5, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -105,7 +112,7 @@ _CMDDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=25,
-  serialized_end=177,
+  serialized_end=196,
 )
 
 _CMDDATA.fields_by_name['runState'].enum_type = _CMDDATA_RUNSTATE

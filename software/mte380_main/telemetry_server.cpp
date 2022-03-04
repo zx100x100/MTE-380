@@ -9,8 +9,10 @@
 #include "telemetry_server.h"
 #include "cmd_data.pb.h"
 
+#define DEAD_MAN_TIMEOUT_MS 1000
 #define CMD_BUF_SIZE 30
 #define OUTPUT_BUF_SIZE 300
+
 const uint8_t delimit[3] = {uint8_t(':'),uint8_t(':'),uint8_t(':')};
 
 TelemetryServer::TelemetryServer(Sensors& sensors,
@@ -23,6 +25,7 @@ TelemetryServer::TelemetryServer(Sensors& sensors,
   guidanceData(guidanceData),
   cmdData(cmdData),
   hms(hms){
+    lastCommandTime = millis();
 }
 
 void TelemetryServer::init(){
@@ -116,6 +119,7 @@ void TelemetryServer::update(){
       int receiveBytes = client.available();
       if (receiveBytes > 0){ // input available, update cmd, send back telemetry
         Serial.println("Received cmd data");
+        lastCommandTime = millis();
         // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
         int i = 0;
@@ -138,6 +142,17 @@ void TelemetryServer::update(){
         serializeData(stream);
         client.flush();
         client.write(buffer, stream.bytes_written); // takes 0-2 ms
+
+        lastCommandTime = millis();
+      }
+      else{ 
+        // DEAD MANS SWITCH!
+        if (millis() - lastCommandTime > DEAD_MAN_TIMEOUT_MS){
+          cmdData.runState = CmdData_RunState_E_STOP;
+          cmdData.leftPower = 0;
+          cmdData.rightPower = 0;
+          cmdData.propPower = 0;
+        }
       }
     }
   }

@@ -1,7 +1,7 @@
 #include "tof.h"
 
 // IF SOMETHING IS WEIRD. CHECK HERE
-#define PLACEHOLDER_PIN 5 // DO NOT TRUST THIS
+#define PLACEHOLDER_PIN 100 // DO NOT TRUST THIS
 #define PLACEHOLDER_MUX_ADDR 1 // this is absolute BS
 
 #define TCAADDR 0x70
@@ -18,7 +18,7 @@ Tof::Tof():
 Tof::Tof(Hms* hms, uint8_t mux_addr):
   hms(hms),
   mux_address(mux_addr),
-  sensor_vl53lx_sat(&Wire, mux_addr)
+  sensor_vl53lx_sat(&Wire, PLACEHOLDER_PIN)
 {
   tofData = TofData_init_zero;
 
@@ -52,10 +52,12 @@ void Tof::poll(){
     char report[64];
     int status;
 
+    Serial.println("before");
     do
     {
         status = sensor_vl53lx_sat.VL53LX_GetMeasurementDataReady(&NewDataReady);
     } while (!NewDataReady);
+    Serial.println("after");
 
     if ((!status) && (NewDataReady != 0))
     {

@@ -12,8 +12,19 @@ from telemetry_plots import TelemetryPlots
 from controls import Controls
 from data import Data
 from telemetry_client import TelemetryClient
+import network_setup
 
 from constants import *
+
+SERVER_PORT = network_setup.SERVER_PORT
+SERVER_IP = network_setup.network_setup()
+
+TELEOP_SLOW = 100
+TELEOP_MEDIUM = 170
+TELEOP_FAST = 255
+PROP_POWER_THROTTLE_INCREMENT = 20
+
+MAX_TELEOP_POWER = 255
 
 # 720 x 720 @ 10 PIXELS_PER_INCH
 FPS = 10
@@ -24,13 +35,6 @@ FAKE_TELEOP = True
 TELEOP_SPEED = 20
 
 CAPTION = "yo momma"
-
-DIRECTION_KEYS = {pg.K_a: (-1, 0),
-               pg.K_d: (1, 0),
-               pg.K_w: (0,-1),
-               pg.K_s: (0, 1)}
-ROTATION_KEYS = {'r': pg.K_e, 'l': pg.K_q}
-QWAS = {'left_fwd': pg.K_q, 'right_fwd': pg.K_w, 'left_back': pg.K_a, 'right_back': pg.K_s}
 
 class App:
     def __init__(self):
@@ -48,7 +52,7 @@ class App:
         self.telemetry_plots = TelemetryPlots(self)
         self.telemetry_plots.render_init(self.screen)
         
-        self.telemetry_client = TelemetryClient(self.data)
+        self.telemetry_client = TelemetryClient(self.data, SERVER_IP, SERVER_PORT)
 
         self.controls = Controls(self)
         self.controls.render_init()
@@ -101,10 +105,49 @@ class App:
                                     item.set_clicked()
                                 else:
                                     self.previously_clicked_item = None
+
+        if self.keys[pg.K_SPACE]:
+            # ESTOP:
+            self.data.cmd.pb.propPower = 0
+            if self.data.cmd.pb.runState is not CmdData.RunState.E_STOP:
+                self.controls.start_button.click()
+
+        if self.keys[pg.K_o]:
+            self.data.cmd.pb.propPower = max(self.data.cmd.pb.propPower - PROP_POWER_THROTTLE_INCREMENT, 0)
+        if self.keys[pg.K_p]:
+            self.data.cmd.pb.propPower = min(self.data.cmd.pb.propPower + PROP_POWER_THROTTLE_INCREMENT, 255)
                                 
-        #  TELEOP_POWER = 255
-        #  if self.data.cmd.pb.runState is CmdData.RunState.TELEOP:
-            #  if self.keys[QWAS['left_fwd']]:
+        TURNING_WHILE_MOVING_POWER_DIFFERENTIAL = 90
+        TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR = 0.5 # run the slow side at 0.5 of its normal
+        if self.data.cmd.pb.runState is CmdData.RunState.TELEOP:
+            if self.keys[pg.K_LSHIFT]:
+                TELEOP_POWER = TELEOP_SLOW
+            elif self.keys[pg.K_LALT]:
+                TELEOP_POWER = TELEOP_FAST
+            else:
+                TELEOP_POWER = TELEOP_MEDIUM
+            if self.keys[pg.K_w]:
+                self.data.cmd.pb.leftPower = TELEOP_POWER
+                self.data.cmd.pb.rightPower = TELEOP_POWER
+                if self.keys[pg.K_d]:
+                    self.data.cmd.pb.leftPower += TURNING_WHILE_MOVING_POWER_DIFFERENTIAL
+                    self.data.cmd.pb.leftPower = min(self.data.cmd.pb.leftPower, MAX_TELEOP_POWER)
+                    self.data.cmd.pb.rightPower *= TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR
+                if self.keys[pg.K_a]:
+                    self.data.cmd.pb.rightPower += TURNING_WHILE_MOVING_POWER_DIFFERENTIAL
+                    self.data.cmd.pb.rightPower = min(self.data.cmd.pb.leftPower, MAX_TELEOP_POWER)
+                    self.data.cmd.pb.leftPower *= TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR
+            else:
+                if self.keys[pg.K_d]:
+                    self.data.cmd.pb.leftPower = TELEOP_POWER
+                    self.data.cmd.pb.rightPower = -TELEOP_POWER
+                elif self.keys[pg.K_a]:
+                    self.data.cmd.pb.leftPower = -TELEOP_POWER
+                    self.data.cmd.pb.rightPower = TELEOP_POWER
+                else:
+                    self.data.cmd.pb.leftPower = 0
+                    self.data.cmd.pb.rightPower = 0
+
                 #  self.data.cmd.pb.leftPower = TELEOP_POWER;
             #  elif self.keys[QWAS['left_back']]:
                 #  self.data.cmd.pb.leftPower = -TELEOP_POWER;
