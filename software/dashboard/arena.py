@@ -90,7 +90,6 @@ class Arena():
             Line(start=(4,3.5), end=(3,3.5)),
             CornerCircle(center=(3,3),corner=Diagonal.BL),
             CornerCircle(center=(3,3),corner=Diagonal.TL),
-            CornerCircle(center=(1,1),corner=Diagonal.TL),
             Line(start=(3,2.5), end=(3.5,2.5))
         ]
         return segments

@@ -11,11 +11,17 @@
 
 /* Struct definitions */
 typedef struct _GuidanceData { 
+    float deltaT; 
     float errVel; /* PID inputs */
     float errDrift; 
+    float errVelI; 
+    float errVelD; 
     float kP_vel; /* PID constants for velocity PID */
     float kI_vel; 
     float kD_vel; 
+    float velP; 
+    float velI; 
+    float velD; 
     float kP_drift; /* PID constants for drift PID */
     float kI_drift; 
     float kD_drift; 
@@ -23,6 +29,8 @@ typedef struct _GuidanceData {
     float rightOutputVel; /* right motor output from velocity PID */
     float leftOutputDrift; /* left motor output from drift PID */
     float rightOutputDrift; /* right motor output from drift PID */
+    float leftTotalPID; /* combined left motor output from vel and drift PIDs */
+    float rightTotalPID; /* combined left motor output from vel and drift PIDs */
     float leftPower; /* combined left motor output from vel and drift PIDs */
     float rightPower; /* combined right motor output from vel and drift PIDs */
     float propPower; /* combined right motor output from vel and drift PIDs */
@@ -35,45 +43,61 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define GuidanceData_errVel_tag                  1
-#define GuidanceData_errDrift_tag                2
-#define GuidanceData_kP_vel_tag                  3
-#define GuidanceData_kI_vel_tag                  4
-#define GuidanceData_kD_vel_tag                  5
-#define GuidanceData_kP_drift_tag                6
-#define GuidanceData_kI_drift_tag                7
-#define GuidanceData_kD_drift_tag                8
-#define GuidanceData_leftOutputVel_tag           9
-#define GuidanceData_rightOutputVel_tag          10
-#define GuidanceData_leftOutputDrift_tag         11
-#define GuidanceData_rightOutputDrift_tag        12
-#define GuidanceData_leftPower_tag               13
-#define GuidanceData_rightPower_tag              14
-#define GuidanceData_propPower_tag               15
-#define GuidanceData_segNum_tag                  16
+#define GuidanceData_deltaT_tag                  1
+#define GuidanceData_errVel_tag                  2
+#define GuidanceData_errDrift_tag                3
+#define GuidanceData_errVelI_tag                 4
+#define GuidanceData_errVelD_tag                 5
+#define GuidanceData_kP_vel_tag                  6
+#define GuidanceData_kI_vel_tag                  7
+#define GuidanceData_kD_vel_tag                  8
+#define GuidanceData_velP_tag                    9
+#define GuidanceData_velI_tag                    10
+#define GuidanceData_velD_tag                    11
+#define GuidanceData_kP_drift_tag                12
+#define GuidanceData_kI_drift_tag                13
+#define GuidanceData_kD_drift_tag                14
+#define GuidanceData_leftOutputVel_tag           15
+#define GuidanceData_rightOutputVel_tag          16
+#define GuidanceData_leftOutputDrift_tag         17
+#define GuidanceData_rightOutputDrift_tag        18
+#define GuidanceData_leftTotalPID_tag            19
+#define GuidanceData_rightTotalPID_tag           20
+#define GuidanceData_leftPower_tag               21
+#define GuidanceData_rightPower_tag              22
+#define GuidanceData_propPower_tag               23
+#define GuidanceData_segNum_tag                  24
 
 /* Struct field encoding specification for nanopb */
 #define GuidanceData_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    errVel,            1) \
-X(a, STATIC,   SINGULAR, FLOAT,    errDrift,          2) \
-X(a, STATIC,   SINGULAR, FLOAT,    kP_vel,            3) \
-X(a, STATIC,   SINGULAR, FLOAT,    kI_vel,            4) \
-X(a, STATIC,   SINGULAR, FLOAT,    kD_vel,            5) \
-X(a, STATIC,   SINGULAR, FLOAT,    kP_drift,          6) \
-X(a, STATIC,   SINGULAR, FLOAT,    kI_drift,          7) \
-X(a, STATIC,   SINGULAR, FLOAT,    kD_drift,          8) \
-X(a, STATIC,   SINGULAR, FLOAT,    leftOutputVel,     9) \
-X(a, STATIC,   SINGULAR, FLOAT,    rightOutputVel,   10) \
-X(a, STATIC,   SINGULAR, FLOAT,    leftOutputDrift,  11) \
-X(a, STATIC,   SINGULAR, FLOAT,    rightOutputDrift,  12) \
-X(a, STATIC,   SINGULAR, FLOAT,    leftPower,        13) \
-X(a, STATIC,   SINGULAR, FLOAT,    rightPower,       14) \
-X(a, STATIC,   SINGULAR, FLOAT,    propPower,        15) \
-X(a, STATIC,   SINGULAR, UINT32,   segNum,           16)
+X(a, STATIC,   SINGULAR, FLOAT,    deltaT,            1) \
+X(a, STATIC,   SINGULAR, FLOAT,    errVel,            2) \
+X(a, STATIC,   SINGULAR, FLOAT,    errDrift,          3) \
+X(a, STATIC,   SINGULAR, FLOAT,    errVelI,           4) \
+X(a, STATIC,   SINGULAR, FLOAT,    errVelD,           5) \
+X(a, STATIC,   SINGULAR, FLOAT,    kP_vel,            6) \
+X(a, STATIC,   SINGULAR, FLOAT,    kI_vel,            7) \
+X(a, STATIC,   SINGULAR, FLOAT,    kD_vel,            8) \
+X(a, STATIC,   SINGULAR, FLOAT,    velP,              9) \
+X(a, STATIC,   SINGULAR, FLOAT,    velI,             10) \
+X(a, STATIC,   SINGULAR, FLOAT,    velD,             11) \
+X(a, STATIC,   SINGULAR, FLOAT,    kP_drift,         12) \
+X(a, STATIC,   SINGULAR, FLOAT,    kI_drift,         13) \
+X(a, STATIC,   SINGULAR, FLOAT,    kD_drift,         14) \
+X(a, STATIC,   SINGULAR, FLOAT,    leftOutputVel,    15) \
+X(a, STATIC,   SINGULAR, FLOAT,    rightOutputVel,   16) \
+X(a, STATIC,   SINGULAR, FLOAT,    leftOutputDrift,  17) \
+X(a, STATIC,   SINGULAR, FLOAT,    rightOutputDrift,  18) \
+X(a, STATIC,   SINGULAR, FLOAT,    leftTotalPID,     19) \
+X(a, STATIC,   SINGULAR, FLOAT,    rightTotalPID,    20) \
+X(a, STATIC,   SINGULAR, FLOAT,    leftPower,        21) \
+X(a, STATIC,   SINGULAR, FLOAT,    rightPower,       22) \
+X(a, STATIC,   SINGULAR, FLOAT,    propPower,        23) \
+X(a, STATIC,   SINGULAR, UINT32,   segNum,           24)
 #define GuidanceData_CALLBACK NULL
 #define GuidanceData_DEFAULT NULL
 
@@ -83,7 +107,7 @@ extern const pb_msgdesc_t GuidanceData_msg;
 #define GuidanceData_fields &GuidanceData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define GuidanceData_size                        82
+#define GuidanceData_size                        130
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -1,36 +1,36 @@
 syntax = "proto3";
 
 message GuidanceData {
-  float deltaT = x;
-  float errVel = 1; // PID inputs
-  float errDrift = 2;
+  float deltaT = 1;
+  float errVel = 2; // PID inputs
+  float errDrift = 3;
 
-  float errVelI = 3;
-  float errVelD = 4;
+  float errVelI = 4;
+  float errVelD = 5;
   
-  float kP_vel = 5; // PID constants for velocity PID
-  float kI_vel = 6;
-  float kD_vel = 7;
+  float kP_vel = 6; // PID constants for velocity PID
+  float kI_vel = 7;
+  float kD_vel = 8;
 
-  float velP = x;
-  float velI = x;
-  float velD = x;
+  float velP = 9;
+  float velI = 10;
+  float velD = 11;
 
-  float kP_drift = 8; // PID constants for drift PID
-  float kI_drift = 9;
-  float kD_drift = 10;
+  float kP_drift = 12; // PID constants for drift PID
+  float kI_drift = 13;
+  float kD_drift = 14;
 
-  float leftOutputVel = 11; // left motor output from velocity PID
-  float rightOutputVel = 12; // right motor output from velocity PID
-  float leftOutputDrift = 13; // left motor output from drift PID
-  float rightOutputDrift = 14; // right motor output from drift PID
+  float leftOutputVel = 15; // left motor output from velocity PID
+  float rightOutputVel = 16; // right motor output from velocity PID
+  float leftOutputDrift = 17; // left motor output from drift PID
+  float rightOutputDrift = 18; // right motor output from drift PID
   
-  float leftTotalPID = x; // combined left motor output from vel and drift PIDs
-  float rightTotalPID = x; // combined left motor output from vel and drift PIDs
+  float leftTotalPID = 19; // combined left motor output from vel and drift PIDs
+  float rightTotalPID = 20; // combined left motor output from vel and drift PIDs
 
-  float leftPower = 15; // combined left motor output from vel and drift PIDs
-  float rightPower = 16; // combined right motor output from vel and drift PIDs
-  float propPower = 17; // combined right motor output from vel and drift PIDs
+  float leftPower = 21; // combined left motor output from vel and drift PIDs
+  float rightPower = 22; // combined right motor output from vel and drift PIDs
+  float propPower = 23; // combined right motor output from vel and drift PIDs
 
-  uint32 segNum = 18; // current arena segment number
+  uint32 segNum = 24; // current arena segment number
 }

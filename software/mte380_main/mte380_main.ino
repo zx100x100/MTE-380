@@ -26,6 +26,7 @@ void setup() {
   cmdData.runState = CmdData_RunState_E_STOP;
   nav.init();
   telemetryServer.init();
+  guidance.init();
 }
 
 void loop() {

@@ -56,7 +56,7 @@ def network_setup():
     ssid = get_ssid()
     if ssid != 'EMU':
         print(f"Wrong network! {ssid} should be EMU")
-        sys.exit()
+        #  sys.exit()
 
     ip_bytes = [get_byte_n(i) for i in range(3)]
     ip_bytes.append(SERVER_HOST_BYTE)
