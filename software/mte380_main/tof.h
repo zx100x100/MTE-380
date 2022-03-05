@@ -16,7 +16,7 @@
 class Tof{
   public:
     Tof();
-    Tof(Hms* hms, uint8_t mux_addr);
+    Tof(Hms* hms);
     void poll();
     TofData& getData();
     /* void displayDetails(); */
@@ -24,7 +24,6 @@ class Tof{
   private:
     TofData tofData;
     Hms* hms;
-    uint8_t mux_address = 0;
     VL53LX sensor_vl53lx_sat;
 
 };

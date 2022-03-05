@@ -12,9 +12,15 @@ class TelemetryClient(threading.Thread):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_ip = server_ip
         self.server_port = server_port
+        self.killme = False
+
+    def kill_thread(self):
+        self.killme = True
 
     def run(self):
         while True:
+            if self.killme:
+                break
             if self.connected:
                 self.push()
                 self.pull()
@@ -27,6 +33,9 @@ class TelemetryClient(threading.Thread):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(COMMS_TIMEOUT)
+            print(self.server_ip)
+            print(self.server_port)
+
             self.socket.connect((self.server_ip,self.server_port))
             self.socket.settimeout(None)
             self.connected = True

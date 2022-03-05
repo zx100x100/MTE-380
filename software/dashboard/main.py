@@ -85,7 +85,11 @@ class App:
         self.keys = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT or self.keys[pg.K_ESCAPE]:
+                self.telemetry_client.kill_thread()
+                self.telemetry_client.join()
+                pg.quit()
                 sys.exit()
+
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse_presses = pg.mouse.get_pressed()
