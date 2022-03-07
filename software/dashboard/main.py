@@ -7,7 +7,7 @@ import time
 
 from robot import Robot
 from arena import Arena
-from proto.cmd_data_pb2 import CmdData
+from proto.hms_and_cmd_data_pb2 import CmdData
 from telemetry_plots import TelemetryPlots
 from controls import Controls
 from data import Data

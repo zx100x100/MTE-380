@@ -1,9 +1,9 @@
 from enum import Enum
 import numpy as np
-from proto.cmd_data_pb2 import CmdData
+from proto.hms_and_cmd_data_pb2 import CmdData
 
 #  MAX_DATA_POINTS = 100
-PLOT_SIZE = (200,140) # pixels for the size of the inner plot
+PLOT_SIZE = (400,140) # pixels for the size of the inner plot
 DISPLAY_DATA_POINTS = PLOT_SIZE[0]
 SCREEN_SIZE = (1366,710)
 ARENA_SIZE_INCHES = 72

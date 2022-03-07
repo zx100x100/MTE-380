@@ -8,6 +8,7 @@ SERVER_PORT = 23
 SERVER_HOST_BYTE = 111
 PASSWORDS = {'EMU': '11111111', 'anavacadothanks': '42069666'}
 ALLOWED_SSIDS = list(PASSWORDS.keys())
+SKIP_SSIDS = ('eduroam',)
 
 def is_windows():
     return os.name == 'nt'
@@ -48,6 +49,8 @@ def get_firmware_network_info_path():
     return network_info_path
 
 def copy_constants_into_firmware(bytes, ssid):
+    if ssid in SKIP_SSIDS:
+        return
     path = get_firmware_network_info_path()
     lines = ['#ifndef NETWORK_INFO_H',
              '#define NETWORK_INFO_H',

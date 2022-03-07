@@ -4,7 +4,7 @@
 #include <WiFi.h>
 
 #include "nav_data.pb.h"
-#include "cmd_data.pb.h"
+#include "hms_and_cmd_data.pb.h"
 #include "guidance_data.pb.h"
 #include "sensors.h"
 #include "hms.h"

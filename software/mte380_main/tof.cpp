@@ -42,12 +42,12 @@ void Tof::poll(){
     char report[64];
     int status;
 
-    if (hms->data.logLevel >= 2) Serial.println("before");
+    if (hms->data.sensorsLogLevel >= 2) Serial.println("before");
     do
     {
         status = sensor_vl53lx_sat.VL53LX_GetMeasurementDataReady(&NewDataReady);
     } while (!NewDataReady);
-    if (hms->data.logLevel >= 2) Serial.println("after");
+    if (hms->data.sensorsLogLevel >= 2) Serial.println("after");
 
     if ((!status) && (NewDataReady != 0))
     {

@@ -5,7 +5,7 @@
 #include "guidance.h"
 #include "sensors.h"
 #include "hms.h"
-#include "cmd_data.pb.h"
+#include "hms_and_cmd_data.pb.h"
 
 unsigned long longest = 0;
 //subsystems
@@ -31,26 +31,19 @@ void setup() {
 
 void loop() {
   unsigned long startT = micros();
-  if (hms.data.logLevel >= 2) Serial.println("sensors");
-  if (hms.data.logLevel >= 2) sensors.update();
-  if (hms.data.logLevel >= 2) Serial.println("nav");
+  sensors.update();
   nav.update();
-  if (hms.data.logLevel >= 2) Serial.println("guidance");
   guidance.update();
-  if (hms.data.logLevel >= 2) Serial.println("motors");
   motors.update();
-  if (hms.data.logLevel >= 2) Serial.println("telemetry");
   unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();
   unsigned long afterNetworkT = micros();
   hms.data.mainTickRate = beforeNetworkT - startT;
-  if (updated){
-    hms.data.networkTickRate =  afterNetworkT - beforeNetworkT;
-  }
+  hms.data.networkTickRate = afterNetworkT - beforeNetworkT;
   hms.data.combinedTickRate = afterNetworkT - startT;
-  if (hms.data.combinedTickRate > longest){
-    hms.data.longestCombinedTick = hms.data.combinedTickRate;
-    longest = hms.data.combinedTickRate;
+  if (hms.data.networkTickRate > longest){
+    longest = hms.data.networkTickRate;
+    hms.data.longestCombinedTick = longest;
   }
 
   /* delay(400); */

@@ -3,7 +3,7 @@
 
 #include "guidance_data.pb.h"
 #include "nav_data.pb.h"
-#include "cmd_data.pb.h"
+#include "hms_and_cmd_data.pb.h"
 #include "hms.h"
 
 class Guidance{

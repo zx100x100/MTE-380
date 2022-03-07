@@ -25,11 +25,10 @@ void Motors::setAllToZero(){
 }
 
 void Motors::update(){
+  if (hms->data.mainLogLevel >= 2) Serial.println("motors");
   analogWrite(LEFT_DRIVE_PIN, guidanceData.leftPower);
   analogWrite(RIGHT_DRIVE_PIN, guidanceData.rightPower);
   float propPower = map(guidanceData.propPower, 0, 255, PROP_MIN, PROP_MAX);
-  if (hms->data.logLevel >= 1){
-    Serial.print("propPower: "); Serial.println(propPower);
-  }
+  if (hms->data.mainLogLevel >= 2){ Serial.print("propPower: "); Serial.println(propPower);}
   propServo.write(propPower);
 }

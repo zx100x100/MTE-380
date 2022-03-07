@@ -22,6 +22,7 @@ class TelemetryClient(threading.Thread):
         longest_push = 0
         while True:
             if self.killme:
+                print('killing')
                 break
             if self.connected:
                 before_tick = time.time()
@@ -37,12 +38,10 @@ class TelemetryClient(threading.Thread):
                 if push_time > longest_push:
                     longest_push = push_time
 
-                #  print(f'push_time: {push_time}')
-                #  print(f'pull_time: {pull_time}')
-                #  print(f'longest_push: {longest_push}')
-                #  print(f'longest_pull: {longest_pull}')
+                print(f'longest_pull: {longest_pull}')
+
             else:
-                self.pull_fake()
+                #  self.pull_fake()
                 time.sleep(0.1)
 
     def connect(self):
@@ -59,6 +58,7 @@ class TelemetryClient(threading.Thread):
         except Exception as e:
             print(f'error connecting: {e}')
             self.connected = False
+            self.killme = True
             try:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.settimeout(COMMS_TIMEOUT)
@@ -79,9 +79,7 @@ class TelemetryClient(threading.Thread):
             print(f"Failed to disconnect comms: {e}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             time.sleep(2)
-            sys.exit()
         print('disconnected')
-        sys.exit()
         self.connected = False
 
     def push(self):
@@ -100,11 +98,31 @@ class TelemetryClient(threading.Thread):
             rx_raw = self.socket.recv(1000)
 
             message_sets = rx_raw.split(b';;;')[:-1]
-            print(len(message_sets))
+            if len(message_sets) == 1:
+                if b';;;' not in rx_raw:
+                    print('partial message data!')
+                    raise Exception
+            #  print(len(message_sets))
+            new_raw = None
+            prev_raw = None
             for message_set_raw in message_sets:
-                self.data.decode_incoming(message_set_raw)
+                if not message_set_raw.startswith(b'((('):
+                    if b'(((' in message_set_raw:
+                        try:
+                            message_set_raw = b'((('+b'((('.join(message_set_raw.split(b'(((')[1:])
+                        except Exception as e:
+                            print(f'wtf: {e}')
+                            print(f'message_set_raw: {message_set_raw}')
+                            raise Exception
+                    else:
+                        continue
+                self.data.decode_incoming(message_set_raw[3:])
+                prev_raw = message_set_raw
         except Exception as e:
             print(f"Failed to pull data: {e}")
+            print(f'prev_raw: {prev_raw}')
+            print(f'new_raw: {new_raw}')
+            self.killme = True
     
     def pull_fake(self):
         self.data.pull_fake()

@@ -1,8 +1,8 @@
 import pygame as pg
-from util import pos_inside_rect
-from proto.hms_data_pb2 import HmsData
 from collections import deque
 
+from util import (pos_inside_rect, next_enum)
+from proto.hms_and_cmd_data_pb2 import HmsData
 from constants import *
 
 READOUT_HEIGHT = SCREEN_SIZE[1]-ARENA_SIZE_PIXELS-CONTROL_ITEM_HEIGHT-3*GLOBAL_MARGIN
@@ -195,7 +195,6 @@ class Readout:
             error_info_bg = pg.Surface(error_info_rect.size).convert_alpha()
             error_info_bg.fill(ITEM_VALUE_BG_COLOUR)
             self.app.error_info = (error_info, error_info_bg, error_info_rect)
-            print('err_info')
 
         self.bg_image = self.generate_bg_image()
 
@@ -215,6 +214,20 @@ class Readout:
         for item, topleft in self.item_topleft_pairs:
             global_rect = pg.Rect(topleft[0],topleft[1],item.rect.width, item.rect.height)
             if pos_inside_rect(pos, global_rect):
+                if item.is_enum:
+                    # super jank, check if we clicked on a CmdData log level
+                    if hasattr(item.proto, 'runState'):
+                        enum_val = item.value
+                        if enum_val in HmsData.LogLevel.keys():
+                            enum_num = getattr(item.proto, item.name)
+                            total = len(HmsData.LogLevel.keys())
+                            next_enum_num = (enum_num+1) % total
+                            enum_type = item.proto.DESCRIPTOR.fields_by_name[item.name].enum_type
+                            new_name = enum_type.values_by_number[next_enum_num].name
+                            setattr(item.proto, item.name, next_enum_num)
+                            item.update_value()
+                        return False
+
                 return item
         return False
 

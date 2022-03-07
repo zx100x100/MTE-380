@@ -1,5 +1,5 @@
 #include "sensors.h"
-#include "hms_data.pb.h"
+#include "hms_and_cmd_data.pb.h"
 
 #define V_SENSE_PIN 15
 #define MIN_CELL_VOLTAGE 3 // TODO update value?
@@ -46,6 +46,7 @@ void Sensors::updateBatteryVoltage(){
 // }
 
 void Sensors::update(){
+  if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   /* imu.poll(); */
 //  for (int i=0; i<4; i++){
 //    Wire.beginTransmission(TCAADDR);
@@ -54,7 +55,7 @@ void Sensors::update(){
 //    tof[i].poll();
 //  }
   updateBatteryVoltage();
-  if (hms->data.logLevel >= 2) Serial.println("finished updating bat voltage");
+  if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");
 
   timestamp = micros();
 }
