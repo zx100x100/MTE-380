@@ -11,7 +11,7 @@
 
 #define DEAD_MAN_TIMEOUT_MS 1000
 #define CMD_BUF_SIZE 30
-#define OUTPUT_BUF_SIZE 100
+#define OUTPUT_BUF_SIZE 1000
 // Size of the buffer that contains literally just the number of bytes written
 
 const uint8_t delimit[3] = {uint8_t(':'),uint8_t(':'),uint8_t(':')};
