@@ -59,8 +59,8 @@ void Imu::poll(){
   imuData.gyroZ = event.gyro.z;
   // Serial.print("imuData ptr:");
   // Serial.print((unsigned long)&imuData);
-  Serial.print("imuData.accelZ:");
-  Serial.println(imuData.accelZ);
+  // Serial.print("imuData.accelZ:");
+  // Serial.println(imuData.accelZ);
 }
 
 ImuData& Imu::getData(){

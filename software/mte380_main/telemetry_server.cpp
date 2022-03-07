@@ -7,13 +7,16 @@
 #include "imu_data.pb.h"
 #include "tof_data.pb.h"
 #include "telemetry_server.h"
-#include "cmd_data.pb.h"
+#include "hms_and_cmd_data.pb.h"
 
 #define DEAD_MAN_TIMEOUT_MS 1000
 #define CMD_BUF_SIZE 30
-#define OUTPUT_BUF_SIZE 300
+#define OUTPUT_BUF_SIZE 100
+// Size of the buffer that contains literally just the number of bytes written
 
 const uint8_t delimit[3] = {uint8_t(':'),uint8_t(':'),uint8_t(':')};
+const uint8_t delimitEnd[3] = {uint8_t(';'),uint8_t(';'),uint8_t(';')};
+const uint8_t delimitStart[3] = {uint8_t('('),uint8_t('('),uint8_t('(')};
 
 TelemetryServer::TelemetryServer(Sensors& sensors,
                           NavData& navData,
@@ -25,7 +28,8 @@ TelemetryServer::TelemetryServer(Sensors& sensors,
   guidanceData(guidanceData),
   cmdData(cmdData),
   hms(hms){
-    lastCommandTime = millis();
+    lastCommandTime = micros();
+    beforeReceiveT = micros();
 }
 
 void TelemetryServer::init(){
@@ -56,13 +60,27 @@ void delimitData(pb_ostream_t& stream){
   }
 }
 
+void delimitMessageEnd(pb_ostream_t& stream){
+  if (!pb_write(&stream, delimitEnd, 3)){
+    Serial.printf("write fail: %s\n", PB_GET_ERROR(&stream));
+    return;
+  }
+}
+
+void delimitMessageStart(pb_ostream_t& stream){
+  if (!pb_write(&stream, delimitStart, 3)){
+    Serial.printf("write fail: %s\n", PB_GET_ERROR(&stream));
+    return;
+  }
+}
+
 void TelemetryServer::serializeData(pb_ostream_t& stream){
+  delimitMessageStart(stream);
   if (!pb_encode(&stream, NavData_fields, &navData)){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;
   }
   delimitData(stream);
-  /* delimitData(stream); */
 
   if (!pb_encode(&stream, GuidanceData_fields, &guidanceData)){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
@@ -76,11 +94,6 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
   }
   delimitData(stream);
   
-
-  Serial.print("imuData ptr:");
-  Serial.print((unsigned long)&sensors.imu.getData());
-  Serial.print(" ");
-  Serial.print(sensors.imu.getData().gyroZ);
   if (!pb_encode(&stream, ImuData_fields, &sensors.imu.getData())){
     Serial.printf("encode fail: %s\n", PB_GET_ERROR(&stream));
     return;
@@ -96,9 +109,17 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
       delimitData(stream);
     }
   }
+  delimitMessageEnd(stream);
 }
 
-void TelemetryServer::update(){
+bool TelemetryServer::update(){
+  if (hms->data.mainLogLevel >= 2) Serial.println("TelemetryServer::update()");
+  if (millis() - lastCommandTime*1000 > DEAD_MAN_TIMEOUT_MS){
+    cmdData.runState = CmdData_RunState_E_STOP;
+    cmdData.leftPower = 0;
+    cmdData.rightPower = 0;
+    cmdData.propPower = 0;
+  }
   if (!client){
     client = server.available();
   }
@@ -112,14 +133,14 @@ void TelemetryServer::update(){
       // client.flush(); // clear out the input buffer
       Serial.println("New client for tcp telemetry server");
       alreadyConnected = true;
-      return;
+      return false;
     }
     else{
       // TODO CHANGE THIS BEHAVIOR OR AT LEAST MAKE SURE DOING IT THIS WAY ISNT MAKING TICKRATES LESS CONSISTENT
       int receiveBytes = client.available();
       if (receiveBytes > 0){ // input available, update cmd, send back telemetry
-        Serial.println("Received cmd data");
-        lastCommandTime = millis();
+        if (hms->data.mainLogLevel >= 2){Serial.println("Received cmd data");}
+        beforeReceiveT = micros();
         // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
         int i = 0;
@@ -132,31 +153,43 @@ void TelemetryServer::update(){
         bool decodeStatus = pb_decode(&instream, CmdData_fields, &cmdData);
         if (!decodeStatus){
           Serial.printf("Decoding Cmd fail: %s\n", PB_GET_ERROR(&instream));
-          return;
+          // TODO
+          //
+          // ADD THIS TO HSM ERROR LOGGER!!!!!!!!!!!
+          //
+          //
+          return false;
         }
-
-        // SEND DATA --------------------------------------
-        pb_ostream_t stream;
-        uint8_t buffer[OUTPUT_BUF_SIZE];
-        stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-        serializeData(stream);
-        client.flush();
-        client.write(buffer, stream.bytes_written); // takes 0-2 ms
-
-        lastCommandTime = millis();
+        hms->data.mainLogLevel = HmsData_LogLevel(cmdData.mainLogLevel);
+        Serial.print("mainLogLevel: "); Serial.println(cmdData.mainLogLevel);
+        Serial.print("hmsData.mainLogLevel: "); Serial.println(hms->data.mainLogLevel);
+        hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
+        hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
+        hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
       }
-      else{ 
-        // DEAD MANS SWITCH!
-        if (millis() - lastCommandTime > DEAD_MAN_TIMEOUT_MS){
-          cmdData.runState = CmdData_RunState_E_STOP;
-          cmdData.leftPower = 0;
-          cmdData.rightPower = 0;
-          cmdData.propPower = 0;
-        }
+      // SEND DATA --------------------------------------
+      pb_ostream_t stream;
+      // pb_ostream_t sizeStream;
+      uint8_t buffer[OUTPUT_BUF_SIZE];
+      // uint8_t sizeBuffer[4];
+      stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+      // sizeStream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+      serializeData(stream);
+      unsigned long beforeSendT = micros();
+      client.write(buffer, stream.bytes_written); // takes 0-2 ms
+      client.flush();
+
+      unsigned long newTimestamp = micros();
+      lastCommandTime = newTimestamp;
+      if (newTimestamp-beforeSendT > 100){
+        Serial.print("justSend: "); Serial.println(newTimestamp-beforeSendT);
       }
+      return true;
     }
   }
   else{
     Serial.println("No TCP client connected.");
+    // DEAD MANS SWITCH!
+    return false;
   }
 }

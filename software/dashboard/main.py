@@ -7,7 +7,7 @@ import time
 
 from robot import Robot
 from arena import Arena
-from proto.cmd_data_pb2 import CmdData
+from proto.hms_and_cmd_data_pb2 import CmdData
 from telemetry_plots import TelemetryPlots
 from controls import Controls
 from data import Data
@@ -38,6 +38,7 @@ CAPTION = "yo momma"
 
 class App:
     def __init__(self):
+        self.display_update_dt = 0 # temp TODO remove
         self.clock = pg.time.Clock()
         self.error_info = None
         self.screen = pg.display.get_surface()
@@ -45,6 +46,7 @@ class App:
         self.arena = Arena(self.robot)
         self.keys = pg.key.get_pressed()
         self.teleop = False
+        self.tick_num = 0
         pg.font.init()
         self.screen.blit(self.arena.image, (0,0))
 
@@ -73,13 +75,33 @@ class App:
         self.arena.erase(self.screen)
 
     def render(self):
+        #  before_render_ts = time.time()
+        #  before_render_dt = (before_render_ts-self.before_tick)*1e6
+        #  print(f'before_render_dt: {before_render_dt}')
         self.robot.render(self.screen)
+        #  robot_render_ts = time.time()
+        #  robot_render_dt = (robot_render_ts - before_render_ts)*1e6
+        #  print(f'robot_render_dt: {robot_render_dt}')
         self.render_telemetry()
+        #  telemetry_render_ts = time.time()
+        #  telemetry_render_dt = (telemetry_render_ts - robot_render_ts)*1e6
+        #  print(f'telemetry_render_dt: {telemetry_render_dt}')
         perp_line_image = self.arena.active.generate_desired_heading(self.robot)
         self.screen.blit(perp_line_image, (0,0))
         self.arena.render_active(self.screen)
+        #  arena_render_ts = time.time()
+        #  arena_render_dt = (arena_render_ts - telemetry_render_ts)*1e6
+        #  print(f'arena_render_dt: {arena_render_dt}')
         self.protobuf_readouts.render()
+        #  protobuf_render_ts = time.time()
+        #  protobuf_render_dt = (protobuf_render_ts - arena_render_ts)*1e6
+        #  print(f'protobuf_render_dt: {protobuf_render_dt}')
         pg.display.update()
+        #  display_update_ts = time.time()
+        #  display_update_dt = (display_update_ts - protobuf_render_ts)*1e6
+        #  print(f'display_update_dt: {display_update_dt}')
+        #  entire_tick = (display_update_ts - self.before_tick)*1e6
+        #  print(f'entire_tick: {entire_tick}')
 
     def event_loop(self):
         self.keys = pg.key.get_pressed()
@@ -187,13 +209,14 @@ class App:
 
     def main_loop(self):
         while(True):
-            self.clock.tick(FPS)
             #  if self.toggle_comms_next_tick:
                 #  self._toggle_comms()
+            self.before_tick = time.time()
             self.event_loop()
-            self.erase()
             self.update_robot_data()
+            self.erase()
             self.render()
+            self.tick_num += 1
 
 def main():
     os.environ['SDL_VIDEO_CENTERED'] = '1'

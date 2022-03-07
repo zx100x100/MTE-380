@@ -30,6 +30,7 @@ void Guidance::init(){
 }
 
 void Guidance::update(){
+  if (hms->data.guidanceLogLevel >= 2) Serial.println("Guidance::update()");
   /* traj.updatePos(); */
 
   /* gd.segNum = traj.segment(); */
@@ -107,6 +108,35 @@ void Guidance::update(){
   /* } */
   // Serial.print("gd.leftPower:"); Serial.println(gd.leftPower);
   // Serial.print("gd.rightPower:"); Serial.println(gd.rightPower);
+  // calculate everything, then
+  // float outputLeft = 0;
+  // float outputRight = 0; // TODO replace w/ real vals
+
+  // if (cmdData.runState == CmdData_RunState_TELEOP){
+    // if (hms->data.guidanceLogLevel >= 2){
+      // Serial.println("teleop");
+    // }
+    // guidanceData.leftPower = cmdData.leftPower;
+    // guidanceData.rightPower = cmdData.rightPower;
+    // guidanceData.propPower = cmdData.propPower;
+  // }
+  // else if (cmdData.runState == CmdData_RunState_AUTO){
+    // guidanceData.leftPower = outputLeft;
+    // guidanceData.rightPower = outputRight;
+    // guidanceData.propPower = 0; // temp
+  // }
+  // else{
+    // if (hms->data.guidanceLogLevel >= 2){
+      // Serial.println("stopped");
+    // }
+    // guidanceData.leftPower = 0;
+    // guidanceData.rightPower = 0;
+    // guidanceData.propPower = 0;
+  // }
+  // if (hms->data.guidanceLogLevel >= 2){
+    // Serial.print("guidanceData.leftPower:"); Serial.println(guidanceData.leftPower);
+    // Serial.print("guidanceData.rightPower:"); Serial.println(guidanceData.rightPower);
+  // }
 }
 
 GuidanceData& Guidance::getData(){

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+message HmsData {
+  enum Error {
+    LOW_BATTERY = 0;
+    OFF_TRACK = 1; // robot off track
+  }
+  enum LogLevel {
+    NORMAL = 0;
+    DEBUG = 1;
+    OVERKILL = 2;
+  }
+  float batteryVoltage = 1;
+  uint32 nCells = 2;
+  LogLevel mainLogLevel = 3;
+  LogLevel sensorsLogLevel = 4;
+  LogLevel navLogLevel = 5;
+  LogLevel guidanceLogLevel = 6;
+  uint32 networkTickRate = 7;
+  uint32 mainTickRate = 8;
+  uint32 combinedTickRate = 9;
+  uint32 longestCombinedTick = 10;
+
+  string errorInfo = 11; // MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code)
+}
+
+message CmdData{
+  enum RunState{
+    E_STOP = 0;
+    AUTO = 1;
+    TELEOP = 2;
+  }
+  int32 placeholder = 1;
+  float leftPower = 2;
+  float rightPower = 3;
+  float propPower = 4;
+  RunState runState = 5;
+  HmsData.LogLevel mainLogLevel = 6;
+  HmsData.LogLevel sensorsLogLevel = 7;
+  HmsData.LogLevel navLogLevel = 8;
+  HmsData.LogLevel guidanceLogLevel = 9;
+}

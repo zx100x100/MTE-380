@@ -46,6 +46,9 @@ void Nav::updateImu(){
 }
 
 void Nav::update(){
+  if (hms->data.navLogLevel >= 2){
+    Serial.println("Nav::update()");
+  }
   navData.posX = 1;
   navData.posY = 0;
   navData.posZ = 0;

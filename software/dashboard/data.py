@@ -1,10 +1,8 @@
 from proto.nav_data_pb2 import (NavData)
-from proto.cmd_data_pb2 import (CmdData)
-                           
 from proto.imu_data_pb2 import ImuData
 from proto.tof_data_pb2 import TofData
 from proto.guidance_data_pb2 import GuidanceData
-from proto.hms_data_pb2 import HmsData
+from proto.hms_and_cmd_data_pb2 import (HmsData, CmdData)
 
 from protobuf_readouts import ProtobufReadouts
 

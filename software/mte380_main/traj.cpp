@@ -42,17 +42,4 @@ Traj::Traj()
   segments[17] = new Curve(3,3,BL);
   segments[18] = new Curve(3,3,TL);
   segments[19] = new Line(3,2.5,3.5,2.5);
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

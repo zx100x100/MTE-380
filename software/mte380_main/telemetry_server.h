@@ -4,7 +4,7 @@
 #include <WiFi.h>
 
 #include "nav_data.pb.h"
-#include "cmd_data.pb.h"
+#include "hms_and_cmd_data.pb.h"
 #include "guidance_data.pb.h"
 #include "sensors.h"
 #include "hms.h"
@@ -12,8 +12,8 @@
 
 class TelemetryServer{
   private:
-    const char* ssid = "EMU";
-    const char* password = "11111111";
+    const char* ssid = WIFI_SSID;
+    const char* password = WIFI_PASSWORD;
     WiFiServer server = WiFiServer(SERVER_PORT);
     WiFiClient client;
     bool alreadyConnected = false;
@@ -42,7 +42,8 @@ class TelemetryServer{
               CmdData& cmdData,
               Hms* hms);
     void init();
-    void update();
+    bool update();
+    unsigned long beforeReceiveT; 
 };
 
 #endif

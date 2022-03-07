@@ -27,3 +27,27 @@ def pos_inside_rect(pos, rect):
     if pos[1] > rect.bottom or pos[1] < rect.top:
         return False
     return True
+
+def next_enum(enum_obj):
+    cls = enum_obj.__class__
+    members = list(cls)
+    index = members.index(enum_obj) + 1
+    if index >= len(members):
+        # to cycle around
+        # index = 0
+        #
+        # to error out
+        raise StopIteration('end of enumeration reached')
+    return members[index]
+
+def prev_enum(enum_obj):
+    cls = enum_obj.__class__
+    members = list(cls)
+    index = members.index(enum_obj) - 1
+    if index < 0:
+        # to cycle around
+        # index = len(members) - 1
+        #
+        # to error out
+        raise StopIteration('beginning of enumeration reached')
+    return members[index]
