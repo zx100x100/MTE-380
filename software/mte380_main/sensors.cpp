@@ -8,25 +8,32 @@
 #define REAR_TOF 5
 #define L_BACK_TOF 3
 #define L_FRONT_TOF 2
-uint8_t mux_addresses[4] = { FRONT_TOF, REAR_TOF, L_BACK_TOF, L_FRONT_TOF };
+uint8_t mux_addresses[4] = { FRONT_TOF, L_FRONT_TOF, L_BACK_TOF, REAR_TOF};
 
 #define TCAADDR 0x70
 
-Sensors::Sensors(Hms* hms):
+Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
   hms(hms)
 {
+  for (int i = 0; i < 4; ++i){
+  sensor_vl53lx_sat[i] = &tof_objects[i];
+  }
+}
+
+bool Sensors::init(){
   imu = Imu(hms);
 
+  Serial.println("WIRE begin");
   Wire.begin();
 
-//
-//  for (int i=0; i<4; i++){
-//    Wire.beginTransmission(TCAADDR);
-//    Wire.write(1 << mux_addresses[i]);
-//    Wire.endTransmission();
-//    delay(100);
-//    tof[i] = Tof(hms);
-//  }
+  for (int i=0; i<4; i++){
+    Serial.println("Starting mux shit");
+    Wire.beginTransmission(TCAADDR);
+    Wire.write(1 << mux_addresses[i]);
+    Wire.endTransmission();
+    delay(100);
+    tof[i] = Tof(hms, sensor_vl53lx_sat[i]);
+  }
   timestamp = 0;
 }
 
@@ -47,12 +54,12 @@ void Sensors::updateBatteryVoltage(){
 
 void Sensors::update(){
   imu.poll();
-//  for (int i=0; i<4; i++){
-//    Wire.beginTransmission(TCAADDR);
-//    Wire.write(1 << mux_addresses[i]);
-//    Wire.endTransmission();
-//    tof[i].poll();
-//  }
+  for (int i=0; i<4; i++){
+    Wire.beginTransmission(TCAADDR);
+    Wire.write(1 << mux_addresses[i]);
+    Wire.endTransmission();
+    tof[i].poll();
+  }
   updateBatteryVoltage();
 
   timestamp = micros();

@@ -1,6 +1,9 @@
 #ifndef TOF_H
 #define TOF_H
 
+// IF SOMETHING IS WEIRD. CHECK HERE
+#define PLACEHOLDER_PIN 100 // DO NOT TRUST THIS
+
 #include "hms.h"
 #include "tof_data.pb.h"
 
@@ -11,21 +14,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
+
 
 class Tof{
   public:
     Tof();
-    Tof(Hms* hms);
+    Tof(Hms* hms, VL53LX* tof_sensor);
     void poll();
     TofData& getData();
+//    bool init();
     /* void displayDetails(); */
 
   private:
     TofData tofData;
     Hms* hms;
-    VL53LX sensor_vl53lx_sat;
-
+    VL53LX* sensor_vl53lx_sat;
 };
 
 #endif
