@@ -46,7 +46,7 @@ void Sensors::updateBatteryVoltage(){
 // }
 
 void Sensors::update(){
-  imu.poll();
+  /* imu.poll(); */
 //  for (int i=0; i<4; i++){
 //    Wire.beginTransmission(TCAADDR);
 //    Wire.write(1 << mux_addresses[i]);
@@ -54,6 +54,7 @@ void Sensors::update(){
 //    tof[i].poll();
 //  }
   updateBatteryVoltage();
+  if (hms->data.logLevel >= 2) Serial.println("finished updating bat voltage");
 
   timestamp = micros();
 }

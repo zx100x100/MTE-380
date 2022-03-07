@@ -14,6 +14,9 @@ void Guidance::update(){
   float outputRight = 0; // TODO replace w/ real vals
 
   if (cmdData.runState == CmdData_RunState_TELEOP){
+    if (hms->data.logLevel >= 2){
+      Serial.println("teleop");
+    }
     guidanceData.leftPower = cmdData.leftPower;
     guidanceData.rightPower = cmdData.rightPower;
     guidanceData.propPower = cmdData.propPower;
@@ -24,12 +27,17 @@ void Guidance::update(){
     guidanceData.propPower = 0; // temp
   }
   else{
+    if (hms->data.logLevel >= 2){
+      Serial.println("stopped");
+    }
     guidanceData.leftPower = 0;
     guidanceData.rightPower = 0;
     guidanceData.propPower = 0;
   }
-  // Serial.print("guidanceData.leftPower:"); Serial.println(guidanceData.leftPower);
-  // Serial.print("guidanceData.rightPower:"); Serial.println(guidanceData.rightPower);
+  if (hms->data.logLevel >= 2){
+    Serial.print("guidanceData.leftPower:"); Serial.println(guidanceData.leftPower);
+    Serial.print("guidanceData.rightPower:"); Serial.println(guidanceData.rightPower);
+  }
 }
 
 GuidanceData& Guidance::getData(){

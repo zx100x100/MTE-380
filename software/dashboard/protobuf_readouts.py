@@ -57,9 +57,17 @@ class ReadoutItem:
 
         self.values = deque([self.value],maxlen=DISPLAY_DATA_POINTS)
         self.plotted_latest_value = False
+    
+    def append_value(self, value):
+        self.values.append(value)
+        self.plotted_latest_value = False
 
     def update_value(self):
         self.values.append(self.value)
+        self.plotted_latest_value = False
+    
+    def replace_value(self, value):
+        self.values[-1] = value
         self.plotted_latest_value = False
 
     def detect_whether_item_is_enum(self):

@@ -15,11 +15,28 @@ typedef enum _HmsData_Error {
     HmsData_Error_OFF_TRACK = 1 
 } HmsData_Error;
 
+typedef enum _HmsData_LogLevel { 
+    HmsData_LogLevel_NORMAL = 0, 
+    HmsData_LogLevel_DEBUG = 1, 
+    HmsData_LogLevel_OVERKILL = 2 
+} HmsData_LogLevel;
+
 /* Struct definitions */
 typedef struct _HmsData { 
     float batteryVoltage; 
     uint32_t nCells; 
-    char errorInfo[80]; /* Error error = 4; */
+    HmsData_LogLevel logLevel; 
+    uint32_t networkTickRate; 
+    uint32_t mainTickRate; 
+    uint32_t combinedTickRate; 
+    uint32_t longestCombinedTick; 
+    /* uint32 beforeRenderDt = 8;
+ uint32 robotRenderDt = 9;
+ uint32 telemetryRenderDt = 10;
+ uint32 arenaRenderDt = 11;
+ uint32 protobufRenderDt = 12;
+ uint32 displayUpdateDt = 13; */
+    char errorInfo[80]; /* MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code) */
 } HmsData;
 
 
@@ -28,25 +45,39 @@ typedef struct _HmsData {
 #define _HmsData_Error_MAX HmsData_Error_OFF_TRACK
 #define _HmsData_Error_ARRAYSIZE ((HmsData_Error)(HmsData_Error_OFF_TRACK+1))
 
+#define _HmsData_LogLevel_MIN HmsData_LogLevel_NORMAL
+#define _HmsData_LogLevel_MAX HmsData_LogLevel_OVERKILL
+#define _HmsData_LogLevel_ARRAYSIZE ((HmsData_LogLevel)(HmsData_LogLevel_OVERKILL+1))
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define HmsData_init_default                     {0, 0, ""}
-#define HmsData_init_zero                        {0, 0, ""}
+#define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, 0, 0, 0, 0, ""}
+#define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, 0, 0, 0, 0, ""}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define HmsData_batteryVoltage_tag               1
 #define HmsData_nCells_tag                       2
-#define HmsData_errorInfo_tag                    3
+#define HmsData_logLevel_tag                     3
+#define HmsData_networkTickRate_tag              4
+#define HmsData_mainTickRate_tag                 5
+#define HmsData_combinedTickRate_tag             6
+#define HmsData_longestCombinedTick_tag          7
+#define HmsData_errorInfo_tag                    8
 
 /* Struct field encoding specification for nanopb */
 #define HmsData_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, FLOAT,    batteryVoltage,    1) \
 X(a, STATIC,   SINGULAR, UINT32,   nCells,            2) \
-X(a, STATIC,   SINGULAR, STRING,   errorInfo,         3)
+X(a, STATIC,   SINGULAR, UENUM,    logLevel,          3) \
+X(a, STATIC,   SINGULAR, UINT32,   networkTickRate,   4) \
+X(a, STATIC,   SINGULAR, UINT32,   mainTickRate,      5) \
+X(a, STATIC,   SINGULAR, UINT32,   combinedTickRate,   6) \
+X(a, STATIC,   SINGULAR, UINT32,   longestCombinedTick,   7) \
+X(a, STATIC,   SINGULAR, STRING,   errorInfo,         8)
 #define HmsData_CALLBACK NULL
 #define HmsData_DEFAULT NULL
 
@@ -56,7 +87,7 @@ extern const pb_msgdesc_t HmsData_msg;
 #define HmsData_fields &HmsData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define HmsData_size                             92
+#define HmsData_size                             118
 
 #ifdef __cplusplus
 } /* extern "C" */

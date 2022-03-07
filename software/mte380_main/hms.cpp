@@ -9,6 +9,7 @@ Hms::Hms()
   /* HmsData data_ = HmsData_init_zero; */
   /* data = data_; */
   data.nCells = DEFAULT_N_BATTERY_CELLS;
+  data.logLevel = HmsData_LogLevel_NORMAL;
 }
 
 void Hms::logError(int err, char str[80]){
