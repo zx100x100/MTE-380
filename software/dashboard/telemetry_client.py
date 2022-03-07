@@ -12,15 +12,36 @@ class TelemetryClient(threading.Thread):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_ip = server_ip
         self.server_port = server_port
+        self.killme = False
+
+    def kill_thread(self):
+        self.killme = True
 
     def run(self):
+        longest_pull = 0
+        longest_push = 0
         while True:
+            if self.killme:
+                print('killing')
+                break
             if self.connected:
+                before_tick = time.time()
                 self.push()
+                new_time = time.time()
+                push_time = new_time - before_tick
+                #  time.sleep(0.1)
                 self.pull()
-                time.sleep(0.01)
+                new_time2 = time.time()
+                pull_time = new_time2 - new_time
+                if pull_time > longest_pull:
+                    longest_pull = pull_time
+                if push_time > longest_push:
+                    longest_push = push_time
+
+                print(f'longest_pull: {longest_pull}')
+
             else:
-                self.pull_fake()
+                #  self.pull_fake()
                 time.sleep(0.1)
 
     def connect(self):
@@ -37,14 +58,18 @@ class TelemetryClient(threading.Thread):
         except Exception as e:
             print(f'error connecting: {e}')
             self.connected = False
+            self.killme = True
             try:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.settimeout(COMMS_TIMEOUT)
+                self.socket.connect((self.server_ip,self.server_port))
                 self.socket.settimeout(None)
                 self.connected = True
             except Exception as e:
                 print(f'error connecting AGAIN! {e}')
                 self.connected = False
+
+        print(f'connected: {self.connected}')
 
     def disconnect(self):
         try:
@@ -53,6 +78,8 @@ class TelemetryClient(threading.Thread):
         except Exception as e:
             print(f"Failed to disconnect comms: {e}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            time.sleep(2)
+        print('disconnected')
         self.connected = False
 
     def push(self):
@@ -61,15 +88,41 @@ class TelemetryClient(threading.Thread):
             self.socket.sendall(self.data.encode_outgoing())
         except Exception as e:
             print(f"Failed to push data: {e}")
+            print(f"Attempting to reconnect.")
+            self.connect()
+            #  self.controls.connect_button.refresh_state()
 
     def pull(self):
         try:
             #  print('pull')
-            rx_raw = self.socket.recv(300)
-            #  print('rec')
-            self.data.decode_incoming(rx_raw)
+            rx_raw = self.socket.recv(1000)
+
+            message_sets = rx_raw.split(b';;;')[:-1]
+            if len(message_sets) == 1:
+                if b';;;' not in rx_raw:
+                    print('partial message data!')
+                    raise Exception
+            #  print(len(message_sets))
+            new_raw = None
+            prev_raw = None
+            for message_set_raw in message_sets:
+                if not message_set_raw.startswith(b'((('):
+                    if b'(((' in message_set_raw:
+                        try:
+                            message_set_raw = b'((('+b'((('.join(message_set_raw.split(b'(((')[1:])
+                        except Exception as e:
+                            print(f'wtf: {e}')
+                            print(f'message_set_raw: {message_set_raw}')
+                            raise Exception
+                    else:
+                        continue
+                self.data.decode_incoming(message_set_raw[3:])
+                prev_raw = message_set_raw
         except Exception as e:
             print(f"Failed to pull data: {e}")
+            print(f'prev_raw: {prev_raw}')
+            print(f'new_raw: {new_raw}')
+            self.killme = True
     
     def pull_fake(self):
         self.data.pull_fake()

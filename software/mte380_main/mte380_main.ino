@@ -5,7 +5,7 @@
 #include "guidance.h"
 #include "sensors.h"
 #include "hms.h"
-#include "cmd_data.pb.h"
+#include "hms_and_cmd_data.pb.h"
 
 VL53LX sensor_vl53lx_sat[4] = {
   VL53LX(&Wire, PLACEHOLDER_PIN),
@@ -14,6 +14,7 @@ VL53LX sensor_vl53lx_sat[4] = {
   VL53LX(&Wire, PLACEHOLDER_PIN)
 };
 
+unsigned long longest = 0;
 //subsystems
 Hms hms = Hms();
 CmdData cmdData = CmdData_init_zero;
@@ -37,11 +38,21 @@ void setup() {
 }
 
 void loop() {
+  unsigned long startT = micros();
   sensors.update();
   nav.update();
   guidance.update();
   motors.update();
-  telemetryServer.update();
+  unsigned long beforeNetworkT = micros();
+  bool updated = telemetryServer.update();
+  unsigned long afterNetworkT = micros();
+  hms.data.mainTickRate = beforeNetworkT - startT;
+  hms.data.networkTickRate = afterNetworkT - beforeNetworkT;
+  hms.data.combinedTickRate = afterNetworkT - startT;
+  if (hms.data.networkTickRate > longest){
+    longest = hms.data.networkTickRate;
+    hms.data.longestCombinedTick = longest;
+  }
 
   /* delay(400); */
 }
