@@ -8,9 +8,13 @@ all:
 		echo ; \
 		echo Error! no file found at $(NANOPB_GENERATOR_PATH) ; \
 		echo ; \
-		echo fix with the following steps: ; \
-		echo git clone https://github.com/nanopb/nanopb ~ ; \
-		echo echo ~/nanopb/generator/nanopb_generator.py; > ./nanopb_generator_path ; \
+		echo FIX WITH THE FOLLOWING STEPS!! ; \
+		echo ---------------------------------------------------------------; \
+		echo "git clone https://github.com/nanopb/nanopb ~/nanopb" ; \
+		echo "echo ~/nanopb/generator/nanopb_generator.py; > ./nanopb_generator_path" ; \
+		echo ; \
+		echo "(optional): replace ~/nanopb in both commands with a different install location" ; \
+		echo ---------------------------------------------------------------; \
 		exit ; \
 	fi ; \
 	for i in $(LIST); do \
