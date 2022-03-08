@@ -16,80 +16,81 @@ float constrainVal(float val, float maximum){
   return val;
 }
 
-Guidance::Guidance(NavData& navData, CmdData& cmdData, Hms* hms):
-  navData(navData),
-  cmdData(cmdData),
-  hms(hms),
-  traj{Traj()}
+Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms):
+  navData(_navData),
+  cmdData(_cmdData),
+  hms(_hms)
 {
   gd = GuidanceData_init_zero;
+  traj = Traj(_hms, &gd, &_cmdData);
 }
 
 void Guidance::init(){
-  traj = Traj();
 }
 
 void Guidance::update(){
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Guidance::update()");
-  /* traj.updatePos(); */
+  gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
+  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
 
-  /* gd.segNum = traj.segment(); */
+  if (traj.trapsChanged()){
+    traj.updateTraps();
+  }
 
-  /* gd.vel = (navData.velX^2 + navData.velY^2+navData.velZ^2)^0.5; */
-  /* gd.velSetpoint = traj.velSetpoint; */
-  /* float lastErrVel = gd.errVel; */
-  /* gd.errVel = gd.velSetpoint - gd.vel; */
-  /* gd.deltaT = micros() - lastTimestamp; */
-  /* gd.errVelD = (errVel - lastErrVel)/gd.deltaT; */
-  /* gd.errVelI += errVel * gd.deltaT; */
-  /* gd.velP = gd.errVel * gd.kP_vel; */
-  /* gd.velI = gd.errVelI * gd.kI_vel; */
-  /* gd.velD = gd.errVelD * gd.kD_vel; */
+  gd.setpointVel = traj.getSetpointVel(navData.posX, navData.posY);
+  float lastErrVel = gd.errVel;
+  gd.errVel = gd.setpointVel - gd.vel;
+  gd.deltaT = micros() - lastTimestamp;
+  gd.errVelD = (gd.errVel - lastErrVel)/gd.deltaT;
+  gd.errVelI += gd.errVel * gd.deltaT;
+  gd.velP = gd.errVel * gd.kP_vel;
+  gd.velI = gd.errVelI * gd.kI_vel;
+  gd.velD = gd.errVelD * gd.kD_vel;
 
-  /* gd.leftOutputVel = gd.velP + gd.velI + gd.velD; */
-  /* gd.rightOutputVel = gd.leftOutputVel; */
+  gd.leftOutputVel = gd.velP + gd.velI + gd.velD;
+  gd.rightOutputVel = gd.leftOutputVel;
 
-  /* gd.leftOutputVel = constrainVal(gd.leftOutputVel, MAX_OUTPUT_POWER) */
-  /* gd.rightOutputVel = constrainVal(gd.rightOutputVel, MAX_OUTPUT_POWER) */
+  gd.leftOutputVel = constrainVal(gd.leftOutputVel, MAX_OUTPUT_POWER);
+  gd.rightOutputVel = constrainVal(gd.rightOutputVel, MAX_OUTPUT_POWER);
 
 
-  /* float lastErrDrift = gd.errDrift; */
-  /* gd.errDrift = traj.distFromtraj(); */
-  /* gd.errDriftD = (errDrift - lastErrDrift)/gd.deltaT; */
-  /* gd.errDriftI += errDrift * gd.deltaT; */
-  /* gd.driftP = gd.errDrift * gd.kP_drift; */
-  /* gd.driftI = gd.errDriftI * gd.kI_drift; */
-  /* gd.driftD = gd.errDriftD * gd.kD_drift; */
+  float lastErrDrift = gd.errDrift;
+  gd.errDrift = traj.getDist(navData.posX, navData.posY);
+  gd.errDriftD = (gd.errDrift - lastErrDrift)/gd.deltaT;
+  gd.errDriftI += gd.errDrift * gd.deltaT;
+  gd.driftP = gd.errDrift * gd.kP_drift;
+  gd.driftI = gd.errDriftI * gd.kI_drift;
+  gd.driftD = gd.errDriftD * gd.kD_drift;
 
-  /* float driftOutput = gd.driftP + gd.driftI + gd.driftD; */
-  /* gd.rightOutputDrift = driftOutput; */
-  /* gd.leftOutputDrift = -driftOutput; */
+  float driftOutput = gd.driftP + gd.driftI + gd.driftD;
+  gd.rightOutputDrift = driftOutput;
+  gd.leftOutputDrift = -driftOutput;
 
-  /* gd.leftTotalPID = gd.leftOutputVel + gd.leftOutputDrift; */
-  /* gd.rightTotalPID = gd.rightOutputVel + gd.rightOutputDrift; */
+  gd.leftTotalPID = gd.leftOutputVel + gd.leftOutputDrift;
+  gd.rightTotalPID = gd.rightOutputVel + gd.rightOutputDrift;
 
-  /* if (gd.rightTotalPID > MAX_OUTPUT_POWER){ */
-    /* float spillover = gd.rightTotalPID-MAX_OUTPUT_POWER; */
-    /* gd.rightTotalPID -= spillover; */
-    /* gd.leftTotalPID += spillover; */
-  /* } */
-  /* else if (gd.rightTotalPID < -MAX_OUTPUT_POWER){ */
-    /* float spillover = -gd.rightTotalPID-MAX_OUTPUT_POWER; */
-    /* gd.rightTotalPID += spillover; */
-    /* gd.leftTotalPID -= spillover; */
-  /* } */
-  /* else if (gd.leftTotalPID > MAX_OUTPUT_POWER){ */
-    /* float spillover = gd.leftTotalPID-MAX_OUTPUT_POWER; */
-    /* gd.rightTotalPID += spillover; */
-    /* gd.leftTotalPID -= spillover; */
-  /* } */
-  /* else if (gd.leftTotalPID < -MAX_OUTPUT_POWER){ */
-    /* float spillover = -gd.leftTotalPID-MAX_OUTPUT_POWER; */
-    /* gd.rightTotalPID -= spillover; */
-    /* gd.leftTotalPID += spillover; */
-  /* } */
-  /* gd.leftTotalPID = constrainVal(gd.leftTotalPID, MAX_OUTPUT_POWER); */
-  /* gd.rightTotalPID = constrainVal(gd.rightTotalPID, MAX_OUTPUT_POWER); */
+  if (gd.rightTotalPID > MAX_OUTPUT_POWER){
+    float spillover = gd.rightTotalPID-MAX_OUTPUT_POWER;
+    gd.rightTotalPID -= spillover;
+    gd.leftTotalPID += spillover;
+  }
+  else if (gd.rightTotalPID < -MAX_OUTPUT_POWER){
+    float spillover = -gd.rightTotalPID-MAX_OUTPUT_POWER;
+    gd.rightTotalPID += spillover;
+    gd.leftTotalPID -= spillover;
+  }
+  else if (gd.leftTotalPID > MAX_OUTPUT_POWER){
+    float spillover = gd.leftTotalPID-MAX_OUTPUT_POWER;
+    gd.rightTotalPID += spillover;
+    gd.leftTotalPID -= spillover;
+  }
+  else if (gd.leftTotalPID < -MAX_OUTPUT_POWER){
+    float spillover = -gd.leftTotalPID-MAX_OUTPUT_POWER;
+    gd.rightTotalPID -= spillover;
+    gd.leftTotalPID += spillover;
+  }
+  gd.leftTotalPID = constrainVal(gd.leftTotalPID, MAX_OUTPUT_POWER);
+  gd.rightTotalPID = constrainVal(gd.rightTotalPID, MAX_OUTPUT_POWER);
 
   /* if (cmdData.runState == CmdData_RunState_TELEOP){ */
     /* gd.leftPower = cmdData.leftPower; */

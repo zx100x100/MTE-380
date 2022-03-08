@@ -2,35 +2,49 @@ syntax = "proto3";
 
 message GuidanceData {
   float deltaT = 1;
-  float errVel = 2; // PID inputs
-  float errDrift = 3;
 
-  float errVelI = 4;
-  float errVelD = 5;
+  float setpointVel = 2;
+  float vel = 3;
+  float errVel = 4;
+  float errVelI = 5;
+  float errVelD = 6;
   
-  float kP_vel = 6; // PID constants for velocity PID
-  float kI_vel = 7;
-  float kD_vel = 8;
+  float kP_vel = 7;
+  float kI_vel = 8;
+  float kD_vel = 9;
 
-  float velP = 9;
-  float velI = 10;
-  float velD = 11;
-
-  float kP_drift = 12; // PID constants for drift PID
-  float kI_drift = 13;
-  float kD_drift = 14;
-
-  float leftOutputVel = 15; // left motor output from velocity PID
-  float rightOutputVel = 16; // right motor output from velocity PID
-  float leftOutputDrift = 17; // left motor output from drift PID
-  float rightOutputDrift = 18; // right motor output from drift PID
+  float velP = 10; 
+  float velI = 11;
+  float velD = 12;
   
-  float leftTotalPID = 19; // combined left motor output from vel and drift PIDs
-  float rightTotalPID = 20; // combined left motor output from vel and drift PIDs
+  float leftOutputVel = 13;
+  float rightOutputVel = 14;
+  float errDrift = 15;
+  float errDriftI = 16;
+  float errDriftD = 17;
 
-  float leftPower = 21; // combined left motor output from vel and drift PIDs
-  float rightPower = 22; // combined right motor output from vel and drift PIDs
-  float propPower = 23; // combined right motor output from vel and drift PIDs
+  float kP_drift = 18;
+  float kI_drift = 19;
+  float kD_drift = 20;
+  
+  float driftP = 21;
+  float driftI = 22;
+  float driftD = 23;
 
-  uint32 segNum = 24; // current arena segment number
+  float leftOutputDrift = 24; // left motor output from drift PID
+  float rightOutputDrift = 25; // right motor output from drift PID
+
+  // combined motor output from vel and drift PIDs (unconstrained)
+  float leftTotalPID = 26; 
+  float rightTotalPID = 27;
+
+  // constrained motor outputs
+  float leftPower = 28;
+  float rightPower = 29;
+
+  float propPower = 30;
+
+  uint32 segNum = 31; // current arena segment number
+
+  bool completedTrack = 32;
 }

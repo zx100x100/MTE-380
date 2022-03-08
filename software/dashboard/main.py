@@ -117,7 +117,31 @@ class App:
                 mouse_presses = pg.mouse.get_pressed()
                 if mouse_presses[0]: # LEFT MOUSE BUTTON CLICKED
                     pos = pg.mouse.get_pos()
-                    if not self.controls.handle_click(pos):
+                    clicked_tile = self.arena.handle_click(pos)
+                    if clicked_tile:
+                        # update cmdData!!
+                        found = False
+                        for i,pos in enumerate(zip(self.data.cmd.pb.trapX, self.data.cmd.pb.trapY)):
+                            posx, posy = pos 
+                            if posx == clicked_tile[0]+0.5 and posy == clicked_tile[1]+0.5:
+                                self.data.cmd.pb.trapX[i] = -1
+                                self.data.cmd.pb.trapY[i] = -1
+                                self.data.cmd.pb.nTraps -= 1
+                                found = True
+                        if not found:
+                            replaced = False
+                            for i,pos in enumerate(zip(self.data.cmd.pb.trapX, self.data.cmd.pb.trapY)):
+                                posx, posy = pos 
+                                if posx == -1 and posy == -1:
+                                    replaced = True
+                                    self.data.cmd.pb.nTraps += 1
+                                    self.data.cmd.pb.trapX[i] = clicked_tile[0]+0.5
+                                    self.data.cmd.pb.trapY[i] = clicked_tile[1]+0.5
+                                    break
+                            if not replaced:
+                                self.arena.tiles[posy]
+
+                    else:
                         if self.telemetry_plots.handle_click(pos):
                             if self.previously_clicked_item:
                                 self.previously_clicked_item.set_not_clicked()

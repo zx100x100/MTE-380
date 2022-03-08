@@ -3,7 +3,7 @@ syntax = "proto3";
 message HmsData {
   enum Error {
     LOW_BATTERY = 0;
-    OFF_TRACK = 1; // robot off track
+    WTF_AHMAD = 1; // Robot tries to skip forward or backward or off track (bad nav data)
   }
   enum LogLevel {
     NORMAL = 0;
@@ -39,4 +39,8 @@ message CmdData{
   HmsData.LogLevel sensorsLogLevel = 7;
   HmsData.LogLevel navLogLevel = 8;
   HmsData.LogLevel guidanceLogLevel = 9;
+
+  uint32 nTraps = 10;
+  repeated float trapX = 11;
+  repeated float trapY = 12;
 }

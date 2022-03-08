@@ -6,6 +6,8 @@ from proto.hms_and_cmd_data_pb2 import (HmsData, CmdData)
 
 from protobuf_readouts import ProtobufReadouts
 
+N_TRAPS = 8
+
 class PbData:
     def __init__(self, pb):
         self.pb = pb
@@ -30,7 +32,10 @@ class Data:
         self.app = app
         self.cmd = PbData(CmdData())
         self.cmd.pb.runState = CmdData.RunState.E_STOP
-        self.cmd.pb.placeholder = 1
+        #  for i in range(len(self.cmd.pb.trapX)):
+            #  self.cmd.pb.trapX[i] = self.cmd.pb.trapY[i] = -1
+        self.cmd.pb.trapX.extend([-1] * N_TRAPS)
+        self.cmd.pb.trapY.extend([-1] * N_TRAPS)
         self.nav = PbData(NavData())
         self.guidance = PbData(GuidanceData())
         self.hms = PbData(HmsData())

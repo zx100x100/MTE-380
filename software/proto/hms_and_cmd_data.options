@@ -1,0 +1,6 @@
+HmsData.errorInfo max_size:80
+
+CmdData.trapX max_count:8
+CmdData.trapY max_count:8
+CmdData.trapX fixed_count:true
+CmdData.trapY fixed_count:true

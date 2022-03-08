@@ -12,7 +12,7 @@
 /* Enum definitions */
 typedef enum _HmsData_Error { 
     HmsData_Error_LOW_BATTERY = 0, 
-    HmsData_Error_OFF_TRACK = 1 
+    HmsData_Error_WTF_AHMAD = 1 
 } HmsData_Error;
 
 typedef enum _HmsData_LogLevel { 
@@ -38,6 +38,9 @@ typedef struct _CmdData {
     HmsData_LogLevel sensorsLogLevel; 
     HmsData_LogLevel navLogLevel; 
     HmsData_LogLevel guidanceLogLevel; 
+    uint32_t nTraps; 
+    float trapX[8]; 
+    float trapY[8]; 
 } CmdData;
 
 typedef struct _HmsData { 
@@ -51,14 +54,14 @@ typedef struct _HmsData {
     uint32_t mainTickRate; 
     uint32_t combinedTickRate; 
     uint32_t longestCombinedTick; 
-    pb_callback_t errorInfo; /* MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code) */
+    char errorInfo[80]; /* MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code) */
 } HmsData;
 
 
 /* Helper constants for enums */
 #define _HmsData_Error_MIN HmsData_Error_LOW_BATTERY
-#define _HmsData_Error_MAX HmsData_Error_OFF_TRACK
-#define _HmsData_Error_ARRAYSIZE ((HmsData_Error)(HmsData_Error_OFF_TRACK+1))
+#define _HmsData_Error_MAX HmsData_Error_WTF_AHMAD
+#define _HmsData_Error_ARRAYSIZE ((HmsData_Error)(HmsData_Error_WTF_AHMAD+1))
 
 #define _HmsData_LogLevel_MIN HmsData_LogLevel_NORMAL
 #define _HmsData_LogLevel_MAX HmsData_LogLevel_OVERKILL
@@ -74,10 +77,10 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, {{NULL}, NULL}}
-#define CmdData_init_default                     {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN}
-#define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, {{NULL}, NULL}}
-#define CmdData_init_zero                        {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN}
+#define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, ""}
+#define CmdData_init_default                     {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}}
+#define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, ""}
+#define CmdData_init_zero                        {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define CmdData_placeholder_tag                  1
@@ -89,6 +92,9 @@ extern "C" {
 #define CmdData_sensorsLogLevel_tag              7
 #define CmdData_navLogLevel_tag                  8
 #define CmdData_guidanceLogLevel_tag             9
+#define CmdData_nTraps_tag                       10
+#define CmdData_trapX_tag                        11
+#define CmdData_trapY_tag                        12
 #define HmsData_batteryVoltage_tag               1
 #define HmsData_nCells_tag                       2
 #define HmsData_mainLogLevel_tag                 3
@@ -113,8 +119,8 @@ X(a, STATIC,   SINGULAR, UINT32,   networkTickRate,   7) \
 X(a, STATIC,   SINGULAR, UINT32,   mainTickRate,      8) \
 X(a, STATIC,   SINGULAR, UINT32,   combinedTickRate,   9) \
 X(a, STATIC,   SINGULAR, UINT32,   longestCombinedTick,  10) \
-X(a, CALLBACK, SINGULAR, STRING,   errorInfo,        11)
-#define HmsData_CALLBACK pb_default_field_callback
+X(a, STATIC,   SINGULAR, STRING,   errorInfo,        11)
+#define HmsData_CALLBACK NULL
 #define HmsData_DEFAULT NULL
 
 #define CmdData_FIELDLIST(X, a) \
@@ -126,7 +132,10 @@ X(a, STATIC,   SINGULAR, UENUM,    runState,          5) \
 X(a, STATIC,   SINGULAR, UENUM,    mainLogLevel,      6) \
 X(a, STATIC,   SINGULAR, UENUM,    sensorsLogLevel,   7) \
 X(a, STATIC,   SINGULAR, UENUM,    navLogLevel,       8) \
-X(a, STATIC,   SINGULAR, UENUM,    guidanceLogLevel,   9)
+X(a, STATIC,   SINGULAR, UENUM,    guidanceLogLevel,   9) \
+X(a, STATIC,   SINGULAR, UINT32,   nTraps,           10) \
+X(a, STATIC,   FIXARRAY, FLOAT,    trapX,            11) \
+X(a, STATIC,   FIXARRAY, FLOAT,    trapY,            12)
 #define CmdData_CALLBACK NULL
 #define CmdData_DEFAULT NULL
 
@@ -138,8 +147,8 @@ extern const pb_msgdesc_t CmdData_msg;
 #define CmdData_fields &CmdData_msg
 
 /* Maximum encoded size of messages (where known) */
-/* HmsData_size depends on runtime parameters */
-#define CmdData_size                             36
+#define CmdData_size                             122
+#define HmsData_size                             124
 
 #ifdef __cplusplus
 } /* extern "C" */
