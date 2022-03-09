@@ -1,6 +1,20 @@
 #include "fusion.h"
 #include "nav.h"
 
+#define L_Y_DELTA 100  // mm
+#define L_X_OFFSET 50  // mm
+#define F_Y_OFFSET 100  // mm
+#define F_X_OFFSET 0  // mm
+#define B_Y_OFFSET 100  // mm
+#define B_X_OFFSET 0  // mm
+
+#define TRACK_DIM 1828.8  // mm
+#define MAX_DEVIATION 50  // mm
+
+#define USE_IMU false
+
+#define FLT_INVALID 0xFFFF
+
 Nav::Nav(Sensors& sensors, Hms* hms):
   sensors(sensors),
   hms(hms)
@@ -17,7 +31,15 @@ void Nav::init(){
   /* fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ); */
 }
 
-void Nav::updateImu(){
+float Nav::rad2deg(float rad){
+  return rad * 180 / PI;
+}
+
+float Nav::deg2rad(float deg){
+  return deg / 180 * PI;
+}
+
+NavData Nav::calculateImu(){
 
   /* ImuData &latest = sensors.imu.getData(); */
 
@@ -43,44 +65,120 @@ void Nav::updateImu(){
   // prev_position.xy_ang_vel = latest.gyro_z;
   // prev_position.xz_ang_vel = latest.gyro_y;
   // prev_position.yz_ang_vel = latest.gyro_x;
+  return NavData_init_zero;
+}
+
+TofPosition Nav::calculateTof(){
+  TofPosition pos;
+
+  float estimateLeft, estimateFront;
+  if (isValid(L_FRONT) && isValid(L_BACK) && (int(navData.angXy) % 90 < 40 || int(navData.angXy) > 50)) {
+    float theta = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
+    pos.yaw = round(navData.angXy / 90 ) + theta;
+
+    // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
+    estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cos(deg2rad(pos.yaw));
+  }
+  else{
+    pos.yaw = FLT_INVALID;
+    estimateLeft = FLT_INVALID;
+  }
+
+  if (isValid(FRONT) && isValid(BACK)){
+    if (sensors.tof[FRONT].getData().dist <= sensors.tof[BACK].getData().dist)
+      estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+    else
+      estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+  }
+  else if(isValid(FRONT))
+    estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+  else if(isValid(BACK))
+    estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+  else
+    estimateFront = FLT_INVALID;
+
+  switch(int(pos.yaw     + 45) / 90 % 4){
+    case 0:
+      pos.x = estimateFront;
+      pos.y = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
+      break;
+    case 1:
+      pos.x = estimateLeft;
+      pos.y = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
+    case 2:
+      pos.x = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
+      pos.y = estimateLeft;
+      break;
+    case 3:
+      pos.x = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
+      pos.y = estimateFront;
+  }
+  return pos;
 }
 
 void Nav::update(){
   if (hms->data.navLogLevel >= 2){
     Serial.println("Nav::update()");
   }
-  navData.posX = 1;
-  navData.posY = 0;
-  navData.posZ = 0;
-  navData.velX = 0;
-  navData.velY = 0;
-  navData.velZ = 0;
-  navData.accX = 0;
-  navData.accY = 0;
-  navData.accZ = 0;
-  navData.angXy = 0;
-  navData.angXz = 0;
-  navData.angYz = 0;
-  navData.angVelXy = 0;
-  navData.angVelXz = 0;
-  navData.angVelYz = 0;
-  /* navData.posX = 1; */
-  /* navData.posY = 1; */
-  /* navData.posZ = 1; */
-  /* navData.velX = 2; */
-  /* navData.velY = 2; */
-  /* navData.velZ = 2; */
-  /* navData.accX = 3; */
-  /* navData.accY = 3; */
-  /* navData.accZ = 3; */
-  /* navData.angXy = 4; */
-  /* navData.angXz = 4; */
-  /* navData.angYz = 4; */
-  /* navData.angVelXy = 5; */
-  /* navData.angVelXz = 5; */
-  /* navData.angVelYz = 5; */
+  float delT = sensors.timestamp - navData.timestamp;
+  NavData pred = getPred(delT);
+
+  TofPosition tofEstimate = calculateTof();
+  NavData imuEstimate = calculateImu();
+
+  updateEstimate(imuEstimate, tofEstimate, pred);
 }
 
 NavData& Nav::getData(){
   return navData;
+}
+
+bool Nav::isValid(TofOrder tof){ // TODO: make him good
+  return sensors.tof[tof].getData().dist < TRACK_DIM / 2;
+}
+
+NavData Nav::getPred(float delT){
+  NavData pred;
+  pred.angAccXy = navData.angAccXy;
+  pred.angAccXz = navData.angAccXz;
+  pred.angAccYz = navData.angAccYz;
+  pred.angVelXy = navData.angVelXy + navData.angAccXy * delT;
+  pred.angVelXz = navData.angVelXz + navData.angAccXz * delT;
+  pred.angVelYz = navData.angVelYz + navData.angAccYz * delT;
+  pred.angXy = navData.angXy + navData.angVelXy * delT + navData.angAccXy * delT * delT / 2;
+  pred.angXy = navData.angXy + navData.angVelXy * delT + navData.angAccXy * delT * delT / 2;
+  pred.angYz = navData.angYz + navData.angVelYz * delT + navData.angAccYz * delT * delT / 2;
+
+  // TODO: take rotation into account
+  pred.accX = navData.accX;
+  pred.accY = navData.accY;
+  pred.accZ = navData.accZ;
+  pred.velX = navData.velX + navData.accX * delT;
+  pred.velY = navData.velY + navData.accY * delT;
+  pred.velZ = navData.velZ + navData.accZ * delT;
+  pred.posX = navData.posX + navData.velX * delT + navData.accX * delT * delT / 2;
+  pred.posY = navData.posY + navData.velY * delT + navData.accY * delT * delT / 2;
+  pred.posZ = navData.posZ + navData.velZ * delT + navData.accZ * delT * delT / 2;
+
+  pred.timestamp = navData.timestamp + delT;
+}
+
+void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimate, const NavData pred){
+  if (USE_IMU && imuEstimate != NavData_init_zero){
+    // TODO: implement this
+  }
+  else {
+    float delT = pred.timestamp - navData.timestamp;
+    navData.posX = pred.posX + gain[0] * (tofEstimate.x - pred.posX);
+    navData.posY = pred.posY + gain[0] * (tofEstimate.y - pred.posY);
+    navData.velX = pred.velX + gain[1] * (tofEstimate.x - pred.posX) / delT;
+    navData.velX = pred.velY + gain[1] * (tofEstimate.y - pred.posY) / delT;
+    navData.accX = pred.accX + gain[2] * (tofEstimate.x - pred.posX) / (0.5 * delT * delT);
+    navData.accY = pred.accY + gain[2] * (tofEstimate.y - pred.posY) / (0.5 * delT * delT);
+
+    navData.angXy = pred.angXy + gain[3] * (tofEstimate.yaw - pred.angXy);
+    navData.angVelXy = pred.angVelXy + gain[4] * (tofEstimate.yaw - pred.angXy) / delT;
+    navData.angAccXy = pred.angAccXy + gain[5] * (tofEstimate.yaw - pred.angXy) / (0.5 * delT * delT);
+
+  }
 }

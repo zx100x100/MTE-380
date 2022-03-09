@@ -28,8 +28,8 @@ TelemetryServer telemetryServer = TelemetryServer(sensors,
                                                   &hms);
 Motors motors = Motors(guidance.getData(), &hms);
 
-void setup() {
-  Serial.begin(115200);
+    void setup() {
+      Serial.begin(115200);
 
   cmdData.runState = CmdData_RunState_E_STOP;
   sensors.init();

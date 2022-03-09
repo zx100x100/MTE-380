@@ -4,13 +4,12 @@
 #define V_SENSE_PIN 15
 #define MIN_CELL_VOLTAGE 3 // TODO update value?
 
-#define FRONT_TOF 4
-#define REAR_TOF 5
-#define L_BACK_TOF 3
-#define L_FRONT_TOF 2
-uint8_t mux_addresses[4] = { FRONT_TOF, L_FRONT_TOF, L_BACK_TOF, REAR_TOF};
-
 #define TCAADDR 0x70
+
+#define FRONT_TOF_ADDR 4
+#define L_FRONT_TOF_ADDR 2
+#define L_BACK_TOF_ADDR 3
+#define REAR_TOF_ADDR 5
 
 Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
   hms(hms)
@@ -18,6 +17,11 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
   for (int i = 0; i < 4; ++i){
   sensor_vl53lx_sat[i] = &tof_objects[i];
   }
+
+  mux_addresses[FRONT] = FRONT_TOF_ADDR;
+  mux_addresses[L_FRONT] = L_FRONT_TOF_ADDR;
+  mux_addresses[L_BACK] = L_BACK_TOF_ADDR;
+  mux_addresses[BACK] = REAR_TOF_ADDR;
 }
 
 bool Sensors::init(){
