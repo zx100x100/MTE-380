@@ -36,18 +36,20 @@ TofData& Tof::getData(){
 void Tof::poll(){
     VL53LX_MultiRangingData_t MultiRangingData;
     VL53LX_MultiRangingData_t* pMultiRangingData = &MultiRangingData;
+    unsigned long beforeT = micros();
     if(NewDataReady == 1){
         if (hms->data.sensorsLogLevel >= 2) Serial.println("ready");
 
         status = sensor_vl53lx_sat->VL53LX_GetMultiRangingData(pMultiRangingData);
+        unsigned long afterReadingT = micros();
         if (status == 0)
         {
             lastReading = micros();
             tofData.numObjs = pMultiRangingData->NumberOfObjectsFound;
             tofData.count = pMultiRangingData->StreamCount;
 
-            snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", tofData.count, tofData.numObjs);
-            if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
+            /* snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", tofData.count, tofData.numObjs); */
+            /* if (hms->data.sensorsLogLevel >= 2) Serial.print(report); */
 
             if (tofData.numObjs){ // if at least 1 object found
                 tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
@@ -66,16 +68,30 @@ void Tof::poll(){
                 }
             }
 
+            unsigned long beforeClearT = micros();
             status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
+            unsigned long afterClearT = micros();
             NewDataReady = 0;
             status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);  // TODO: what if status bad
+            if (hms->data.sensorsLogLevel >= 2){
+              unsigned long dt = micros() - beforeT;
+              unsigned long dt2 = micros() - afterReadingT;
+              unsigned long dt3 = afterClearT - beforeClearT;
+              Serial.print("Did the first thing in "); Serial.println(dt2);
+              Serial.print("cleared interrupt in "); Serial.println(dt3);
+              Serial.print("Did stuff. elapsed: "); Serial.println(dt);
+            }
         }
     }
-    else if (micros() - lastReading > TIMEOUT){
-        if (hms->data.sensorsLogLevel >= 0) Serial.println("Timeout");
-        status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
-        NewDataReady = 0;
-        status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);  // TODO: what if status bad
+    else{
+      unsigned long dt = micros() - beforeT;
+      /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
+      if (micros() - lastReading > TIMEOUT){
+          if (hms->data.sensorsLogLevel >= 0) Serial.println("Timeout");
+          status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
+          NewDataReady = 0;
+          status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);  // TODO: what if status bad
+      }
     }
 
 

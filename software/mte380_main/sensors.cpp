@@ -29,6 +29,7 @@ bool Sensors::init(){
 
   Serial.println("WIRE begin");
   Wire.begin();
+  Wire.setClock(1000000);
 
   for (int i=0; i<4; i++){
     Serial.println("Starting mux shit");
