@@ -171,19 +171,19 @@ class Controls:
         self.screen = self.app.screen
         self.teleop = True
 
-        connect_button = Button(text_callback=self.connect_button_text,
+        self.connect_button = Button(text_callback=self.connect_button_text,
                                 click_callback=self.connect_button_click,
                                 colour_callback=self.connect_button_colour)
         self.start_button = Button(text_callback=self.start_button_text,
                               click_callback=self.start_button_click,
                               colour_callback=self.start_button_colour,
                               is_disabled_callback=self.start_button_disabled)
-        teleop_toggle = Toggle("teleop", self.teleop, callback=self.toggle_teleop)
+        self.teleop_toggle = Toggle("teleop", self.teleop, callback=self.toggle_teleop)
         #  self.enable_toggle = Toggle("enable", False, 0, self.screen, callback=self.app.toggle_robot_enable)
         #  self.propeller_toggle = Toggle("propeller", False, self.screen)
         #  self.comms_toggle = Toggle("comms", self.app.comms_enabled, 3, self.screen, callback=self.app.toggle_comms)
         #  self.elements = [self.enable_toggle, self.propeller_toggle, self.teleop_toggle, self.comms_toggle]
-        self.elements = [connect_button, self.start_button, teleop_toggle]
+        self.elements = [self.connect_button, self.start_button, self.teleop_toggle]
         self.position_elements()
 
     def toggle_teleop(self):

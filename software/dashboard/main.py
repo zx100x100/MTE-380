@@ -42,6 +42,7 @@ class App:
         self.clock = pg.time.Clock()
         self.error_info = None
         self.screen = pg.display.get_surface()
+        self.last_connected = False
         self.robot = Robot()
         self.arena = Arena(self.robot)
         self.keys = pg.key.get_pressed()
@@ -237,12 +238,15 @@ class App:
         while(True):
             #  if self.toggle_comms_next_tick:
                 #  self._toggle_comms()
+            if self.telemetry_client.connected != self.last_connected:
+                self.controls.connect_button.refresh_state()
             self.before_tick = time.time()
             self.event_loop()
             self.update_robot_data()
             self.erase()
             self.render()
             self.tick_num += 1
+            self.last_connected = bool(self.telemetry_client.connected)
 
 def main():
     os.environ['SDL_VIDEO_CENTERED'] = '1'

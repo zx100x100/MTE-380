@@ -53,6 +53,7 @@ typedef struct _HmsData {
     HmsData_LogLevel guidanceLogLevel; 
     uint32_t networkTickRate; 
     uint32_t mainTickRate; 
+    uint32_t sensorsTickRate; 
     uint32_t combinedTickRate; 
     uint32_t longestCombinedTick; 
     char errorInfo[80]; /* MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code) */
@@ -78,9 +79,9 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, ""}
+#define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, ""}
 #define CmdData_init_default                     {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}}
-#define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, ""}
+#define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, ""}
 #define CmdData_init_zero                        {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -104,9 +105,10 @@ extern "C" {
 #define HmsData_guidanceLogLevel_tag             6
 #define HmsData_networkTickRate_tag              7
 #define HmsData_mainTickRate_tag                 8
-#define HmsData_combinedTickRate_tag             9
-#define HmsData_longestCombinedTick_tag          10
-#define HmsData_errorInfo_tag                    11
+#define HmsData_sensorsTickRate_tag              9
+#define HmsData_combinedTickRate_tag             10
+#define HmsData_longestCombinedTick_tag          11
+#define HmsData_errorInfo_tag                    12
 
 /* Struct field encoding specification for nanopb */
 #define HmsData_FIELDLIST(X, a) \
@@ -118,9 +120,10 @@ X(a, STATIC,   SINGULAR, UENUM,    navLogLevel,       5) \
 X(a, STATIC,   SINGULAR, UENUM,    guidanceLogLevel,   6) \
 X(a, STATIC,   SINGULAR, UINT32,   networkTickRate,   7) \
 X(a, STATIC,   SINGULAR, UINT32,   mainTickRate,      8) \
-X(a, STATIC,   SINGULAR, UINT32,   combinedTickRate,   9) \
-X(a, STATIC,   SINGULAR, UINT32,   longestCombinedTick,  10) \
-X(a, STATIC,   SINGULAR, STRING,   errorInfo,        11)
+X(a, STATIC,   SINGULAR, UINT32,   sensorsTickRate,   9) \
+X(a, STATIC,   SINGULAR, UINT32,   combinedTickRate,  10) \
+X(a, STATIC,   SINGULAR, UINT32,   longestCombinedTick,  11) \
+X(a, STATIC,   SINGULAR, STRING,   errorInfo,        12)
 #define HmsData_CALLBACK NULL
 #define HmsData_DEFAULT NULL
 
@@ -149,7 +152,7 @@ extern const pb_msgdesc_t CmdData_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define CmdData_size                             122
-#define HmsData_size                             124
+#define HmsData_size                             130
 
 #ifdef __cplusplus
 } /* extern "C" */
