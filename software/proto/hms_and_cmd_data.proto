@@ -29,6 +29,7 @@ message CmdData{
     E_STOP = 0;
     AUTO = 1;
     TELEOP = 2;
+    SIM = 3;
   }
   int32 placeholder = 1;
   float leftPower = 2;

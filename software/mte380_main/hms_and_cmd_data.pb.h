@@ -24,7 +24,8 @@ typedef enum _HmsData_LogLevel {
 typedef enum _CmdData_RunState { 
     CmdData_RunState_E_STOP = 0, 
     CmdData_RunState_AUTO = 1, 
-    CmdData_RunState_TELEOP = 2 
+    CmdData_RunState_TELEOP = 2, 
+    CmdData_RunState_SIM = 3 
 } CmdData_RunState;
 
 /* Struct definitions */
@@ -68,8 +69,8 @@ typedef struct _HmsData {
 #define _HmsData_LogLevel_ARRAYSIZE ((HmsData_LogLevel)(HmsData_LogLevel_OVERKILL+1))
 
 #define _CmdData_RunState_MIN CmdData_RunState_E_STOP
-#define _CmdData_RunState_MAX CmdData_RunState_TELEOP
-#define _CmdData_RunState_ARRAYSIZE ((CmdData_RunState)(CmdData_RunState_TELEOP+1))
+#define _CmdData_RunState_MAX CmdData_RunState_SIM
+#define _CmdData_RunState_ARRAYSIZE ((CmdData_RunState)(CmdData_RunState_SIM+1))
 
 
 #ifdef __cplusplus
