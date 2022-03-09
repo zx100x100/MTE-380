@@ -42,6 +42,7 @@ class App:
         self.clock = pg.time.Clock()
         self.error_info = None
         self.screen = pg.display.get_surface()
+        self.last_connected = False
         self.robot = Robot()
         self.arena = Arena(self.robot)
         self.keys = pg.key.get_pressed()
@@ -150,6 +151,8 @@ class App:
                             else:
                                 item = self.protobuf_readouts.handle_click(pos)
                                 if item:
+                                    if not item.is_numeric:
+                                        return
                                     if not self.telemetry_plots.append_plot_if_fits(item):
                                         if self.previously_clicked_item:
                                             self.previously_clicked_item.set_not_clicked()
@@ -243,6 +246,12 @@ class App:
             self.erase()
             self.render()
             self.tick_num += 1
+            #  print(f'self.telemetry_client.connected: {self.telemetry_client.connected} last_connected: {self.last_connected}')
+            if self.telemetry_client.connected != self.last_connected:
+                print('refreshing connect button!')
+                self.controls.connect_button.refresh_state()
+                self.controls.start_button.refresh_state()
+            self.last_connected = bool(self.telemetry_client.connected)
 
 def main():
     os.environ['SDL_VIDEO_CENTERED'] = '1'

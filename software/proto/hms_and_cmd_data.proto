@@ -18,10 +18,11 @@ message HmsData {
   LogLevel guidanceLogLevel = 6;
   uint32 networkTickRate = 7;
   uint32 mainTickRate = 8;
-  uint32 combinedTickRate = 9;
-  uint32 longestCombinedTick = 10;
+  uint32 sensorsTickRate = 9;
+  uint32 combinedTickRate = 10;
+  uint32 longestCombinedTick = 11;
 
-  string errorInfo = 11; // MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code)
+  string errorInfo = 12; // MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code)
 }
 
 message CmdData{
@@ -29,6 +30,7 @@ message CmdData{
     E_STOP = 0;
     AUTO = 1;
     TELEOP = 2;
+    SIM = 3;
   }
   int32 placeholder = 1;
   float leftPower = 2;

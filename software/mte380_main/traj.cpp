@@ -336,28 +336,27 @@ Traj::Traj(Hms* hms, GuidanceData* gd, CmdData* cmdData):
 {
   nTraps = cmdData->nTraps;
   gd->segNum = 0;
+  segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY);
+  segments[1] = new Curve(1,5,BL);
+  segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY);
+  segments[3] = new Curve(1,1,TL);
+  segments[4] = new Line(1,0.5,5,0.5,cmdData->trapX,cmdData->trapY);
+  segments[5] = new Curve(5,1,TR);
+  segments[6] = new Line(5.5,1,5.5,4,cmdData->trapX,cmdData->trapY);
+  segments[7] = new Curve(5,4,BR_);
+  segments[8] = new Line(5,4.5,2,4.5,cmdData->trapX,cmdData->trapY);
+  segments[9] = new Curve(2,4,BL);
+  segments[10] = new Line(1.5,4,1.5,2,cmdData->trapX,cmdData->trapY);
+  segments[11] = new Curve(2,2,TL);
+  segments[12] = new Line(2,1.5,4,1.5,cmdData->trapX,cmdData->trapY);
+  segments[13] = new Curve(4,2,TR);
+  segments[14] = new Line(4.5,2,4.5,3,cmdData->trapX,cmdData->trapY);
+  segments[15] = new Curve(4,3,BR_);
+  segments[16] = new Line(4,3.5,3,3.5,cmdData->trapX,cmdData->trapY);
+  segments[17] = new Curve(3,3,BL);
+  segments[18] = new Curve(3,3,TL);
+  segments[19] = new Line(3,2.5,3.5,2.5,cmdData->trapX,cmdData->trapY);
 }
-  /* segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY); */
-  /* segments[1] = new Curve(1,5,BL); */
-  /* segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY); */
-  /* segments[3] = new Curve(1,1,TL); */
-  /* segments[4] = new Line(1,0.5,5,0.5,cmdData->trapX,cmdData->trapY); */
-  /* segments[5] = new Curve(5,1,TR); */
-  /* segments[6] = new Line(5.5,1,5.5,4,cmdData->trapX,cmdData->trapY); */
-  /* segments[7] = new Curve(5,4,BR_); */
-  /* segments[8] = new Line(5,4.5,2,4.5,cmdData->trapX,cmdData->trapY); */
-  /* segments[9] = new Curve(2,4,BL); */
-  /* segments[10] = new Line(1.5,4,1.5,2,cmdData->trapX,cmdData->trapY); */
-  /* segments[11] = new Curve(2,2,TL); */
-  /* segments[12] = new Line(2,1.5,4,1.5,cmdData->trapX,cmdData->trapY); */
-  /* segments[13] = new Curve(4,2,TR); */
-  /* segments[14] = new Line(4.5,2,4.5,3,cmdData->trapX,cmdData->trapY); */
-  /* segments[15] = new Curve(4,3,BR_); */
-  /* segments[16] = new Line(4,3.5,3,3.5,cmdData->trapX,cmdData->trapY); */
-  /* segments[17] = new Curve(3,3,BL); */
-  /* segments[18] = new Curve(3,3,TL); */
-  /* segments[19] = new Line(3,2.5,3.5,2.5,cmdData->trapX,cmdData->trapY); */
-/* } */
 
 // returns true if cmdData contanis new traps
 bool Traj::trapsChanged(){
@@ -374,11 +373,15 @@ void Traj::updateTraps(){
 
 // returns true if finished driving the track, false otherwise
 bool Traj::updatePos(float xp, float yp){
+  if (hms->data.guidanceLogLevel >= 2) Serial.println("Traj::updatePos");
   bool advanced = false;
   while(segments[gd->segNum]->completed(xp, yp)){
+    if (hms->data.guidanceLogLevel >= 2) Serial.println("blah1");
     if (advanced){
+      if (hms->data.guidanceLogLevel >= 2) Serial.println("blah2");
       hms->logError(HmsData_Error_WTF_AHMAD, "skipped track segment!");
     }
+    if (hms->data.guidanceLogLevel >= 2) Serial.println("blah3");
     if (gd->segNum++ >= NUM_SEGMENTS){
       Serial.println("Completed track!");
       gd->segNum--;

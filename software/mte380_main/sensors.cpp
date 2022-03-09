@@ -45,9 +45,8 @@ bool Sensors::init(){
 void Sensors::updateBatteryVoltage(){
   // analogRead(V_SENSE_PIN);
   float voltage = 1.0;
-  HmsData data = hms->data; // HAVE TO ASSIGN THIS OR IT CRASHES... WHY>????? IDKKKKKKK
-  data.batteryVoltage = voltage;
-  if (data.batteryVoltage < MIN_CELL_VOLTAGE*data.nCells){
+  hms->data.batteryVoltage = voltage;
+  if (hms->data.batteryVoltage < MIN_CELL_VOLTAGE*hms->data.nCells){
     hms->logError(HmsData_Error_LOW_BATTERY, "charge ur shit");
   }
 }
@@ -57,12 +56,12 @@ void Sensors::updateBatteryVoltage(){
 // }
 
 void Sensors::update(){
-  imu.poll();
+  /* imu.poll(); */
   for (int i=0; i<4; i++){
     Wire.beginTransmission(TCAADDR);
     Wire.write(1 << mux_addresses[i]);
     Wire.endTransmission();
-    tof[i].poll();
+    /* tof[i].poll(); */
   }
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   /* imu.poll(); */

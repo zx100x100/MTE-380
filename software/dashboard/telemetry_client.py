@@ -2,7 +2,7 @@ import threading
 import socket
 import time
 
-COMMS_TIMEOUT = 4
+COMMS_TIMEOUT = 1.5
 
 class TelemetryClient(threading.Thread):
     def __init__(self, data, server_ip, server_port):
@@ -13,9 +13,13 @@ class TelemetryClient(threading.Thread):
         self.server_ip = server_ip
         self.server_port = server_port
         self.killme = False
+        self.disconnectme = False
 
     def kill_thread(self):
         self.killme = True
+    
+    def disconnect_when_convenient(self):
+        self.disconnectme = True
 
     def run(self):
         longest_pull = 0
@@ -24,6 +28,9 @@ class TelemetryClient(threading.Thread):
             if self.killme:
                 print('killing')
                 break
+            if self.disconnectme:
+                self.disconnect()
+                self.disconnectme = False
             if self.connected:
                 before_tick = time.time()
                 self.push()
@@ -38,7 +45,7 @@ class TelemetryClient(threading.Thread):
                 if push_time > longest_push:
                     longest_push = push_time
 
-                print(f'longest_pull: {longest_pull}')
+                #  print(f'longest_pull: {longest_pull}')
 
             else:
                 #  self.pull_fake()
@@ -53,18 +60,17 @@ class TelemetryClient(threading.Thread):
             print(self.server_port)
 
             self.socket.connect((self.server_ip,self.server_port))
-            self.socket.settimeout(None)
+            self.socket.settimeout(COMMS_TIMEOUT)
             self.connected = True
 
         except Exception as e:
             print(f'error connecting: {e}')
             self.connected = False
-            self.killme = True
             try:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.settimeout(COMMS_TIMEOUT)
                 self.socket.connect((self.server_ip,self.server_port))
-                self.socket.settimeout(None)
+                self.socket.settimeout(COMMS_TIMEOUT)
                 self.connected = True
             except Exception as e:
                 print(f'error connecting AGAIN! {e}')
@@ -120,10 +126,13 @@ class TelemetryClient(threading.Thread):
                 self.data.decode_incoming(message_set_raw[3:])
                 prev_raw = message_set_raw
         except Exception as e:
-            print(f"Failed to pull data: {e}")
-            print(f'prev_raw: {prev_raw}')
-            print(f'new_raw: {new_raw}')
-            self.killme = True
+            if type(e) is socket.timeout:
+                print('Connection timed out!!! Disconnecting')
+                self.connected = False
+            elif f'{type(e)}' == "<class 'google.protobuf.message.DecodeError>'":
+                print(f"Failed to decode data: {e}")
+            else:
+                print(f'unknown exception pulling data: {e}')
     
     def pull_fake(self):
         self.data.pull_fake()

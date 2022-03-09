@@ -41,4 +41,3 @@ class Robot():
 
     def render(self, screen):
         screen.blit(self.angled_image, self.angled_rect)
-

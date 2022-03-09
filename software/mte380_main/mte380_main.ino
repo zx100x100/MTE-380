@@ -41,6 +41,7 @@ Motors motors = Motors(guidance.getData(), &hms);
 void loop() {
   unsigned long startT = micros();
   sensors.update();
+  unsigned long afterSensorT = micros();
   nav.update();
   //guidance.update();
   motors.update();
@@ -50,6 +51,7 @@ void loop() {
   hms.data.mainTickRate = beforeNetworkT - startT;
   hms.data.networkTickRate = afterNetworkT - beforeNetworkT;
   hms.data.combinedTickRate = afterNetworkT - startT;
+  hms.data.sensorsTickRate = afterSensorT - startT;
   if (hms.data.networkTickRate > longest){
     longest = hms.data.networkTickRate;
     hms.data.longestCombinedTick = longest;
