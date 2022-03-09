@@ -2,7 +2,7 @@ import threading
 import socket
 import time
 
-COMMS_TIMEOUT = 4
+COMMS_TIMEOUT = 1.5
 
 class TelemetryClient(threading.Thread):
     def __init__(self, data, server_ip, server_port):
@@ -13,9 +13,13 @@ class TelemetryClient(threading.Thread):
         self.server_ip = server_ip
         self.server_port = server_port
         self.killme = False
+        self.disconnectme = False
 
     def kill_thread(self):
         self.killme = True
+    
+    def disconnect_when_convenient(self):
+        self.disconnectme = True
 
     def run(self):
         longest_pull = 0
@@ -24,6 +28,9 @@ class TelemetryClient(threading.Thread):
             if self.killme:
                 print('killing')
                 break
+            if self.disconnectme:
+                self.disconnect()
+                self.disconnectme = False
             if self.connected:
                 before_tick = time.time()
                 self.push()
@@ -125,7 +132,7 @@ class TelemetryClient(threading.Thread):
             elif f'{type(e)}' == "<class 'google.protobuf.message.DecodeError>'":
                 print(f"Failed to decode data: {e}")
             else:
-                print('unknown exception pulling data: {e}')
+                print(f'unknown exception pulling data: {e}')
     
     def pull_fake(self):
         self.data.pull_fake()

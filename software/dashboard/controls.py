@@ -192,8 +192,9 @@ class Controls:
 
     def connect_button_click(self):
         if self.app.telemetry_client.connected:
-            self.app.telemetry_client.disconnect()
-            self.start_button.refresh_state()
+            self.app.telemetry_client.disconnectme = True
+            # refresh_state gets called by main soon anyway
+            #  self.start_button.refresh_state()
         else:
             self.app.telemetry_client.connect()
             self.start_button.refresh_state()

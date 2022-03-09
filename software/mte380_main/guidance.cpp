@@ -36,7 +36,7 @@ void Guidance::update(){
   gd.leftPower = 0;
   gd.rightPower = 0;
   gd.propPower = 0;
-  return;
+  return; // TODO -----------------------------------------
 
   if (traj.trapsChanged()){
     traj.updateTraps();

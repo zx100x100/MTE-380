@@ -238,14 +238,17 @@ class App:
         while(True):
             #  if self.toggle_comms_next_tick:
                 #  self._toggle_comms()
-            if self.telemetry_client.connected != self.last_connected:
-                self.controls.connect_button.refresh_state()
             self.before_tick = time.time()
             self.event_loop()
             self.update_robot_data()
             self.erase()
             self.render()
             self.tick_num += 1
+            print(f'self.telemetry_client.connected: {self.telemetry_client.connected} last_connected: {self.last_connected}')
+            if self.telemetry_client.connected != self.last_connected:
+                print('refreshing connect button!')
+                self.controls.connect_button.refresh_state()
+                self.controls.start_button.refresh_state()
             self.last_connected = bool(self.telemetry_client.connected)
 
 def main():
