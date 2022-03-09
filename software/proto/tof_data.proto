@@ -2,4 +2,5 @@ syntax = "proto3";
 
 message TofData {
   uint32 dist = 1;
+  uint32 numObjs = 2;
 }

@@ -1,5 +1,7 @@
 #include "tof.h"
 
+#define MAX_OBJS 1
+
 /* Tof::Tof(){ */
 /* } */
 Tof::Tof()
@@ -49,31 +51,33 @@ void Tof::poll(){
     if ((!status) && (NewDataReady != 0))
     {
         status = sensor_vl53lx_sat->VL53LX_GetMultiRangingData(pMultiRangingData);
-        Serial.print("Status: ");
-        Serial.print(status);
+//        Serial.print("Status: ");
+//        Serial.print(status);
         no_of_object_found = pMultiRangingData->NumberOfObjectsFound;
         snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", pMultiRangingData->StreamCount, no_of_object_found);
-        Serial.print(report);
-        for (j = 0; j < no_of_object_found; j++)
+        if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
+
+        tofData.numObjs = no_of_object_found;
+
+        for (j = 0; j < no_of_object_found && j < MAX_OBJS; j++)
         {
 
             tofData.dist = pMultiRangingData->RangeData[j].RangeMilliMeter;
 
             //if(pMultiRangingData->RangeData[j].RangeStatus == 0){
-            Serial.print("status=");
-            Serial.print(pMultiRangingData->RangeData[j].RangeStatus);
-            Serial.print(", D=");
-            Serial.print(pMultiRangingData->RangeData[j].RangeMilliMeter);
-            Serial.print("mm");
-            Serial.print(", Signal=");
-            Serial.print((float)pMultiRangingData->RangeData[j].SignalRateRtnMegaCps / 65536.0);
-            Serial.print(" Mcps, Ambient=");
-            Serial.print((float)pMultiRangingData->RangeData[j].AmbientRateRtnMegaCps / 65536.0);
-            Serial.print(" Mcps");
-            //}
-
+            if (hms->data.sensorsLogLevel >= 2) {
+                Serial.print("status=");
+                Serial.print(pMultiRangingData->RangeData[j].RangeStatus);
+                Serial.print(", D=");
+                Serial.print(pMultiRangingData->RangeData[j].RangeMilliMeter);
+                Serial.print("mm");
+                Serial.print(", Signal=");
+                Serial.print((float)pMultiRangingData->RangeData[j].SignalRateRtnMegaCps / 65536.0);
+                Serial.print(" Mcps, Ambient=");
+                Serial.print((float)pMultiRangingData->RangeData[j].AmbientRateRtnMegaCps / 65536.0);
+                Serial.print(" Mcps");
+            }
         }
-        Serial.println("");
         if (status == 0)
         {
             status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement();

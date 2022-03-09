@@ -118,6 +118,7 @@ class App:
                 if mouse_presses[0]: # LEFT MOUSE BUTTON CLICKED
                     pos = pg.mouse.get_pos()
                     clicked_tile = self.arena.handle_click(pos)
+                    print(f'clicked: {clicked_tile}')
                     if clicked_tile:
                         # update cmdData!!
                         found = False
@@ -142,19 +143,20 @@ class App:
                                 self.arena.tiles[posy]
 
                     else:
-                        if self.telemetry_plots.handle_click(pos):
-                            if self.previously_clicked_item:
-                                self.previously_clicked_item.set_not_clicked()
-                        else:
-                            item = self.protobuf_readouts.handle_click(pos)
-                            if item:
-                                if not self.telemetry_plots.append_plot_if_fits(item):
-                                    if self.previously_clicked_item:
-                                        self.previously_clicked_item.set_not_clicked()
-                                    self.previously_clicked_item = item
-                                    item.set_clicked()
-                                else:
-                                    self.previously_clicked_item = None
+                        if not self.controls.handle_click(pos):
+                            if self.telemetry_plots.handle_click(pos):
+                                if self.previously_clicked_item:
+                                    self.previously_clicked_item.set_not_clicked()
+                            else:
+                                item = self.protobuf_readouts.handle_click(pos)
+                                if item:
+                                    if not self.telemetry_plots.append_plot_if_fits(item):
+                                        if self.previously_clicked_item:
+                                            self.previously_clicked_item.set_not_clicked()
+                                        self.previously_clicked_item = item
+                                        item.set_clicked()
+                                    else:
+                                        self.previously_clicked_item = None
 
         if self.keys[pg.K_SPACE]:
             # ESTOP:
