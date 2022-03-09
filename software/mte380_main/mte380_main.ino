@@ -43,7 +43,7 @@ void loop() {
   sensors.update();
   unsigned long afterSensorT = micros();
   nav.update();
-  guidance.update();
+  //guidance.update();
   motors.update();
   unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();

@@ -12,6 +12,7 @@
 #define MAX_DEVIATION 50  // mm
 
 #define USE_IMU false
+#define USE_TOFS true
 
 #define FLT_INVALID 0xFFFF
 
@@ -68,56 +69,74 @@ NavData Nav::calculateImu(){
   return NavData_init_zero;
 }
 
+bool Nav::tofsUpdated(){
+    bool changed = true;
+    for (int i = 0; i < 4; ++i){
+        changed &= sensors.tof[i].getData().count != lastTofsCount[i];
+    }
+    if (changed){
+        for (int i = 0; i < 4; i++){
+            lastTofsCount[i] = sensors.tof[i].getData().count;
+        }
+    }
+    return changed;
+}
+
 TofPosition Nav::calculateTof(){
   TofPosition pos;
 
-  float estimateLeft, estimateFront;
-  if (isValid(L_FRONT) && isValid(L_BACK) && (int(navData.angXy) % 90 < 40 || int(navData.angXy) > 50)) {
-    if (hms->data.navLogLevel >= 2){
-      Serial.println("Left valid");
-    }
-    float theta = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
-    pos.yaw = round(navData.angXy / 90 ) + theta;
+  if (tofsUpdated()){
+      float estimateLeft, estimateFront;
+      if (isValid(L_FRONT) && isValid(L_BACK) && (int(navData.angXy) % 90 < 40 || int(navData.angXy) > 50)) {
+        if (hms->data.navLogLevel >= 2){
+          Serial.println("Left valid");
+        }
+        float theta = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
+        pos.yaw = round(navData.angXy / 90 ) + theta;
 
-    // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
-    estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cos(deg2rad(pos.yaw));
+        // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
+        estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cos(deg2rad(pos.yaw));
+      }
+      else{
+        if (hms->data.navLogLevel >= 2){
+          Serial.println("Left invalid");
+        }
+        pos.yaw = FLT_INVALID;
+        estimateLeft = FLT_INVALID;
+      }
+
+      if (isValid(FRONT) && isValid(BACK)){
+        if (sensors.tof[FRONT].getData().dist <= sensors.tof[BACK].getData().dist)
+          estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+        else
+          estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+      }
+      else if(isValid(FRONT))
+        estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+      else if(isValid(BACK))
+        estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+      else
+        estimateFront = FLT_INVALID;
+
+      switch(int(pos.yaw     + 45) / 90 % 4){
+        case 0:
+          pos.x = estimateFront;
+          pos.y = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
+          break;
+        case 1:
+          pos.x = estimateLeft;
+          pos.y = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
+        case 2:
+          pos.x = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
+          pos.y = estimateLeft;
+          break;
+        case 3:
+          pos.x = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
+          pos.y = estimateFront;
+      }
   }
   else{
-    if (hms->data.navLogLevel >= 2){
-      Serial.println("Left invalid");
-    }
-    pos.yaw = FLT_INVALID;
-    estimateLeft = FLT_INVALID;
-  }
-
-  if (isValid(FRONT) && isValid(BACK)){
-    if (sensors.tof[FRONT].getData().dist <= sensors.tof[BACK].getData().dist)
-      estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
-    else
-      estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
-  }
-  else if(isValid(FRONT))
-    estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
-  else if(isValid(BACK))
-    estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
-  else
-    estimateFront = FLT_INVALID;
-
-  switch(int(pos.yaw     + 45) / 90 % 4){
-    case 0:
-      pos.x = estimateFront;
-      pos.y = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
-      break;
-    case 1:
-      pos.x = estimateLeft;
-      pos.y = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
-    case 2:
-      pos.x = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
-      pos.y = estimateLeft;
-      break;
-    case 3:
-      pos.x = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
-      pos.y = estimateFront;
+    pos.x = 0; pos.y = 0; pos.yaw = 0;
   }
   return pos;
 }
@@ -185,7 +204,7 @@ void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimat
   if (USE_IMU && imuEstimate.posX != 0){  // TODO: make sure this never fucks up
     // TODO: implement this
   }
-  else {
+  else if (USE_TOFS && tofEstimate.x != 0){
     float delT = pred.timestamp - navData.timestamp;
     navData.posX = pred.posX + gain[0] * (tofEstimate.x - pred.posX);
     navData.posY = pred.posY + gain[0] * (tofEstimate.y - pred.posY);
@@ -197,6 +216,8 @@ void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimat
     navData.angXy = pred.angXy + gain[3] * (tofEstimate.yaw - pred.angXy);
     navData.angVelXy = pred.angVelXy + gain[4] * (tofEstimate.yaw - pred.angXy) / delT;
     navData.angAccXy = pred.angAccXy + gain[5] * (tofEstimate.yaw - pred.angXy) / (0.5 * delT * delT);
-
+  }
+  else{
+    navData = pred;  // TODO: check that we want to do this
   }
 }

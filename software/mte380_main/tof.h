@@ -29,6 +29,10 @@ class Tof{
     TofData tofData;
     Hms* hms;
     VL53LX* sensor_vl53lx_sat;
+    uint8_t NewDataReady = 0;
+    unsigned long lastReading = 0;
+    char report[64];
+    int status;
 };
 
 #endif
