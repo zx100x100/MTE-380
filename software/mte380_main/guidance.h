@@ -5,18 +5,25 @@
 #include "nav_data.pb.h"
 #include "hms_and_cmd_data.pb.h"
 #include "hms.h"
+#include "traj.h"
 
 class Guidance{
   public:
     Guidance(NavData& navData, CmdData& cmdData, Hms* hms);
+    void init();
     void update();
     GuidanceData& getData();
 
   private:
-    GuidanceData guidanceData;
+    GuidanceData gd;
     NavData& navData;
     CmdData& cmdData;
     Hms* hms;
+
+    unsigned long lastTimestamp;
+    unsigned long deltaT;
+
+    Traj traj;
 };
 
 #endif

@@ -61,7 +61,6 @@ class CornerCircle(Segment):
         else: #TR
             return pos[1] > self.circle_center[1]
     def distance(self, pos): # position in pixels
-
         # returns negative if inside circle, positive if outside circle
         return ((pos[0]-self.circle_center[0])**2+(pos[1]-self.circle_center[1])**2)**0.5 - self.radius_pixels
 

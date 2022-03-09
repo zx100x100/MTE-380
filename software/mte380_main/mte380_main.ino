@@ -35,6 +35,7 @@ Motors motors = Motors(guidance.getData(), &hms);
   sensors.init();
   nav.init();
   telemetryServer.init();
+  guidance.init();
 }
 
 void loop() {

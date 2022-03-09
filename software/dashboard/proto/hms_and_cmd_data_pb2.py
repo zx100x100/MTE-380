@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1cproto/hms_and_cmd_data.proto\"\xae\x03\n\x07HmsData\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x01 \x01(\x02\x12\x0e\n\x06nCells\x18\x02 \x01(\r\x12\'\n\x0cmainLogLevel\x18\x03 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x04 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x17\n\x0fnetworkTickRate\x18\x07 \x01(\r\x12\x14\n\x0cmainTickRate\x18\x08 \x01(\r\x12\x18\n\x10\x63ombinedTickRate\x18\t \x01(\r\x12\x1b\n\x13longestCombinedTick\x18\n \x01(\r\x12\x11\n\terrorInfo\x18\x0b \x01(\t\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tOFF_TRACK\x10\x01\"/\n\x08LogLevel\x12\n\n\x06NORMAL\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0c\n\x08OVERKILL\x10\x02\"\xd5\x02\n\x07\x43mdData\x12\x13\n\x0bplaceholder\x18\x01 \x01(\x05\x12\x11\n\tleftPower\x18\x02 \x01(\x02\x12\x12\n\nrightPower\x18\x03 \x01(\x02\x12\x11\n\tpropPower\x18\x04 \x01(\x02\x12#\n\x08runState\x18\x05 \x01(\x0e\x32\x11.CmdData.RunState\x12\'\n\x0cmainLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x07 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x08 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\t \x01(\x0e\x32\x11.HmsData.LogLevel\",\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x62\x06proto3'
+  serialized_pb=b'\n\x1cproto/hms_and_cmd_data.proto\"\xae\x03\n\x07HmsData\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x01 \x01(\x02\x12\x0e\n\x06nCells\x18\x02 \x01(\r\x12\'\n\x0cmainLogLevel\x18\x03 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x04 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x17\n\x0fnetworkTickRate\x18\x07 \x01(\r\x12\x14\n\x0cmainTickRate\x18\x08 \x01(\r\x12\x18\n\x10\x63ombinedTickRate\x18\t \x01(\r\x12\x1b\n\x13longestCombinedTick\x18\n \x01(\r\x12\x11\n\terrorInfo\x18\x0b \x01(\t\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tWTF_AHMAD\x10\x01\"/\n\x08LogLevel\x12\n\n\x06NORMAL\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0c\n\x08OVERKILL\x10\x02\"\x83\x03\n\x07\x43mdData\x12\x13\n\x0bplaceholder\x18\x01 \x01(\x05\x12\x11\n\tleftPower\x18\x02 \x01(\x02\x12\x12\n\nrightPower\x18\x03 \x01(\x02\x12\x11\n\tpropPower\x18\x04 \x01(\x02\x12#\n\x08runState\x18\x05 \x01(\x0e\x32\x11.CmdData.RunState\x12\'\n\x0cmainLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x07 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x08 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\t \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x0e\n\x06nTraps\x18\n \x01(\r\x12\r\n\x05trapX\x18\x0b \x03(\x02\x12\r\n\x05trapY\x18\x0c \x03(\x02\",\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x62\x06proto3'
 )
 
 
@@ -37,7 +37,7 @@ _HMSDATA_ERROR = _descriptor.EnumDescriptor(
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='OFF_TRACK', index=1, number=1,
+      name='WTF_AHMAD', index=1, number=1,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
@@ -104,8 +104,8 @@ _CMDDATA_RUNSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=763,
-  serialized_end=807,
+  serialized_start=809,
+  serialized_end=853,
 )
 _sym_db.RegisterEnumDescriptor(_CMDDATA_RUNSTATE)
 
@@ -285,6 +285,27 @@ _CMDDATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='nTraps', full_name='CmdData.nTraps', index=9,
+      number=10, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='trapX', full_name='CmdData.trapX', index=10,
+      number=11, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='trapY', full_name='CmdData.trapY', index=11,
+      number=12, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -299,7 +320,7 @@ _CMDDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=466,
-  serialized_end=807,
+  serialized_end=853,
 )
 
 _HMSDATA.fields_by_name['mainLogLevel'].enum_type = _HMSDATA_LOGLEVEL
