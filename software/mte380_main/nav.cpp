@@ -122,6 +122,9 @@ void Nav::update(){
   }
   float delT = sensors.timestamp - navData.timestamp;
   NavData pred = getPred(delT);
+  if (hms->data.navLogLevel >= 2){
+    Serial.print("pred: x: "); Serial.print(pred.posX); Serial.print(", y: ");  Serial.print(pred.posY); Serial.print(", yaw: ");  Serial.println(pred.angXy);
+  }
 
   TofPosition tofEstimate = calculateTof();
   NavData imuEstimate = calculateImu();
@@ -164,7 +167,7 @@ NavData Nav::getPred(float delT){
 }
 
 void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimate, const NavData pred){
-  if (USE_IMU && imuEstimate != NavData_init_zero){
+  if (USE_IMU && imuEstimate.posX != 0){  // TODO: make sure this never fucks up
     // TODO: implement this
   }
   else {
