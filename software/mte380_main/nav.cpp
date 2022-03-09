@@ -72,7 +72,7 @@ NavData Nav::calculateImu(){
 bool Nav::tofsUpdated(){
     bool changed = true;
     for (int i = 0; i < 4; ++i){
-        changed &= sensors.tof[i].getData().count > lastTofsCount[i];
+        changed &= sensors.tof[i].getData().count != lastTofsCount[i];
     }
     if (changed){
         for (int i = 0; i < 4; i++){
