@@ -34,6 +34,8 @@ TofData& Tof::getData(){
 }
 
 void Tof::poll(){
+    VL53LX_MultiRangingData_t MultiRangingData;
+    VL53LX_MultiRangingData_t* pMultiRangingData = &MultiRangingData;
     if(NewDataReady == 1){
         if (hms->data.sensorsLogLevel >= 2) Serial.println("ready");
 
@@ -70,7 +72,7 @@ void Tof::poll(){
         }
     }
     else if (micros() - lastReading > TIMEOUT){
-        if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
+        if (hms->data.sensorsLogLevel >= 0) Serial.println("Timeout");
         status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
         NewDataReady = 0;
         status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);  // TODO: what if status bad

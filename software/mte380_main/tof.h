@@ -31,8 +31,6 @@ class Tof{
     VL53LX* sensor_vl53lx_sat;
     uint8_t NewDataReady = 0;
     unsigned long lastReading = 0;
-    VL53LX_MultiRangingData_t MultiRangingData;
-    VL53LX_MultiRangingData_t* pMultiRangingData = &MultiRangingData;
     char report[64];
     int status;
 };

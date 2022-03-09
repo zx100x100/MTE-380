@@ -56,21 +56,14 @@ void Sensors::updateBatteryVoltage(){
 // }
 
 void Sensors::update(){
+  if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   /* imu.poll(); */
   for (int i=0; i<4; i++){
     Wire.beginTransmission(TCAADDR);
     Wire.write(1 << mux_addresses[i]);
     Wire.endTransmission();
-    /* tof[i].poll(); */
+    tof[i].poll();
   }
-  if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
-  /* imu.poll(); */
-//  for (int i=0; i<4; i++){
-//    Wire.beginTransmission(TCAADDR);
-//    Wire.write(1 << mux_addresses[i]);
-//    Wire.endTransmission();
-//    tof[i].poll();
-//  }
   updateBatteryVoltage();
   if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");
 
