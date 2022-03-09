@@ -5,11 +5,17 @@
 #include "tof.h"
 #include "imu.h"
 
+
+#include "vl53lx_class.h"
+
+enum TofOrder {FRONT, L_FRONT, L_BACK, BACK};
+
+
 class Sensors{
   public:
-    /* Sensors(); */
-    Sensors(Hms* hms);
-    // void init();
+    /*Sensors(); */
+     Sensors(Hms* hms, VL53LX tof_objects[]);
+     bool init();
     // Sensors& getData();
     void update();
     Imu imu;
@@ -19,6 +25,8 @@ class Sensors{
   private:
     // TODO update IMU and TOFs
     void updateBatteryVoltage();
+    VL53LX* sensor_vl53lx_sat[4];
+    uint8_t mux_addresses[4];
 };
 
 #endif

@@ -6,19 +6,33 @@
 #include "sensors.h"
 #include "fusion.h"
 
+struct TofPosition {
+  float yaw;
+  float x;
+  float y;
+};
+
 class Nav{
   public:
     Nav(Sensors &sensors, Hms* hms);
     void update();
-    void updateImu();
     void init();
     NavData& getData();
-    Hms* hms; // todo move back to private
+    NavData getPred(float delT);
 
   private:
     NavData navData;
     Fusion fusion;
     Sensors& sensors;
+    Hms* hms;
+    float gain[6] = {0.2, 0.2, 0.2, 0.2, 0.2, 0.2};
+
+    bool isValid(TofOrder tof);
+    TofPosition calculateTof();
+    NavData calculateImu();
+    float deg2rad(float deg);
+    float rad2deg(float deg);
+    void updateEstimate(const NavData imuEstimate, const TofPosition tofEstimate, const NavData pred);
 };
 
 #endif

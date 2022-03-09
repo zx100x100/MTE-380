@@ -16,10 +16,8 @@ message NavData {
   float angVelXy = 13; // angular velocity
   float angVelXz = 14;
   float angVelYz = 15;
-  float blah = 16;
-  float blah2 = 17;
-  float blah3 = 18;
-  float blah4 = 19;
-  float blah5 = 20;
-  float blah6 = 21;
+  float angAccXy = 16; // angular acceleration
+  float angAccXz = 17;
+  float angAccYz = 18;
+  uint32 timestamp = 19;
 }

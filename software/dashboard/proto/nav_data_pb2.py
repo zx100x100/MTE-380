@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14proto/nav_data.proto\"\xc3\x02\n\x07NavData\x12\x0c\n\x04posX\x18\x01 \x01(\x02\x12\x0c\n\x04posY\x18\x02 \x01(\x02\x12\x0c\n\x04posZ\x18\x03 \x01(\x02\x12\x0c\n\x04velX\x18\x04 \x01(\x02\x12\x0c\n\x04velY\x18\x05 \x01(\x02\x12\x0c\n\x04velZ\x18\x06 \x01(\x02\x12\x0c\n\x04\x61\x63\x63X\x18\x07 \x01(\x02\x12\x0c\n\x04\x61\x63\x63Y\x18\x08 \x01(\x02\x12\x0c\n\x04\x61\x63\x63Z\x18\t \x01(\x02\x12\r\n\x05\x61ngXy\x18\n \x01(\x02\x12\r\n\x05\x61ngXz\x18\x0b \x01(\x02\x12\r\n\x05\x61ngYz\x18\x0c \x01(\x02\x12\x10\n\x08\x61ngVelXy\x18\r \x01(\x02\x12\x10\n\x08\x61ngVelXz\x18\x0e \x01(\x02\x12\x10\n\x08\x61ngVelYz\x18\x0f \x01(\x02\x12\x0c\n\x04\x62lah\x18\x10 \x01(\x02\x12\r\n\x05\x62lah2\x18\x11 \x01(\x02\x12\r\n\x05\x62lah3\x18\x12 \x01(\x02\x12\r\n\x05\x62lah4\x18\x13 \x01(\x02\x12\r\n\x05\x62lah5\x18\x14 \x01(\x02\x12\r\n\x05\x62lah6\x18\x15 \x01(\x02\x62\x06proto3'
+  serialized_pb=b'\n\x14proto/nav_data.proto\"\xb3\x02\n\x07NavData\x12\x0c\n\x04posX\x18\x01 \x01(\x02\x12\x0c\n\x04posY\x18\x02 \x01(\x02\x12\x0c\n\x04posZ\x18\x03 \x01(\x02\x12\x0c\n\x04velX\x18\x04 \x01(\x02\x12\x0c\n\x04velY\x18\x05 \x01(\x02\x12\x0c\n\x04velZ\x18\x06 \x01(\x02\x12\x0c\n\x04\x61\x63\x63X\x18\x07 \x01(\x02\x12\x0c\n\x04\x61\x63\x63Y\x18\x08 \x01(\x02\x12\x0c\n\x04\x61\x63\x63Z\x18\t \x01(\x02\x12\r\n\x05\x61ngXy\x18\n \x01(\x02\x12\r\n\x05\x61ngXz\x18\x0b \x01(\x02\x12\r\n\x05\x61ngYz\x18\x0c \x01(\x02\x12\x10\n\x08\x61ngVelXy\x18\r \x01(\x02\x12\x10\n\x08\x61ngVelXz\x18\x0e \x01(\x02\x12\x10\n\x08\x61ngVelYz\x18\x0f \x01(\x02\x12\x10\n\x08\x61ngAccXy\x18\x10 \x01(\x02\x12\x10\n\x08\x61ngAccXz\x18\x11 \x01(\x02\x12\x10\n\x08\x61ngAccYz\x18\x12 \x01(\x02\x12\x11\n\ttimestamp\x18\x13 \x01(\rb\x06proto3'
 )
 
 
@@ -139,44 +139,30 @@ _NAVDATA = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='blah', full_name='NavData.blah', index=15,
+      name='angAccXy', full_name='NavData.angAccXy', index=15,
       number=16, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='blah2', full_name='NavData.blah2', index=16,
+      name='angAccXz', full_name='NavData.angAccXz', index=16,
       number=17, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='blah3', full_name='NavData.blah3', index=17,
+      name='angAccYz', full_name='NavData.angAccYz', index=17,
       number=18, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='blah4', full_name='NavData.blah4', index=18,
-      number=19, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='blah5', full_name='NavData.blah5', index=19,
-      number=20, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='blah6', full_name='NavData.blah6', index=20,
-      number=21, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      name='timestamp', full_name='NavData.timestamp', index=18,
+      number=19, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -193,7 +179,7 @@ _NAVDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=25,
-  serialized_end=348,
+  serialized_end=332,
 )
 
 DESCRIPTOR.message_types_by_name['NavData'] = _NAVDATA

@@ -1,33 +1,30 @@
 #include "tof.h"
 
-// IF SOMETHING IS WEIRD. CHECK HERE
-#define PLACEHOLDER_PIN 0 // DO NOT TRUST THIS
-
-#define TCAADDR 0x70
-
-
 /* Tof::Tof(){ */
 /* } */
-Tof::Tof():
-  sensor_vl53lx_sat(&Wire, PLACEHOLDER_PIN)
-{  
+Tof::Tof()
+{
 }
 
-Tof::Tof(Hms* hms):
+Tof::Tof(Hms* hms, VL53LX* tof_sensor):
   hms(hms),
-  sensor_vl53lx_sat(&Wire, PLACEHOLDER_PIN)
+  sensor_vl53lx_sat(tof_sensor)
 {
   tofData = TofData_init_zero;
 
+  Serial.println("begin");
+
   // Configure VL53LX satellite component.
-  sensor_vl53lx_sat.begin();
+  sensor_vl53lx_sat->begin();
 
-
+  Serial.println("init sensor");
   //Initialize VL53LX satellite component.
-  sensor_vl53lx_sat.InitSensor(0x12);
+  sensor_vl53lx_sat->InitSensor(0x12);
 
+
+  Serial.println("start measurement");
   // Start Measurements
-  sensor_vl53lx_sat.VL53LX_StartMeasurement();
+  sensor_vl53lx_sat->VL53LX_StartMeasurement();
 }
 
 TofData& Tof::getData(){
@@ -45,13 +42,13 @@ void Tof::poll(){
     if (hms->data.sensorsLogLevel >= 2) Serial.println("before");
     do
     {
-        status = sensor_vl53lx_sat.VL53LX_GetMeasurementDataReady(&NewDataReady);
+        status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);
     } while (!NewDataReady);
     if (hms->data.sensorsLogLevel >= 2) Serial.println("after");
 
     if ((!status) && (NewDataReady != 0))
     {
-        status = sensor_vl53lx_sat.VL53LX_GetMultiRangingData(pMultiRangingData);
+        status = sensor_vl53lx_sat->VL53LX_GetMultiRangingData(pMultiRangingData);
         Serial.print("Status: ");
         Serial.print(status);
         no_of_object_found = pMultiRangingData->NumberOfObjectsFound;
@@ -79,7 +76,7 @@ void Tof::poll(){
         Serial.println("");
         if (status == 0)
         {
-            status = sensor_vl53lx_sat.VL53LX_ClearInterruptAndStartMeasurement();
+            status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement();
         }
         NewDataReady = 0;
     }
