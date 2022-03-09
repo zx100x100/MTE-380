@@ -73,6 +73,9 @@ TofPosition Nav::calculateTof(){
 
   float estimateLeft, estimateFront;
   if (isValid(L_FRONT) && isValid(L_BACK) && (int(navData.angXy) % 90 < 40 || int(navData.angXy) > 50)) {
+    if (hms->data.navLogLevel >= 2){
+      Serial.println("Left valid");
+    }
     float theta = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
     pos.yaw = round(navData.angXy / 90 ) + theta;
 
@@ -80,6 +83,9 @@ TofPosition Nav::calculateTof(){
     estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cos(deg2rad(pos.yaw));
   }
   else{
+    if (hms->data.navLogLevel >= 2){
+      Serial.println("Left invalid");
+    }
     pos.yaw = FLT_INVALID;
     estimateLeft = FLT_INVALID;
   }
@@ -122,14 +128,23 @@ void Nav::update(){
   }
   float delT = sensors.timestamp - navData.timestamp;
   NavData pred = getPred(delT);
-  if (hms->data.navLogLevel >= 2){
+  if (hms->data.navLogLevel >= 1){
     Serial.print("pred: x: "); Serial.print(pred.posX); Serial.print(", y: ");  Serial.print(pred.posY); Serial.print(", yaw: ");  Serial.println(pred.angXy);
   }
 
+  if (hms->data.navLogLevel >= 1){
+    Serial.print("tof: FR: "); Serial.print(sensors.tof[0].getData().dist); Serial.print(", LF: ");  Serial.print(sensors.tof[1].getData().dist); Serial.print(", BF: ");  Serial.print(sensors.tof[2].getData().dist); Serial.print(", BA: ");  Serial.println(sensors.tof[3].getData().dist);
+  }
   TofPosition tofEstimate = calculateTof();
+  if (hms->data.navLogLevel >= 1){
+    Serial.print("tof estimate: x: "); Serial.print(tofEstimate.x); Serial.print(", y: ");  Serial.print(tofEstimate.y); Serial.print(", yaw: ");  Serial.println(tofEstimate.yaw);
+  }
   NavData imuEstimate = calculateImu();
 
   updateEstimate(imuEstimate, tofEstimate, pred);
+  if (hms->data.navLogLevel >= 1){
+    Serial.print("estimate: x: "); Serial.print(navData.posX); Serial.print(", y: ");  Serial.print(navData.posY); Serial.print(", yaw: ");  Serial.println(navData.angXy);
+  }
 }
 
 NavData& Nav::getData(){

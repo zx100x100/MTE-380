@@ -46,6 +46,7 @@ class TelemetryClient(threading.Thread):
 
     def connect(self):
         try:
+            print('connecting')
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(COMMS_TIMEOUT)
             print(self.server_ip)

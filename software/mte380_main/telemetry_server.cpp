@@ -161,8 +161,6 @@ bool TelemetryServer::update(){
           return false;
         }
         hms->data.mainLogLevel = HmsData_LogLevel(cmdData.mainLogLevel);
-        Serial.print("mainLogLevel: "); Serial.println(cmdData.mainLogLevel);
-        Serial.print("hmsData.mainLogLevel: "); Serial.println(hms->data.mainLogLevel);
         hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
         hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
         hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
@@ -181,9 +179,9 @@ bool TelemetryServer::update(){
 
       unsigned long newTimestamp = micros();
       lastCommandTime = newTimestamp;
-      if (newTimestamp-beforeSendT > 100){
-        Serial.print("justSend: "); Serial.println(newTimestamp-beforeSendT);
-      }
+//      if (newTimestamp-beforeSendT > 100){
+//        Serial.print("justSend: "); Serial.println(newTimestamp-beforeSendT);
+//      }
       return true;
     }
   }
