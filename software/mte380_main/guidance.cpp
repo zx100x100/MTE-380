@@ -29,6 +29,12 @@ void Guidance::init(){
 }
 
 void Guidance::update(){
+  gd.leftPower = 0;
+  gd.rightPower = 0;
+  gd.propPower = 0;
+  return;
+
+
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Guidance::update()");
   gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
   gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
