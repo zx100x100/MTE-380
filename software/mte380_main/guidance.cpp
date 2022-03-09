@@ -29,15 +29,14 @@ void Guidance::init(){
 }
 
 void Guidance::update(){
+  if (hms->data.guidanceLogLevel >= 2) Serial.println("Guidance::update()");
+  gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
+  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
+
   gd.leftPower = 0;
   gd.rightPower = 0;
   gd.propPower = 0;
   return;
-
-
-  if (hms->data.guidanceLogLevel >= 2) Serial.println("Guidance::update()");
-  gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
-  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
 
   if (traj.trapsChanged()){
     traj.updateTraps();
@@ -98,27 +97,28 @@ void Guidance::update(){
   gd.leftTotalPID = constrainVal(gd.leftTotalPID, MAX_OUTPUT_POWER);
   gd.rightTotalPID = constrainVal(gd.rightTotalPID, MAX_OUTPUT_POWER);
 
-  if (cmdData.runState == CmdData_RunState_TELEOP){
-    gd.leftPower = cmdData.leftPower;
-    gd.rightPower = cmdData.rightPower;
-    gd.propPower = cmdData.propPower;
-  }
-  else if (cmdData.runState == CmdData_RunState_AUTO){
-    gd.leftPower = outputLeft;
-    gd.rightPower = outputRight;
-    gd.propPower = 0; // temp
-  }
-  else{
-    gd.leftPower = 0;
-    gd.rightPower = 0;
-    gd.propPower = 0;
-    if (cmdData.runState == CmData_RunState_SIM){
-      float FAKE_VELOCITY_SCALE_FACTOR = 0.01;
-      float speed = FAKE_VELOCITY_SCALE_FACTOR * (cmData.leftPower+cmData.rightPower)/2;
-      navData.posX = 
-      if cmData.leftPower
-    }
-  }
+  /* if (cmdData.runState == CmdData_RunState_TELEOP){ */
+    /* gd.leftPower = cmdData.leftPower; */
+    /* gd.rightPower = cmdData.rightPower; */
+    /* gd.propPower = cmdData.propPower; */
+  /* } */
+  /* else if (cmdData.runState == CmdData_RunState_AUTO){ */
+    /* gd.leftPower = outputLeft; */
+    /* gd.rightPower = outputRight; */
+    /* gd.propPower = 0; // temp */
+  /* } */
+  /* else{ */
+    /* gd.leftPower = 0; */
+    /* gd.rightPower = 0; */
+    /* gd.propPower = 0; */
+    /* if (cmdData.runState == CmData_RunState_SIM){ */
+      /* float FAKE_VELOCITY_SCALE_FACTOR = 0.01; */
+      /* float speed = FAKE_VELOCITY_SCALE_FACTOR * (cmData.leftPower+cmData.rightPower)/2; */
+      /* navData.posX =  */
+      /* if cmData.leftPower */
+    /* } */
+  /* } */
+
   // Serial.print("gd.leftPower:"); Serial.println(gd.leftPower);
   // Serial.print("gd.rightPower:"); Serial.println(gd.rightPower);
   // calculate everything, then
