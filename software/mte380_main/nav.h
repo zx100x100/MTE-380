@@ -26,8 +26,10 @@ class Nav{
     Sensors& sensors;
     Hms* hms;
     float gain[6] = {0.2, 0.2, 0.2, 0.2, 0.2, 0.2};
+    int lastTofsCount[4] = {-1, -1, -1, -1};
 
     bool isValid(TofOrder tof);
+    bool tofsUpdated();
     TofPosition calculateTof();
     NavData calculateImu();
     float deg2rad(float deg);
