@@ -45,4 +45,7 @@ message CmdData{
   uint32 nTraps = 10;
   repeated float trapX = 11;
   repeated float trapY = 12;
+
+  float simPosX = 13;
+  float simPosY = 14;
 }

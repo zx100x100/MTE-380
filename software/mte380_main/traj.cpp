@@ -364,11 +364,11 @@ bool Traj::trapsChanged(){
 }
 
 void Traj::updateTraps(){
-  /* for (int i=0; i<NUM_SEGMENTS; i++){ */
-    /* if (segments[i]->getType() == LINE){ */
-      /* *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY); */
-    /* } */
-  /* } */
+  for (int i=0; i<NUM_SEGMENTS; i++){
+    if (segments[i]->getType() == LINE){
+      *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY);
+    }
+  }
 }
 
 // returns true if finished driving the track, false otherwise

@@ -46,7 +46,6 @@ class App:
         self.robot = Robot()
         self.arena = Arena(self.robot)
         self.keys = pg.key.get_pressed()
-        self.teleop = False
         self.tick_num = 0
         pg.font.init()
         self.screen.blit(self.arena.image, (0,0))
