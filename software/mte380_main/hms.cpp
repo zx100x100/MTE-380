@@ -11,10 +11,14 @@ Hms::Hms()
   /* data = data_; */
   data.nCells = DEFAULT_N_BATTERY_CELLS;
 
-  // data.mainLogLevel = MAIN_LOG_LEVEL_DEFAULT;
-  // data.sensorsLogLevel = SENSORS_LOG_LEVEL_DEFAULT;
-  // data.guidanceLogLevel = GUIDANCE_LOG_LEVEL_DEFAULT;
-  // data.navLogLevel = NAV_LOG_LEVEL_DEFAULT;
+}
+
+void Hms::init(){
+  data.mainLogLevel = MAIN_LOG_LEVEL_DEFAULT;
+  data.sensorsLogLevel = SENSORS_LOG_LEVEL_DEFAULT;
+  data.guidanceLogLevel = GUIDANCE_LOG_LEVEL_DEFAULT;
+  data.guidanceLogLevel = HmsData_LogLevel_OVERKILL;
+  data.navLogLevel = NAV_LOG_LEVEL_DEFAULT;
 }
 
 void Hms::logError(int err, char str[80]){

@@ -41,13 +41,14 @@ class Segment {
 
 class Curve: public Segment {
   public:
-    Curve(float,float,CornerType);
+    Curve(float,float,CornerType, Hms* hms);
     float getDist(float, float);
     bool completed(float, float);
     float velSetpoint(float, float);
     SegmentType getType();
 
   private:
+    Hms* hms;
     float xc;
     float yc;
     CornerType cornerType;
@@ -55,7 +56,7 @@ class Curve: public Segment {
 
 class Line: public Segment {
   public:
-    Line(float,float,float,float,float[MAX_N_TRAPS],float[MAX_N_TRAPS]);
+    Line(float,float,float,float,float[MAX_N_TRAPS],float[MAX_N_TRAPS], Hms* hms);
     float getDist(float, float);
     bool completed(float, float);
     float velSetpoint(float, float);
@@ -67,6 +68,7 @@ class Line: public Segment {
     float ya;
     float xb;
     float yb;
+    Hms* hms;
 
   private:
     int orientation;
@@ -81,6 +83,7 @@ class Traj{
   public:
     Traj();
     Traj(Hms* hms, GuidanceData* gd, CmdData* cmdData);
+    void init();
     bool updatePos(float xp, float yp);
     bool trapsChanged();
     void updateTraps();

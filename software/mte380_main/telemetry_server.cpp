@@ -186,7 +186,9 @@ bool TelemetryServer::update(){
     }
   }
   else{
-    Serial.println("No TCP client connected.");
+    if (hms->data.mainLogLevel >= 1){
+      Serial.println("No TCP client connected.");
+    }
     // DEAD MANS SWITCH!
     return false;
   }

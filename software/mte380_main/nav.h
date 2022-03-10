@@ -5,6 +5,7 @@
 #include "nav_data.pb.h"
 #include "sensors.h"
 #include "fusion.h"
+#include "hms_and_cmd_data.pb.h"
 
 struct TofPosition {
   float yaw;
@@ -14,7 +15,7 @@ struct TofPosition {
 
 class Nav{
   public:
-    Nav(Sensors &sensors, Hms* hms);
+    Nav(Sensors &sensors, CmdData& cmdData, Hms* hms);
     void update();
     void init();
     NavData& getData();

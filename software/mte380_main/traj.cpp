@@ -9,7 +9,7 @@
 #define EPSILON 0.000001 // for float equality
 
 Line copyAndRecalculateTraps(Line* line, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS]){
-  return Line(line->xa, line->ya, line->xb, line->yb, trapX, trapY);
+  return Line(line->xa, line->ya, line->xb, line->yb, trapX, trapY, line->hms);
 }
 
 
@@ -70,11 +70,12 @@ float Line::velSetpoint(float xp, float yp){
   return 0;
 }
 
-Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS]):
+Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms):
   xa(xa),
   ya(ya),
   xb(xb),
-  yb(yb)
+  yb(yb),
+  hms(hms)
 {
   horizontal = ya == yb;
   if (horizontal){
@@ -121,7 +122,11 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
       included[i] = 1;
     }
   }
-  // assume horizontal TODO update
+
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("begin subline creation"); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("nTraps: "); Serial.println(nTraps); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("orientation: "); Serial.println(orientation); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("horizontal: "); Serial.println(horizontal); }
   int nTrapsUsedInASubline = 0;
   int nSublines = 0;
   float da;
@@ -182,6 +187,10 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
         d1 = trapD[nTrapsUsedInASubline]-0.5;
         v1 = TRAP_SPEED;
       }
+      if (nSublines > MAX_N_TRAPS-1){
+        Serial.println("TOO MANY SUBLINES!!!!!!");
+        return;
+      }
       sublines[nSublines++] = Subline(d1, d4, v1, v4);
       nTrapsUsedInASubline++;
       if (orientation == 1){
@@ -210,17 +219,26 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
         }
       }
     }
-    sublines[nSublines++] = Subline(d1, d4, v1, v4);
+    if (nSublines > MAX_N_TRAPS-1){
+      Serial.println("TOO MANY SUBLINES!!!!!!");
+      return;
+    }
+    sublines[nSublines] = Subline(d1, d4, v1, v4);
     if (orientation == 1){
-      if (sublines[nSublines].d4 >= db+EPSILON){
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4 + EPSILON: "); Serial.println(sublines[nSublines].d4 + EPSILON); }
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("db: "); Serial.println(db); }
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4+EPSILON >= db: "); Serial.println(sublines[nSublines].d4+EPSILON >= db); }
+
+      if (sublines[nSublines].d4+EPSILON >= db){
         break;
       }
     }
     else{
-      if (sublines[nSublines].d1 <= db-EPSILON){
+      if (sublines[nSublines].d1-EPSILON <= db){
         break;
       }
     }
+    nSublines++;
   }
 }
 
@@ -293,10 +311,11 @@ bool Line::completed(float xp, float yp){
   return yp < yb;
 }
 
-Curve::Curve(float xc, float yc, CornerType cornerType):
+Curve::Curve(float xc, float yc, CornerType cornerType, Hms* hms):
   xc(xc), // center x
   yc(yc), // center y
-  cornerType(cornerType)
+  cornerType(cornerType),
+  hms(hms)
 {
 }
 
@@ -336,26 +355,35 @@ Traj::Traj(Hms* hms, GuidanceData* gd, CmdData* cmdData):
 {
   nTraps = cmdData->nTraps;
   gd->segNum = 0;
-//  segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY);
-//  segments[1] = new Curve(1,5,BL);
-//  segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY);
-//  segments[3] = new Curve(1,1,TL);
-//  segments[4] = new Line(1,0.5,5,0.5,cmdData->trapX,cmdData->trapY);
-//  segments[5] = new Curve(5,1,TR);
-//  segments[6] = new Line(5.5,1,5.5,4,cmdData->trapX,cmdData->trapY);
-//  segments[7] = new Curve(5,4,BR_);
-//  segments[8] = new Line(5,4.5,2,4.5,cmdData->trapX,cmdData->trapY);
-//  segments[9] = new Curve(2,4,BL);
-//  segments[10] = new Line(1.5,4,1.5,2,cmdData->trapX,cmdData->trapY);
-//  segments[11] = new Curve(2,2,TL);
-//  segments[12] = new Line(2,1.5,4,1.5,cmdData->trapX,cmdData->trapY);
-//  segments[13] = new Curve(4,2,TR);
-//  segments[14] = new Line(4.5,2,4.5,3,cmdData->trapX,cmdData->trapY);
-//  segments[15] = new Curve(4,3,BR_);
-//  segments[16] = new Line(4,3.5,3,3.5,cmdData->trapX,cmdData->trapY);
-//  segments[17] = new Curve(3,3,BL);
-//  segments[18] = new Curve(3,3,TL);
-//  segments[19] = new Line(3,2.5,3.5,2.5,cmdData->trapX,cmdData->trapY);
+}
+
+void Traj::init(){
+  Serial.println("Traj::init()");
+  // THIS PART OF THE CODE HAS NEVER (NOT EVEN ONCE) HAD HEAP CORRUPTION AKA POISONING ISSUES!!!
+  // BUT IF IT EVER DOES, MY FRIEND SAID THAT UNCOMMENTING THIS WOULD BE HELPFUL...
+
+  /* heap_caps_check_integrity(MALLOC_CAP_8BIT, true); */
+
+  segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[1] = new Curve(1,5,BL,hms);
+  segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY,hms);
+  segments[3] = new Curve(1,1,TL,hms);
+  segments[4] = new Line(1,0.5,5,0.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[5] = new Curve(5,1,TR,hms);
+  segments[6] = new Line(5.5,1,5.5,4,cmdData->trapX,cmdData->trapY,hms);
+  segments[7] = new Curve(5,4,BR_,hms);
+  segments[8] = new Line(5,4.5,2,4.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[9] = new Curve(2,4,BL,hms);
+  segments[10] = new Line(1.5,4,1.5,2,cmdData->trapX,cmdData->trapY,hms);
+  segments[11] = new Curve(2,2,TL,hms);
+  segments[12] = new Line(2,1.5,4,1.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[13] = new Curve(4,2,TR,hms);
+  segments[14] = new Line(4.5,2,4.5,3,cmdData->trapX,cmdData->trapY,hms);
+  segments[15] = new Curve(4,3,BR_,hms);
+  segments[16] = new Line(4,3.5,3,3.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[17] = new Curve(3,3,BL,hms);
+  segments[18] = new Curve(3,3,TL,hms);
+  segments[19] = new Line(3,2.5,3.5,2.5,cmdData->trapX,cmdData->trapY,hms);
 }
 
 // returns true if cmdData contanis new traps
@@ -364,11 +392,12 @@ bool Traj::trapsChanged(){
 }
 
 void Traj::updateTraps(){
-  /* for (int i=0; i<NUM_SEGMENTS; i++){ */
-    /* if (segments[i]->getType() == LINE){ */
-      /* *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY); */
-    /* } */
-  /* } */
+  if (hms->data.guidanceLogLevel >= 2) Serial.println("Traj::updateTraps()");
+  for (int i=0; i<NUM_SEGMENTS; i++){
+    if (segments[i]->getType() == LINE){
+      *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY);
+    }
+  }
 }
 
 // returns true if finished driving the track, false otherwise
