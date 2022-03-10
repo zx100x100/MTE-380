@@ -26,6 +26,7 @@ Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms):
 }
 
 void Guidance::init(){
+  traj.init();
 }
 
 void Guidance::update(){
@@ -36,11 +37,11 @@ void Guidance::update(){
   gd.leftPower = 0;
   gd.rightPower = 0;
   gd.propPower = 0;
-  return; // TODO -----------------------------------------
 
   if (traj.trapsChanged()){
     traj.updateTraps();
   }
+  return; // TODO -----------------------------------------
 
   gd.setpointVel = traj.getSetpointVel(navData.posX, navData.posY);
   float lastErrVel = gd.errVel;

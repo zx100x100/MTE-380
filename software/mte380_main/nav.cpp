@@ -16,8 +16,9 @@
 
 #define FLT_INVALID 0xFFFF
 
-Nav::Nav(Sensors& sensors, Hms* hms):
+Nav::Nav(Sensors& sensors, CmdData& cmdData, Hms* hms):
   sensors(sensors),
+  nav(nav),
   hms(hms)
 {
   navData = NavData_init_zero;

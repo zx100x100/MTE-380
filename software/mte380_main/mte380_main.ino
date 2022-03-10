@@ -19,7 +19,7 @@ unsigned long longest = 0;
 Hms hms = Hms();
 CmdData cmdData = CmdData_init_zero;
 Sensors sensors = Sensors(&hms, &sensor_vl53lx_sat[0]);
-Nav nav = Nav(sensors, &hms);
+Nav nav = Nav(sensors, cmdData, &hms);
 Guidance guidance = Guidance(nav.getData(), cmdData, &hms);
 TelemetryServer telemetryServer = TelemetryServer(sensors,
                                                   nav.getData(),
@@ -35,6 +35,7 @@ Motors motors = Motors(guidance.getData(), &hms);
   sensors.init();
   nav.init();
   telemetryServer.init();
+  hms.init();
   guidance.init();
 }
 
@@ -43,7 +44,7 @@ void loop() {
   sensors.update();
   unsigned long afterSensorT = micros();
   nav.update();
-  //guidance.update();
+  guidance.update();
   motors.update();
   unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();
