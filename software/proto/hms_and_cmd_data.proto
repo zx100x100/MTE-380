@@ -48,4 +48,11 @@ message CmdData{
 
   float simPosX = 13;
   float simPosY = 14;
+  float simVelX = 15;
+  float simVelY = 16;
+  float simAccX = 17;
+  float simAccY = 18;
+  float simAngXy = 19;
+  float simAngVelXy = 20;
+  float angAccXy = 21; // angular acceleration
 }
