@@ -58,10 +58,13 @@ def copy_constants_into_firmware(bytes, ssid):
     for i in range(4):
         lines.append(f'#define SERVER_BYTE{i} {bytes[i]}')
 
-    lines += [f'#define SERVER_PORT {SERVER_PORT}',
-              f'#define WIFI_SSID "{ssid}"',
-              f'#define WIFI_PASSWORD "{PASSWORDS[ssid]}"',
-             '#endif']
+    try:
+        lines += [f'#define SERVER_PORT {SERVER_PORT}',
+                  f'#define WIFI_SSID "{ssid}"',
+                  f'#define WIFI_PASSWORD "{PASSWORDS[ssid]}"',
+                 '#endif']
+    except:
+        return
     with open(path, 'w') as f:
         f.write('\n'.join(lines) + '\n')
         
