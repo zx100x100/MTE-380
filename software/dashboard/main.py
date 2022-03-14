@@ -170,7 +170,10 @@ class App:
             self.data.cmd.pb.propPower = max(self.data.cmd.pb.propPower - PROP_POWER_THROTTLE_INCREMENT, 0)
         if self.keys[pg.K_p]:
             self.data.cmd.pb.propPower = min(self.data.cmd.pb.propPower + PROP_POWER_THROTTLE_INCREMENT, 255)
-                                
+        
+        if self.data.cmd.pb.runState is CmdData.RunState.SIM:
+            self.sim.simulate(self.data.cmd.pb)
+
         TURNING_WHILE_MOVING_POWER_DIFFERENTIAL = 90
         TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR = 0.5 # run the slow side at 0.5 of its normal
         if self.data.cmd.pb.runState is CmdData.RunState.TELEOP:
