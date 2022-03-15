@@ -24,3 +24,5 @@ all:
 		mv -v proto/$$i.pb.c ./mte380_main/ ; \
 	done ; \
 	protoc --python_out=./dashboard ./proto/*_data.proto ;
+
+temp
