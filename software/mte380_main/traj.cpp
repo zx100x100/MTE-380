@@ -377,7 +377,7 @@ Traj::Traj(Hms* hms, GuidanceData* gd, CmdData* cmdData):
 }
 
 void Traj::init(){
-  Traj::init()
+  /* Traj::init() */
   // THIS PART OF THE CODE HAS NEVER (NOT EVEN ONCE) HAD HEAP CORRUPTION AKA POISONING ISSUES!!!
   // BUT IF IT EVER DOES, MY FRIEND SAID THAT UNCOMMENTING THIS WOULD BE HELPFUL...
 

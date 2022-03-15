@@ -255,6 +255,8 @@ class Controls:
     
     def start_button_disabled(self):
         #  return False
+        if self.app.data.cmd.pb.runState is CmdData.RunState.SIM or self.sim:
+            return False
         return not self.app.telemetry_client.connected
 
     def position_elements(self):

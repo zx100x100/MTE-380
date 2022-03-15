@@ -14,26 +14,21 @@ ACTIVE_SEGMENT_COLOUR = (255,0,0)
 NEAREST_DIST_LINE_COLOUR = (255,255,0)
 HEADING_ERROR_ARC_COLOUR = (100,200,255)
 
-MAX_VEL_SETPOINT_LINES = 800
-
 LINE_THICK=3
 
 
+# TODO move to constants i guess
+MAX_VEL_SETPOINT_LINES = 500
+MAX_VEL_SETPOINT = 10
+MAX_VEL_INDICATOR_WIDTH = 50
+VEL_SETPOINT_LINE_COLOUR = (90,120,255,30)
+MIN_PIXELS_BETWEEN_VEL_SETPOINT_LINES = LINE_THICK
 
-class Segment:
-    def __init__(self, activated=False):
-        self.activated = activated
+def dist_betw_points(p1, p2):
+    return ((p2[0]-p1[0])**2+(p2[1]-p1[1])**2)**0.5
 
-    def distance(self, point):
-        raise NotImplementedError
-
-    def render(self, surface):
-        raise NotImplementedError
-
-
-class CornerCircle(Segment):
+class CornerCircle:
     def __init__(self, center, corner, active=False):
-        super().__init__(self)
         self.circle_center = [i*PIXELS_PER_TILE for i in center]
         self.corner = corner
         self.radius_tiles = 0.5
@@ -51,6 +46,9 @@ class CornerCircle(Segment):
             center_offset = (self.rect.width/2, self.rect.height/2)
 
         self.rect.center = (self.circle_center[0]+center_offset[0],self.circle_center[1]+center_offset[1])
+        self.reset_vel_setpoint_lines()
+
+    def reset_vel_setpoint_lines(self):
         self.vel_setpoint_lines = deque([],maxlen=MAX_VEL_SETPOINT_LINES)
 
     def completed(self, pos):
@@ -70,8 +68,20 @@ class CornerCircle(Segment):
         return ((pos[0]-self.circle_center[0])**2+(pos[1]-self.circle_center[1])**2)**0.5 - self.radius_pixels
     
     def add_vel_setpoint_indicator_line(self, pos, vel_setpoint):
-        # TODO!!!
-        return
+        if self.vel_setpoint_lines:
+            prev_pos = self.vel_setpoint_lines[-1][2]
+            if dist_betw_points(prev_pos, pos) <= MIN_PIXELS_BETWEEN_VEL_SETPOINT_LINES:
+                return
+        nearest = self.get_nearest(pos)
+        x_dist = pos[0] - nearest[0]
+        y_dist = pos[1] - nearest[1]
+        dist = (x_dist**2+y_dist**2)**0.5
+        desired_length = vel_setpoint / MAX_VEL_SETPOINT * MAX_VEL_INDICATOR_WIDTH/2
+        scalefac = desired_length / dist
+        end_pos_outer = (nearest[0] - x_dist * scalefac, nearest[1] - y_dist * scalefac)
+        end_pos_inner = (nearest[0] + x_dist * scalefac, nearest[1] + y_dist * scalefac)
+
+        self.vel_setpoint_lines.append((end_pos_outer, end_pos_inner, pos))
 
     def get_nearest(self, pos): # get nearest point on the circle
         x1 = pos[0]
@@ -140,10 +150,11 @@ class CornerCircle(Segment):
         pg.draw.circle(image, ACTIVE_SEGMENT_COLOUR if self.active else LINE_COLOUR2, center, self.radius_pixels, 3)
         screen.blit(image, self.rect)
 
-        #  print('render')
+        image = pg.Surface((ARENA_SIZE_PIXELS, ARENA_SIZE_PIXELS)).convert_alpha()
+        image.fill((0,0,0,0))
         for line in self.vel_setpoint_lines:
-            #  print(line[0], line[1])
-            pg.draw.line(screen, (90,120,255,40), line[0], line[1], LINE_THICK)
+            pg.draw.line(image, VEL_SETPOINT_LINE_COLOUR, line[0], line[1], LINE_THICK)
+            screen.blit(image, (0,0))
 
     def generate_desired_heading(self, robot):
         pos = robot.rect.center
@@ -179,20 +190,26 @@ class CornerCircle(Segment):
         return image
 
 
-class Line(Segment):
+class Line:
     def __init__(self, start, end, active=False):
         self.start = [i*PIXELS_PER_TILE for i in start]
         self.end = [i*PIXELS_PER_TILE for i in end]
         self.horizontal = self.start[1] == self.end[1]
         self.active = active
+        self.reset_vel_setpoint_lines()
+
+    def reset_vel_setpoint_lines(self):
         self.vel_setpoint_lines = deque([],maxlen=MAX_VEL_SETPOINT_LINES)
 
     def render(self, surface):
         pg.draw.line(surface, ACTIVE_SEGMENT_COLOUR if self.active else LINE_COLOUR, self.start, self.end, LINE_THICK)
 
+        image = pg.Surface((ARENA_SIZE_PIXELS, ARENA_SIZE_PIXELS)).convert_alpha()
+        image.fill((0,0,0,0))
         for line in self.vel_setpoint_lines:
             try:
-                pg.draw.line(surface, (90,120,255,40), line[0], line[1], LINE_THICK)
+                pg.draw.line(image, VEL_SETPOINT_LINE_COLOUR, line[0], line[1], LINE_THICK)
+                surface.blit(image, (0,0))
             except:
                 pass
 
@@ -206,9 +223,11 @@ class Line(Segment):
         return pos[1]<self.end[1]
 
     def add_vel_setpoint_indicator_line(self, pos, vel_setpoint):
-        print(f'vel_setpoint: {vel_setpoint}')
-        MAX_VEL_SETPOINT = 10
-        MAX_VEL_INDICATOR_WIDTH = 50
+        #  print(f'vel_setpoint: {vel_setpoint}')
+        if self.vel_setpoint_lines:
+            prev_pos = self.vel_setpoint_lines[-1][2]
+            if dist_betw_points(prev_pos, pos) <= MIN_PIXELS_BETWEEN_VEL_SETPOINT_LINES:
+                return
         line_start = self.get_nearest(pos)
         if self.horizontal:
             line_end = (line_start[0],
@@ -219,7 +238,7 @@ class Line(Segment):
                         line_start[1])
             line_start[0]-=vel_setpoint/MAX_VEL_SETPOINT*MAX_VEL_INDICATOR_WIDTH/2
 
-        self.vel_setpoint_lines.append((line_start, line_end))
+        self.vel_setpoint_lines.append((line_start, line_end, pos))
         #  print(self.vel_setpoint_lines)
 
     def distance(self, point):

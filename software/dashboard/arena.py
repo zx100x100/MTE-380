@@ -56,6 +56,10 @@ class Arena():
             tiles.append(new_row)
         return tiles
 
+    def reset_vel_setpoint_indicators(self):
+        for s in self.segments:
+            s.reset_vel_setpoint_lines()
+
     def generate_vel_setpoint_indicator(self, vel_setpoint):
         self.active.add_vel_setpoint_indicator_line(self.robot.rect.center, vel_setpoint)
     

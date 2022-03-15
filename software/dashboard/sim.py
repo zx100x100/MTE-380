@@ -65,7 +65,7 @@ class Sim:
         return (left_power, right_power)
 
     def simulate(self, leftPower, rightPower):
-        print(f'sim.lp:{leftPower},rp:{rightPower}')
+        #  print(f'sim.lp:{leftPower},rp:{rightPower}')
         import time
         new_time = time.time()
         dt = new_time - self.last_tick
@@ -106,15 +106,15 @@ class Sim:
             angAccMag = -angAccMag
         
         angAcc = angAccMag*ACC_LIN_TO_ANG
-        print(f'angAcc: {angAcc}')
+        #  print(f'angAcc: {angAcc}')
 
         curAccX = linearAccMag*cosd(prevAngXy)
         curAccY = linearAccMag*sind(prevAngXy)
-        print(f'curAccY: {curAccY}')
+        #  print(f'curAccY: {curAccY}')
         
         curVelX = prevVelX + curAccX
         curVelY = prevVelY + curAccY
-        print(f'curVelY: {curAccY}')
+        #  print(f'curVelY: {curAccY}')
 
         curPosX = prevPosX + curVelX*dt + 0.5*curAccX*dt**2
         curPosY = prevPosY + curVelY*dt + 0.5*curAccY*dt**2

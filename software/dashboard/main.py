@@ -68,6 +68,7 @@ class App:
             self.robot.angle = self.data.cmd.pb.simAngXy
             self.robot.rect.centerx = self.data.cmd.pb.simPosX * PIXELS_PER_TILE
             self.robot.rect.centery = self.data.cmd.pb.simPosY * PIXELS_PER_TILE
+            self.data.guidance.pb.setpointVel = 4
         else:
             # Display based on nav data for every other state, even if we are in SIM mode
             self.robot.angle = self.data.nav.pb.angXy
@@ -78,9 +79,12 @@ class App:
                 self.robot.rect.centerx = 0
                 self.robot.rect.centery = 0
         self.robot.update_sprite_angle() 
-        self.arena.update_active_segment()
         self.arena.generate_vel_setpoint_indicator(self.data.guidance.pb.setpointVel)
-        self.arena.set_active_segment(self.data.guidance.pb.segNum)
+
+        if self.telemetry_client.connected:
+            self.arena.set_active_segment(self.data.guidance.pb.segNum)
+        else:
+            self.arena.update_active_segment()
 
     def render_telemetry(self):
         #  pass
@@ -90,33 +94,13 @@ class App:
         self.arena.erase(self.screen)
 
     def render(self):
-        #  before_render_ts = time.time()
-        #  before_render_dt = (before_render_ts-self.before_tick)*1e6
-        #  print(f'before_render_dt: {before_render_dt}')
-        self.robot.render(self.screen)
-        #  robot_render_ts = time.time()
-        #  robot_render_dt = (robot_render_ts - before_render_ts)*1e6
-        #  print(f'robot_render_dt: {robot_render_dt}')
         self.render_telemetry()
-        #  telemetry_render_ts = time.time()
-        #  telemetry_render_dt = (telemetry_render_ts - robot_render_ts)*1e6
-        #  print(f'telemetry_render_dt: {telemetry_render_dt}')
         perp_line_image = self.arena.active.generate_desired_heading(self.robot)
         self.screen.blit(perp_line_image, (0,0))
         self.arena.render_active(self.screen)
-        #  arena_render_ts = time.time()
-        #  arena_render_dt = (arena_render_ts - telemetry_render_ts)*1e6
-        #  print(f'arena_render_dt: {arena_render_dt}')
         self.protobuf_readouts.render()
-        #  protobuf_render_ts = time.time()
-        #  protobuf_render_dt = (protobuf_render_ts - arena_render_ts)*1e6
-        #  print(f'protobuf_render_dt: {protobuf_render_dt}')
+        self.robot.render(self.screen)
         pg.display.update()
-        #  display_update_ts = time.time()
-        #  display_update_dt = (display_update_ts - protobuf_render_ts)*1e6
-        #  print(f'display_update_dt: {display_update_dt}')
-        #  entire_tick = (display_update_ts - self.before_tick)*1e6
-        #  print(f'entire_tick: {entire_tick}')
 
     def event_loop(self):
         self.keys = pg.key.get_pressed()
@@ -133,7 +117,6 @@ class App:
                 if mouse_presses[0]: # LEFT MOUSE BUTTON CLICKED
                     pos = pg.mouse.get_pos()
                     clicked_tile = self.arena.handle_click(pos)
-                    print(f'clicked: {clicked_tile}')
                     if clicked_tile:
                         # update cmdData!!
                         found = False
@@ -206,7 +189,8 @@ class App:
                 # oh look its kaelan
                 # hes pretty high
                 # no: it's high how are you!
-                self.data.cmd 
+                self.data.guidance.pb.segNum = 0
+                self.arena.set_active_segment(0)
                 self.data.cmd.pb.simPosX = 3.5
                 self.data.cmd.pb.simPosY = 5.5
                 self.data.cmd.pb.simVelY = 0
@@ -214,6 +198,7 @@ class App:
                 self.data.cmd.pb.simAngVelXy = 0
                 self.data.cmd.pb.simAngXy = 180
                 self.data.nav.pb = NavData()
+                self.arena.reset_vel_setpoint_indicators()
             self.prev_run_state = self.data.cmd.pb.runState
             self.before_tick = time.time()
             self.event_loop()
