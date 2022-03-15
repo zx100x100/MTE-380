@@ -161,8 +161,17 @@ class App:
         if self.keys[pg.K_SPACE]:
             # ESTOP:
             self.data.cmd.pb.propPower = 0
-            if self.data.cmd.pb.runState is not CmdData.RunState.E_STOP:
-                self.controls.start_button.click()
+            if self.telemetry_client.connected:
+                if self.data.cmd.pb.runState is not CmdData.RunState.E_STOP:
+                    self.controls.start_button.click()
+            else: # not connected
+                # reset velocity
+                self.data.cmd.pb.simVelX = 0
+                self.data.cmd.pb.simAccX = 0
+                self.data.cmd.pb.simVelY = 0
+                self.data.cmd.pb.simAccY = 0
+                self.data.cmd.pb.simAngVelXy = 0
+                self.data.cmd.pb.simAngAccXy = 0
 
         if self.keys[pg.K_o]:
             self.data.cmd.pb.propPower = max(self.data.cmd.pb.propPower - PROP_POWER_THROTTLE_INCREMENT, 0)

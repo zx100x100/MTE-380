@@ -12,6 +12,8 @@ TILE_COLOUR_1 = (60,60,60)
 TILE_COLOUR_2 = (30,100,100)
 TRAP_TILE_COLOUR = (255,0,0,50)
 
+DISABLE_VEL_SETPOINT_INDICATORS = False
+
 class Arena():
     def __init__(self, robot, app):
         self.rect = pg.Rect(0,0,ARENA_SIZE_PIXELS,ARENA_SIZE_PIXELS)
@@ -61,7 +63,8 @@ class Arena():
             s.reset_vel_setpoint_lines()
 
     def generate_vel_setpoint_indicator(self, vel_setpoint):
-        self.active.add_vel_setpoint_indicator_line(self.robot.rect.center, vel_setpoint)
+        if not DISABLE_VEL_SETPOINT_INDICATORS:
+            self.active.add_vel_setpoint_indicator_line(self.robot.rect.center, vel_setpoint)
     
     def set_active_segment(self, idx):
         self.active.active = False

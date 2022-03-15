@@ -8,10 +8,14 @@ TELEOP_MEDIUM = 170
 TELEOP_FAST = 255
 MAX_TELEOP_POWER = 255
 
-PWR_TO_ACCEL = 0.0001
-ACC_LIN_TO_ANG = 100
+PWR_TO_ACCEL = 0.001
+ACC_LIN_TO_ANG = 80
 
-FRICTIONAL_MULTIPLIER = 0.9
+LINEAR_FRICTION = 0.99
+ANGULAR_FRICTION = 0.97
+
+def sign(x):
+    return 1 if x>0 else -1
 
 def sind(rad):
     return math.sin(math.radians(rad))
@@ -68,7 +72,7 @@ class Sim:
         return (left_power, right_power)
 
     def simulate(self, leftPower, rightPower):
-        #  print(f'sim.lp:{leftPower},rp:{rightPower}')
+        print(f'sim.lp:{leftPower},rp:{rightPower}')
         import time
         new_time = time.time()
         dt = new_time - self.last_tick
@@ -99,6 +103,8 @@ class Sim:
             else:
                 linearAccMag = abs(curRightAcc) - angAccMag
             if curLeftAcc < 0:
+                print(f'curLeftAcc: {curLeftAcc}')
+                print(f'linearAccMag: {linearAccMag}')
                 linearAcc = -linearAccMag
             else:
                 linearAcc = linearAccMag
@@ -113,16 +119,17 @@ class Sim:
         angAcc = angAccMag*ACC_LIN_TO_ANG
         #  print(f'angAcc: {angAcc}')
 
-        curAccX = linearAccMag*cosd(prevAngXy)
-        curAccY = linearAccMag*sind(prevAngXy)
+        curAccX = linearAcc*cosd(prevAngXy)
+        print(f'curAccX: {curAccX}')
+        curAccY = linearAcc*sind(prevAngXy)
         #  print(f'curAccY: {curAccY}')
         
         curVelX = prevVelX + curAccX
         curVelY = prevVelY + curAccY
-        print(f'curVelY: {curAccY}')
+        print(f'curVelX: {curVelX}')
         
-        curVelX = numpy.dot([curVelX, 0], prevAngVector)
-        curVelY = numpy.dot([0, curVelY], prevAngVector)
+        curVelX = numpy.dot([curVelX, 0], prevAngVector) * sign(curVelX)
+        curVelY = numpy.dot([0, curVelY], prevAngVector) * sign(curVelY)
 
         curPosX = prevPosX + curVelX*dt + 0.5*curAccX*dt**2
         curPosY = prevPosY + curVelY*dt + 0.5*curAccY*dt**2
