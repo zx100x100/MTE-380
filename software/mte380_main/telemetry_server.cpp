@@ -162,20 +162,9 @@ bool TelemetryServer::update(){
           return false;
         }
         hms->data.mainLogLevel = HmsData_LogLevel(cmdData.mainLogLevel);
-
-        // temp TODO ADD THIS BACK IN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /* hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel); */
-
+        hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
         hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
         hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
-
-        if (cmdData.runState != CmdData_RunState_SIM){
-          Serial.println("NOT SIM?????????????????????????????????????????????????????????????");
-        }
-        if (cmdData.simPosX != 3.5){
-          Serial.println("WRONG simPosX??????????????????????????????");
-          if(hms->data.guidanceLogLevel >= 2){ Serial.print("cmdData.simPosX: "); Serial.println(cmdData.simPosX); }
-        }
       }
       // SEND DATA --------------------------------------
       pb_ostream_t stream;
