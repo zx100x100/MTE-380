@@ -86,11 +86,11 @@ TofPosition Nav::calculateTof(){
   TofPosition pos;
 
   if (tofsUpdated()){
+      if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
       float estimateLeft, estimateFront;
       if (isValid(L_FRONT) && isValid(L_BACK) && (int(navData.angXy) % 90 < 40 || int(navData.angXy) > 50)) {
-        if (hms->data.navLogLevel >= 2){
-          Serial.println("Left valid");
-        }
+        if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
+
         float theta = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
         pos.yaw = round(navData.angXy / 90 ) + theta;
 
@@ -142,9 +142,8 @@ TofPosition Nav::calculateTof(){
 }
 
 void Nav::update(){
-  if (hms->data.navLogLevel >= 2){
-    Serial.println("Nav::update()");
-  }
+  if (hms->data.navLogLevel >= 2) Serial.println("Nav::update()");
+
   float delT = sensors.timestamp - navData.timestamp;
   NavData pred = getPred(delT);
   if (hms->data.navLogLevel >= 1){
