@@ -16,9 +16,9 @@
 
 #define FLT_INVALID 0xFFFF
 
-Nav::Nav(Sensors& sensors, CmdData& cmdData, Hms* hms):
+Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
   sensors(sensors),
-  nav(nav),
+  cmdData(cmdData),
   hms(hms)
 {
   navData = NavData_init_zero;
@@ -146,6 +146,34 @@ void Nav::update(){
   if (hms->data.navLogLevel >= 2){
     Serial.println("Nav::update()");
   }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav update"); } // temp
+  if (cmdData -> runState == CmdData_RunState_SIM){
+    if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav in SIM mode"); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("cmdData->simPosX: "); Serial.println(cmdData->simPosX); }
+    navData.posX = cmdData->simPosX;
+    navData.posY = cmdData->simPosY;
+    navData.posZ = 0;
+    navData.velX = cmdData->simVelX;
+    navData.velY = cmdData->simVelY;
+    navData.velZ = 0;
+    navData.accX = cmdData->simAccX;
+    navData.accY = cmdData->simAccY;
+    navData.accZ = 0;
+    navData.angXy = cmdData->simAngXy;
+    navData.angVelXy = cmdData->simAngVelXy;
+    navData.angVelXz = 0;
+    navData.angVelYz = 0;
+    navData.angAccXy = cmdData->simAngAccXy;
+    navData.angAccXz = 0;
+    navData.angAccYz = 0;
+    navData.timestamp = micros();
+    return;
+  }
+  else{
+    if(hms->data.guidanceLogLevel >= 2){ Serial.println("NAV::::::::: NOT IN SIM MODE??????"); }
+  }
+
+
   float delT = sensors.timestamp - navData.timestamp;
   NavData pred = getPred(delT);
   if (hms->data.navLogLevel >= 1){

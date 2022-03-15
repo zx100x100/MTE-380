@@ -9,7 +9,7 @@
 #include "telemetry_server.h"
 #include "hms_and_cmd_data.pb.h"
 
-#define DEAD_MAN_TIMEOUT_MS 1000
+#define DEAD_MAN_TIMEOUT_MS 2000
 #define CMD_BUF_SIZE 30
 #define OUTPUT_BUF_SIZE 1000
 // Size of the buffer that contains literally just the number of bytes written
@@ -114,7 +114,8 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
 
 bool TelemetryServer::update(){
   if (hms->data.mainLogLevel >= 2) Serial.println("TelemetryServer::update()");
-  if (millis() - lastCommandTime*1000 > DEAD_MAN_TIMEOUT_MS){
+  if (millis() - lastCommandTime/1000 > DEAD_MAN_TIMEOUT_MS){
+    /* Serial.println("TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"); */
     cmdData.runState = CmdData_RunState_E_STOP;
     cmdData.leftPower = 0;
     cmdData.rightPower = 0;
@@ -161,9 +162,20 @@ bool TelemetryServer::update(){
           return false;
         }
         hms->data.mainLogLevel = HmsData_LogLevel(cmdData.mainLogLevel);
-        hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
+
+        // temp TODO ADD THIS BACK IN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        /* hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel); */
+
         hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
         hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
+
+        if (cmdData.runState != CmdData_RunState_SIM){
+          Serial.println("NOT SIM?????????????????????????????????????????????????????????????");
+        }
+        if (cmdData.simPosX != 3.5){
+          Serial.println("WRONG simPosX??????????????????????????????");
+          if(hms->data.guidanceLogLevel >= 2){ Serial.print("cmdData.simPosX: "); Serial.println(cmdData.simPosX); }
+        }
       }
       // SEND DATA --------------------------------------
       pb_ostream_t stream;

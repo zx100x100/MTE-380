@@ -13,8 +13,9 @@ TILE_COLOUR_2 = (30,100,100)
 TRAP_TILE_COLOUR = (255,0,0,50)
 
 class Arena():
-    def __init__(self, robot):
+    def __init__(self, robot, app):
         self.rect = pg.Rect(0,0,ARENA_SIZE_PIXELS,ARENA_SIZE_PIXELS)
+        self.app = app
         self.robot = robot
         self.tiles = self.generate_tiles()
         self.segments = self.generate_segments()
@@ -54,6 +55,14 @@ class Arena():
                 new_row.append(Tile(row, col))
             tiles.append(new_row)
         return tiles
+
+    def generate_vel_setpoint_indicator(self, vel_setpoint):
+        self.active.add_vel_setpoint_indicator_line(self.robot.rect.center, vel_setpoint)
+    
+    def set_active_segment(self, idx):
+        self.active.active = False
+        self.active = self.segments[idx]
+        self.active.active = True
 
     def update_active_segment(self):
         if self.active.completed(self.robot.rect.center):

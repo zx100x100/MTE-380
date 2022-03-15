@@ -50,7 +50,7 @@ typedef struct _CmdData {
     float simAccY; 
     float simAngXy; 
     float simAngVelXy; 
-    float angAccXy; /* angular acceleration */
+    float simAngAccXy; /* angular acceleration */
 } CmdData;
 
 typedef struct _HmsData { 
@@ -114,7 +114,7 @@ extern "C" {
 #define CmdData_simAccY_tag                      18
 #define CmdData_simAngXy_tag                     19
 #define CmdData_simAngVelXy_tag                  20
-#define CmdData_angAccXy_tag                     21
+#define CmdData_simAngAccXy_tag                  21
 #define HmsData_batteryVoltage_tag               1
 #define HmsData_nCells_tag                       2
 #define HmsData_mainLogLevel_tag                 3
@@ -166,7 +166,7 @@ X(a, STATIC,   SINGULAR, FLOAT,    simAccX,          17) \
 X(a, STATIC,   SINGULAR, FLOAT,    simAccY,          18) \
 X(a, STATIC,   SINGULAR, FLOAT,    simAngXy,         19) \
 X(a, STATIC,   SINGULAR, FLOAT,    simAngVelXy,      20) \
-X(a, STATIC,   SINGULAR, FLOAT,    angAccXy,         21)
+X(a, STATIC,   SINGULAR, FLOAT,    simAngAccXy,      21)
 #define CmdData_CALLBACK NULL
 #define CmdData_DEFAULT NULL
 

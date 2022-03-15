@@ -23,6 +23,8 @@ class Guidance{
     unsigned long lastTimestamp;
     unsigned long deltaT;
 
+    CmdData_RunState prevRunState;
+
     Traj traj;
 };
 

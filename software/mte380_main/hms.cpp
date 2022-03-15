@@ -21,6 +21,6 @@ void Hms::init(){
   data.navLogLevel = NAV_LOG_LEVEL_DEFAULT;
 }
 
-void Hms::logError(int err, char str[80]){
-  Serial.print("Error: "); Serial.print(err); Serial.println(str);
-}
+/* void Hms::logError(int err, char str[80]){ */
+  /* Serial.print("Error: "); Serial.print(err); Serial.println(str); */
+/* } */

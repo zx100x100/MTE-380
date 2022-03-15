@@ -1,6 +1,7 @@
 import pygame as pg
 import functools
 import math
+from collections import deque
 
 from constants import *
 from util import (angle_between_positions,
@@ -12,6 +13,8 @@ LINE_COLOUR2 = (150,150,0)
 ACTIVE_SEGMENT_COLOUR = (255,0,0)
 NEAREST_DIST_LINE_COLOUR = (255,255,0)
 HEADING_ERROR_ARC_COLOUR = (100,200,255)
+
+MAX_VEL_SETPOINT_LINES = 800
 
 LINE_THICK=3
 
@@ -48,6 +51,7 @@ class CornerCircle(Segment):
             center_offset = (self.rect.width/2, self.rect.height/2)
 
         self.rect.center = (self.circle_center[0]+center_offset[0],self.circle_center[1]+center_offset[1])
+        self.vel_setpoint_lines = deque([],maxlen=MAX_VEL_SETPOINT_LINES)
 
     def completed(self, pos):
         # check if the position indicates having completed the segment
@@ -60,9 +64,14 @@ class CornerCircle(Segment):
             return pos[0] > self.circle_center[0]
         else: #TR
             return pos[1] > self.circle_center[1]
+
     def distance(self, pos): # position in pixels
         # returns negative if inside circle, positive if outside circle
         return ((pos[0]-self.circle_center[0])**2+(pos[1]-self.circle_center[1])**2)**0.5 - self.radius_pixels
+    
+    def add_vel_setpoint_indicator_line(self, pos, vel_setpoint):
+        # TODO!!!
+        return
 
     def get_nearest(self, pos): # get nearest point on the circle
         x1 = pos[0]
@@ -111,6 +120,7 @@ class CornerCircle(Segment):
 
         pg.draw.circle(image, ACTIVE_SEGMENT_COLOUR if self.active else LINE_COLOUR2, center, self.radius_pixels, 3)
         return image
+        
 
     def render(self, screen):
         # TEMP: seperate image generation here so we can check if active (grossssss.....)
@@ -129,6 +139,11 @@ class CornerCircle(Segment):
 
         pg.draw.circle(image, ACTIVE_SEGMENT_COLOUR if self.active else LINE_COLOUR2, center, self.radius_pixels, 3)
         screen.blit(image, self.rect)
+
+        #  print('render')
+        for line in self.vel_setpoint_lines:
+            #  print(line[0], line[1])
+            pg.draw.line(screen, (90,120,255,40), line[0], line[1], LINE_THICK)
 
     def generate_desired_heading(self, robot):
         pos = robot.rect.center
@@ -170,9 +185,16 @@ class Line(Segment):
         self.end = [i*PIXELS_PER_TILE for i in end]
         self.horizontal = self.start[1] == self.end[1]
         self.active = active
+        self.vel_setpoint_lines = deque([],maxlen=MAX_VEL_SETPOINT_LINES)
 
     def render(self, surface):
         pg.draw.line(surface, ACTIVE_SEGMENT_COLOUR if self.active else LINE_COLOUR, self.start, self.end, LINE_THICK)
+
+        for line in self.vel_setpoint_lines:
+            try:
+                pg.draw.line(surface, (90,120,255,40), line[0], line[1], LINE_THICK)
+            except:
+                pass
 
     def completed(self, pos):
         if self.horizontal:
@@ -183,6 +205,22 @@ class Line(Segment):
             return pos[1]>self.end[1]
         return pos[1]<self.end[1]
 
+    def add_vel_setpoint_indicator_line(self, pos, vel_setpoint):
+        print(f'vel_setpoint: {vel_setpoint}')
+        MAX_VEL_SETPOINT = 10
+        MAX_VEL_INDICATOR_WIDTH = 50
+        line_start = self.get_nearest(pos)
+        if self.horizontal:
+            line_end = (line_start[0],
+                        line_start[1]+vel_setpoint/MAX_VEL_SETPOINT*MAX_VEL_INDICATOR_WIDTH/2)
+            line_start[1]-=vel_setpoint/MAX_VEL_SETPOINT*MAX_VEL_INDICATOR_WIDTH/2
+        else:
+            line_end = (line_start[0]+vel_setpoint/MAX_VEL_SETPOINT*MAX_VEL_INDICATOR_WIDTH/2,
+                        line_start[1])
+            line_start[0]-=vel_setpoint/MAX_VEL_SETPOINT*MAX_VEL_INDICATOR_WIDTH/2
+
+        self.vel_setpoint_lines.append((line_start, line_end))
+        #  print(self.vel_setpoint_lines)
 
     def distance(self, point):
         # im gonna just be lazy as shit and rely on the fact that the lines
@@ -197,9 +235,9 @@ class Line(Segment):
 
     def get_nearest(self, pos):
         if self.horizontal:
-            return (pos[0], self.start[1])
+            return [pos[0], self.start[1]]
         else:
-            return (self.start[0], pos[1])
+            return [self.start[0], pos[1]]
 
     def generate_desired_heading(self, robot):
         pos = robot.rect.center

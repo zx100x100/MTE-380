@@ -48,7 +48,7 @@ void Sensors::updateBatteryVoltage(){
   float voltage = 1.0;
   hms->data.batteryVoltage = voltage;
   if (hms->data.batteryVoltage < MIN_CELL_VOLTAGE*hms->data.nCells){
-    hms->logError(HmsData_Error_LOW_BATTERY, "charge ur shit");
+    /* hms->logError(HmsData_Error_LOW_BATTERY, "charge ur shit"); */
   }
 }
 

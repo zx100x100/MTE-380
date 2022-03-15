@@ -2,9 +2,9 @@
 #include "Arduino.h"
 
 #define CURVE_RADIUS 0.5 // tiles
-#define CURVE_SPEED 5 // tiles/s
-#define ACC 5 // tiles/s^2
-#define VMAX 6 // tiles/s^2
+#define CURVE_SPEED 1 // tiles/s
+#define ACC 3 // tiles/s^2
+#define VMAX 8 // tiles/s^2
 #define TRAP_SPEED 4 // tiles/s
 #define EPSILON 0.000001 // for float equality
 
@@ -30,7 +30,7 @@ float Subline::trapezoidal(float d){
     if (d < dt){
       return pow(2*ACC*(d-d1)+pow(v1,2),0.5);
     }
-    return pow(pow(v4,2)-2*ACC*(d4-d),0.5);
+    return pow(pow(v4,2)+2*ACC*(d4-d),0.5);
   }
   if (d<d2){
       return pow(2*ACC*(d-d1)+pow(v1,2),0.5);
@@ -38,11 +38,13 @@ float Subline::trapezoidal(float d){
   if (d<d3){
     return VMAX;
   }
-  return pow(pow(v4,2)-2*ACC*(d4-d),0.5);
+  return pow(pow(v4,2)+2*ACC*(d4-d),0.5);
 }
 
 
 bool Subline::isDOnLine(float d){
+  /* Serial.print("d1: "); Serial.println(d1); */
+  /* Serial.print("d4: "); Serial.println(d4); */
   return d < d4 && d >= d1;
 }
 
@@ -54,7 +56,10 @@ float Line::velSetpoint(float xp, float yp){
   else{
     dp = yp;
   }
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); } */
   for (int i=0; i<nSublines; i++){
+    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("dp: "); Serial.println(dp); } */
+    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[i].isDOnLine(dp): "); Serial.println(sublines[i].isDOnLine(dp)); } */
     if (sublines[i].isDOnLine(dp)){
       if (orientation == -1){
         // if the line segment goes bottom to top or right to left, that means we reversed our d1 and d4
@@ -62,6 +67,7 @@ float Line::velSetpoint(float xp, float yp){
         float fromStart = dp - sublines[i].d1; 
         /* now make d be the same distance from d4 as it was from d1: */
         dp = sublines[i].d4 - fromStart;
+        /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("TRUEdp: "); Serial.println(dp); } */
       }
       return sublines[i].trapezoidal(dp);
     }
@@ -98,7 +104,7 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
   while(nIncluded < nTraps){
     for (int i=0; i<MAX_N_TRAPS; i++){
       // candidate i.
-      // must be: not already in arrya (order 1)
+      // must be: not already in array (order 1)
       //          be off the line (order -1)
       //          be LATER than any other NOT INCLUDED (so order != 1) yet valid (order > -1) candidate
       if (included[i] == -1 || included[i] == 1){
@@ -123,12 +129,12 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
     }
   }
 
-  if(hms->data.guidanceLogLevel >= 2){ Serial.println("begin subline creation"); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("nTraps: "); Serial.println(nTraps); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("orientation: "); Serial.println(orientation); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("horizontal: "); Serial.println(horizontal); }
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.println("begin subline creation"); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("nTraps: "); Serial.println(nTraps); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("orientation: "); Serial.println(orientation); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("horizontal: "); Serial.println(horizontal); } */
   int nTrapsUsedInASubline = 0;
-  int nSublines = 0;
+  nSublines = 0;
   float da;
   float db;
   if (horizontal){
@@ -148,10 +154,12 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
     if (nSublines == 0){
       if (orientation == 1){
         d1 = da;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
         v1 = CURVE_SPEED;
       }
       else{
         d4 = da;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("d4: "); Serial.println(d4); }
         v4 = CURVE_SPEED;
       }
     }
@@ -170,10 +178,12 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
     if (nTraps-nTrapsUsedInASubline == 0){ // should end with main line seg ending
       if (orientation == 1){
         d4 = db;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("_____d4: "); Serial.println(d4); }
         v4 = CURVE_SPEED;
       }
       else{
         d1 = db;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1_blah: "); Serial.println(d1); }
         v1 = CURVE_SPEED;
       }
     }
@@ -223,23 +233,32 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
       Serial.println("TOO MANY SUBLINES!!!!!!");
       return;
     }
+    else{
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); }
+    }
     sublines[nSublines] = Subline(d1, d4, v1, v4);
     if (orientation == 1){
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4 + EPSILON: "); Serial.println(sublines[nSublines].d4 + EPSILON); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("db: "); Serial.println(db); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4+EPSILON >= db: "); Serial.println(sublines[nSublines].d4+EPSILON >= db); }
-
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4+EPSILON: "); Serial.println(sublines[nSublines].d4 + EPSILON); } */
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("db: "); Serial.println(db); } */
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4+EPSILON >= db: "); Serial.println(sublines[nSublines].d4+EPSILON >= db); } */
       if (sublines[nSublines].d4+EPSILON >= db){
+        nSublines++;
         break;
       }
     }
     else{
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d1-EPSILON: "); Serial.println(sublines[nSublines].d1-EPSILON); } */
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("db: "); Serial.println(db); } */
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d1-EPSILON <= db: "); Serial.println(sublines[nSublines].d1-EPSILON <= db); } */
       if (sublines[nSublines].d1-EPSILON <= db){
+        nSublines++;
+        /* if(hms->data.guidanceLogLevel >= 2){ Serial.println("breaking"); } */
         break;
       }
     }
     nSublines++;
   }
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); } */
 }
 
 SegmentType Line::getType(){
@@ -358,13 +377,16 @@ Traj::Traj(Hms* hms, GuidanceData* gd, CmdData* cmdData):
 }
 
 void Traj::init(){
-  Serial.println("Traj::init()");
+  Traj::init()
   // THIS PART OF THE CODE HAS NEVER (NOT EVEN ONCE) HAD HEAP CORRUPTION AKA POISONING ISSUES!!!
   // BUT IF IT EVER DOES, MY FRIEND SAID THAT UNCOMMENTING THIS WOULD BE HELPFUL...
 
   /* heap_caps_check_integrity(MALLOC_CAP_8BIT, true); */
 
-  segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
+  /* segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms); */
+  Line* newLine = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->nSublines: "); Serial.println(newLine->nSublines); }
+  segments[0] = newLine;
   segments[1] = new Curve(1,5,BL,hms);
   segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY,hms);
   segments[3] = new Curve(1,1,TL,hms);
@@ -404,13 +426,15 @@ void Traj::updateTraps(){
 bool Traj::updatePos(float xp, float yp){
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Traj::updatePos");
   bool advanced = false;
+
   while(segments[gd->segNum]->completed(xp, yp)){
-    if (hms->data.guidanceLogLevel >= 2) Serial.println("blah1");
+    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd->segNum: "); Serial.println(gd->segNum); } */
+    /* if (hms->data.guidanceLogLevel >= 2) Serial.println("blah1"); */
     if (advanced){
-      if (hms->data.guidanceLogLevel >= 2) Serial.println("blah2");
-      hms->logError(HmsData_Error_WTF_AHMAD, "skipped track segment!");
+      /* if (hms->data.guidanceLogLevel >= 2) Serial.println("blah2"); */
+      /* hms->logError(HmsData_Error_WTF_AHMAD, "skipped track segment!"); */
     }
-    if (hms->data.guidanceLogLevel >= 2) Serial.println("blah3");
+    /* if (hms->data.guidanceLogLevel >= 2) Serial.println("blah3"); */
     if (gd->segNum++ >= NUM_SEGMENTS){
       Serial.println("Completed track!");
       gd->segNum--;
@@ -418,6 +442,7 @@ bool Traj::updatePos(float xp, float yp){
     }
     advanced = true;
   }
+  /* if (hms->data.guidanceLogLevel >= 2) Serial.println("done updatePos"); */
   return false;
 }
 

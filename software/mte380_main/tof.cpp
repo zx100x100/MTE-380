@@ -87,7 +87,7 @@ void Tof::poll(){
       unsigned long dt = micros() - beforeT;
       /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
       if (micros() - lastReading > TIMEOUT){
-          if (hms->data.sensorsLogLevel >= 0) Serial.println("Timeout");
+          if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
           status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
           NewDataReady = 0;
           status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);  // TODO: what if status bad

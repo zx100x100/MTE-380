@@ -12,19 +12,16 @@ from telemetry_plots import TelemetryPlots
 from controls import Controls
 from data import Data
 from telemetry_client import TelemetryClient
+from proto.nav_data_pb2 import NavData
 import network_setup
+from sim import Sim
 
 from constants import *
 
 SERVER_PORT = network_setup.SERVER_PORT
 SERVER_IP = network_setup.network_setup()
 
-TELEOP_SLOW = 100
-TELEOP_MEDIUM = 170
-TELEOP_FAST = 255
 PROP_POWER_THROTTLE_INCREMENT = 20
-
-MAX_TELEOP_POWER = 255
 
 # 720 x 720 @ 10 PIXELS_PER_INCH
 FPS = 10
@@ -44,15 +41,17 @@ class App:
         self.screen = pg.display.get_surface()
         self.last_connected = False
         self.robot = Robot()
-        self.arena = Arena(self.robot)
+        self.arena = Arena(self.robot, self)
         self.keys = pg.key.get_pressed()
         self.tick_num = 0
         pg.font.init()
         self.screen.blit(self.arena.image, (0,0))
 
         self.data = Data(self)
+        self.sim = Sim(self.data.cmd.pb)
         self.telemetry_plots = TelemetryPlots(self)
         self.telemetry_plots.render_init(self.screen)
+        self.prev_run_state = CmdData.RunState.E_STOP
         
         self.telemetry_client = TelemetryClient(self.data, SERVER_IP, SERVER_PORT)
 
@@ -64,8 +63,24 @@ class App:
         self.telemetry_client.start()
 
     def update_robot_data(self):
+        if self.data.cmd.pb.runState is CmdData.RunState.SIM and not self.telemetry_client.connected:
+            # Display using the dashboard predicted data if we are in SIM mode and not connected to robot
+            self.robot.angle = self.data.cmd.pb.simAngXy
+            self.robot.rect.centerx = self.data.cmd.pb.simPosX * PIXELS_PER_TILE
+            self.robot.rect.centery = self.data.cmd.pb.simPosY * PIXELS_PER_TILE
+        else:
+            # Display based on nav data for every other state, even if we are in SIM mode
+            self.robot.angle = self.data.nav.pb.angXy
+            try:
+                self.robot.rect.centerx = int(self.data.nav.pb.posX * PIXELS_PER_TILE)
+                self.robot.rect.centery = int(self.data.nav.pb.posY * PIXELS_PER_TILE)
+            except:
+                self.robot.rect.centerx = 0
+                self.robot.rect.centery = 0
         self.robot.update_sprite_angle() 
         self.arena.update_active_segment()
+        self.arena.generate_vel_setpoint_indicator(self.data.guidance.pb.setpointVel)
+        self.arena.set_active_segment(self.data.guidance.pb.segNum)
 
     def render_telemetry(self):
         #  pass
@@ -170,85 +185,42 @@ class App:
             self.data.cmd.pb.propPower = max(self.data.cmd.pb.propPower - PROP_POWER_THROTTLE_INCREMENT, 0)
         if self.keys[pg.K_p]:
             self.data.cmd.pb.propPower = min(self.data.cmd.pb.propPower + PROP_POWER_THROTTLE_INCREMENT, 255)
-        
-        if self.data.cmd.pb.runState is CmdData.RunState.SIM:
-            self.sim.simulate(self.data.cmd.pb)
 
-        TURNING_WHILE_MOVING_POWER_DIFFERENTIAL = 90
-        TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR = 0.5 # run the slow side at 0.5 of its normal
-        if self.data.cmd.pb.runState is CmdData.RunState.TELEOP:
-            if self.keys[pg.K_LSHIFT]:
-                TELEOP_POWER = TELEOP_SLOW
-            elif self.keys[pg.K_LALT]:
-                TELEOP_POWER = TELEOP_FAST
-            else:
-                TELEOP_POWER = TELEOP_MEDIUM
-            if self.keys[pg.K_w]:
-                self.data.cmd.pb.leftPower = TELEOP_POWER
-                self.data.cmd.pb.rightPower = TELEOP_POWER
-                if self.keys[pg.K_d]:
-                    self.data.cmd.pb.leftPower += TURNING_WHILE_MOVING_POWER_DIFFERENTIAL
-                    self.data.cmd.pb.leftPower = min(self.data.cmd.pb.leftPower, MAX_TELEOP_POWER)
-                    self.data.cmd.pb.rightPower *= TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR
-                if self.keys[pg.K_a]:
-                    self.data.cmd.pb.rightPower += TURNING_WHILE_MOVING_POWER_DIFFERENTIAL
-                    self.data.cmd.pb.rightPower = min(self.data.cmd.pb.leftPower, MAX_TELEOP_POWER)
-                    self.data.cmd.pb.leftPower *= TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR
-            else:
-                if self.keys[pg.K_d]:
-                    self.data.cmd.pb.leftPower = TELEOP_POWER
-                    self.data.cmd.pb.rightPower = -TELEOP_POWER
-                elif self.keys[pg.K_a]:
-                    self.data.cmd.pb.leftPower = -TELEOP_POWER
-                    self.data.cmd.pb.rightPower = TELEOP_POWER
-                else:
-                    self.data.cmd.pb.leftPower = 0
-                    self.data.cmd.pb.rightPower = 0
-
-                #  self.data.cmd.pb.leftPower = TELEOP_POWER;
-            #  elif self.keys[QWAS['left_back']]:
-                #  self.data.cmd.pb.leftPower = -TELEOP_POWER;
-            #  else:
-                #  self.data.cmd.pb.leftPower = 0;
-            #  if self.keys[QWAS['right_fwd']]:
-                #  self.data.cmd.pb.rightPower = TELEOP_POWER;
-            #  elif self.keys[QWAS['right_back']]:
-                #  self.data.cmd.pb.rightPower = -TELEOP_POWER;
-            #  else:
-                #  self.data.cmd.pb.rightPower = 0;
-        #  else:
-            #  self.data.cmd.pb.runState = CmdData.RunState.AUTO
-            #  self.data.cmd.pb.leftPower = 0
-            #  self.data.cmd.pb.rightPower = 0
-
-    #  def toggle_teleop(self):
-        #  self.teleop = not self.teleop
-        #  if self.data.cmd.pb.runState == CmdData.RunState.TELEOP:
-            #  self.data.cmd.pb.runState = CmdData.RunState.AUTO
-        #  else:
-            #  self.data.cmd.pb.runState = CmdData.RunState.TELEOP
-
-    #  def toggle_robot_enable(self):
-        #  self.robot_enabled = not self.robot_enabled
-        #  if self.robot_enabled:
-            #  if self.teleop:
-                #  self.data.cmd.pb.runState = CmdData.RunState.TELEOP
-            #  else:
-                #  self.data.cmd.pb.runState = CmdData.RunState.AUTO
-        #  else:
-            #  self.data.cmd.pb.runState = CmdData.RunState.E_STOP
+        if self.data.cmd.pb.runState in (CmdData.RunState.TELEOP, CmdData.RunState.SIM):
+            left_power, right_power = self.sim.keys_to_motor_power(self.keys)
+            if self.data.cmd.pb.runState is CmdData.RunState.TELEOP:
+                self.data.cmd.pb.leftPower = left_power
+                self.data.cmd.pb.rightPower = right_power
+            elif self.data.cmd.pb.runState is CmdData.RunState.SIM:
+                self.sim.simulate(left_power, right_power)
+                self.data.cmd.pb.leftPower = 0
+                self.data.cmd.pb.rightPower = 0
 
     def main_loop(self):
         while(True):
-            #  if self.toggle_comms_next_tick:
-                #  self._toggle_comms()
+
+            # edge detect: switching into sim mode should reset position
+            if self.prev_run_state is not CmdData.RunState.SIM and self.data.cmd.pb.runState is CmdData.RunState.SIM:
+                # TODO MOVE THIS CODE SOMEWHEREE -------------------------- OVER THE RAINBOW -----------------------------------
+                # way up high
+                # oh look its kaelan
+                # hes pretty high
+                # no: it's high how are you!
+                self.data.cmd 
+                self.data.cmd.pb.simPosX = 3.5
+                self.data.cmd.pb.simPosY = 5.5
+                self.data.cmd.pb.simVelY = 0
+                self.data.cmd.pb.simVelX = 0
+                self.data.cmd.pb.simAngVelXy = 0
+                self.data.cmd.pb.simAngXy = 180
+                self.data.nav.pb = NavData()
+            self.prev_run_state = self.data.cmd.pb.runState
             self.before_tick = time.time()
             self.event_loop()
             self.update_robot_data()
             self.erase()
             self.render()
             self.tick_num += 1
-            #  print(f'self.telemetry_client.connected: {self.telemetry_client.connected} last_connected: {self.last_connected}')
             if self.telemetry_client.connected != self.last_connected:
                 print('refreshing connect button!')
                 self.controls.connect_button.refresh_state()

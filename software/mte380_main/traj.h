@@ -11,6 +11,7 @@
 enum CornerType { TL, TR, BL, BR_ };
 enum SegmentType { CURVE, LINE };
 
+
 class Subline{
   public:
     Subline();
@@ -70,14 +71,17 @@ class Line: public Segment {
     float yb;
     Hms* hms;
 
+    int nSublines; // temp, make private again
+
   private:
     int orientation;
     bool horizontal;
-    int nSublines;
     int nTraps;
     Subline sublines[MAX_N_TRAPS];
     float trapD[MAX_N_TRAPS];
 };
+
+Line copyAndRecalculateTraps(Line* line, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS]);
 
 class Traj{
   public:

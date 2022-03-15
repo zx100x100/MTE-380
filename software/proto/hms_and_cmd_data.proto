@@ -54,5 +54,5 @@ message CmdData{
   float simAccY = 18;
   float simAngXy = 19;
   float simAngVelXy = 20;
-  float angAccXy = 21; // angular acceleration
+  float simAngAccXy = 21; // angular acceleration
 }

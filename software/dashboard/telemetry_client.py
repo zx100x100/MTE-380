@@ -2,7 +2,7 @@ import threading
 import socket
 import time
 
-COMMS_TIMEOUT = 1.5
+COMMS_TIMEOUT = 6
 
 class TelemetryClient(threading.Thread):
     def __init__(self, data, server_ip, server_port):

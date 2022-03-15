@@ -22,7 +22,7 @@ CONTROL_ITEM_WIDTH = 120
 GLOBAL_MARGIN = 8
 
 STOPPED_STATES = [CmdData.RunState.E_STOP]
-STARTED_STATES = [CmdData.RunState.AUTO, CmdData.RunState.TELEOP]
+STARTED_STATES = [CmdData.RunState.AUTO, CmdData.RunState.TELEOP, CmdData.RunState.SIM]
 
 class TRBL(Enum): # helper because I never learned how to count
     T = 0 # top

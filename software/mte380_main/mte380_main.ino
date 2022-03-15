@@ -19,7 +19,7 @@ unsigned long longest = 0;
 Hms hms = Hms();
 CmdData cmdData = CmdData_init_zero;
 Sensors sensors = Sensors(&hms, &sensor_vl53lx_sat[0]);
-Nav nav = Nav(sensors, cmdData, &hms);
+Nav nav = Nav(sensors, &cmdData, &hms);
 Guidance guidance = Guidance(nav.getData(), cmdData, &hms);
 TelemetryServer telemetryServer = TelemetryServer(sensors,
                                                   nav.getData(),
@@ -28,8 +28,8 @@ TelemetryServer telemetryServer = TelemetryServer(sensors,
                                                   &hms);
 Motors motors = Motors(guidance.getData(), &hms);
 
-    void setup() {
-      Serial.begin(115200);
+void setup() {
+  Serial.begin(115200);
 
   cmdData.runState = CmdData_RunState_E_STOP;
   sensors.init();
@@ -57,6 +57,5 @@ void loop() {
     longest = hms.data.networkTickRate;
     hms.data.longestCombinedTick = longest;
   }
-
-  /* delay(400); */
+  /* delay(500); */
 }

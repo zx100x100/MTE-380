@@ -170,7 +170,7 @@ class Controls:
         self.app = app
         self.screen = self.app.screen
         self.teleop = True
-        self.sim = False
+        self.sim = True
 
         self.connect_button = Button(text_callback=self.connect_button_text,
                                 click_callback=self.connect_button_click,
@@ -180,12 +180,16 @@ class Controls:
                               colour_callback=self.start_button_colour,
                               is_disabled_callback=self.start_button_disabled)
         self.teleop_toggle = Toggle("teleop", self.teleop, callback=self.toggle_teleop)
-        self.sim_toggle = Toggle("sim", self.sim, callback=self.toggle_teleop)
+        self.sim_toggle = Toggle("sim", self.sim, callback=self.toggle_sim)
         self.elements = [self.connect_button, self.start_button, self.teleop_toggle, self.sim_toggle]
         self.position_elements()
 
     def toggle_teleop(self):
         self.teleop = not self.teleop
+        self.set_run_state()
+    
+    def toggle_sim(self):
+        self.sim = not self.sim
         self.set_run_state()
 
     def connect_button_click(self):
@@ -227,7 +231,9 @@ class Controls:
     def set_run_state(self):
         if self.robot_is_started():
             # then we should stop the robot
-            if self.teleop:
+            if self.sim:
+                self.app.data.cmd.pb.runState = CmdData.RunState.SIM
+            elif self.teleop:
                 self.app.data.cmd.pb.runState = CmdData.RunState.TELEOP
             else:
                 self.app.data.cmd.pb.runState = CmdData.RunState.AUTO
@@ -239,7 +245,9 @@ class Controls:
             # then we should stop the robot
             self.app.data.cmd.pb.runState = CmdData.RunState.E_STOP
         else:
-            if self.teleop:
+            if self.sim:
+                self.app.data.cmd.pb.runState = CmdData.RunState.SIM
+            elif self.teleop:
                 self.app.data.cmd.pb.runState = CmdData.RunState.TELEOP
             else:
                 self.app.data.cmd.pb.runState = CmdData.RunState.AUTO

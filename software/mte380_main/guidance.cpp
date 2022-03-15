@@ -22,6 +22,7 @@ Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms):
   hms(_hms)
 {
   gd = GuidanceData_init_zero;
+  prevRunState = cmdData.runState;
   traj = Traj(_hms, &gd, &_cmdData);
 }
 
@@ -30,20 +31,37 @@ void Guidance::init(){
 }
 
 void Guidance::update(){
+  if (cmdData.runState == CmdData_RunState_SIM && cmdData.runState != prevRunState){
+    // edge detection - switching into SIM mode
+    gd.segNum = 0;
+  }
+  prevRunState = cmdData.runState;
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Guidance::update()");
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posX: "); Serial.println(navData.posX); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posY: "); Serial.println(navData.posY); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.velX: "); Serial.println(navData.velX); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.velY: "); Serial.println(navData.velY); }
+
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.segNum: "); Serial.println(gd.segNum); }
+
+
   gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
   gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.vel: "); Serial.println(gd.vel); }
 
   gd.leftPower = 0;
   gd.rightPower = 0;
   gd.propPower = 0;
 
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("checking traps"); }
   if (traj.trapsChanged()){
+    if (hms->data.guidanceLogLevel >= 2) Serial.println("updating traps");
     traj.updateTraps();
   }
-  return; // TODO -----------------------------------------
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("returning"); }
 
   gd.setpointVel = traj.getSetpointVel(navData.posX, navData.posY);
+  return; // TODO -----------------------------------------
   float lastErrVel = gd.errVel;
   gd.errVel = gd.setpointVel - gd.vel;
   gd.deltaT = micros() - lastTimestamp;
@@ -97,6 +115,7 @@ void Guidance::update(){
   }
   gd.leftTotalPID = constrainVal(gd.leftTotalPID, MAX_OUTPUT_POWER);
   gd.rightTotalPID = constrainVal(gd.rightTotalPID, MAX_OUTPUT_POWER);
+  if (hms->data.guidanceLogLevel >= 2) Serial.println("done guidance::update");
 
   /* if (cmdData.runState == CmdData_RunState_TELEOP){ */
     /* gd.leftPower = cmdData.leftPower; */

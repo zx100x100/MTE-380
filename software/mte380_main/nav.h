@@ -15,7 +15,7 @@ struct TofPosition {
 
 class Nav{
   public:
-    Nav(Sensors &sensors, CmdData& cmdData, Hms* hms);
+    Nav(Sensors &sensors, CmdData* cmdData, Hms* hms);
     void update();
     void init();
     NavData& getData();
@@ -23,6 +23,7 @@ class Nav{
 
   private:
     NavData navData;
+    CmdData* cmdData;
     Fusion fusion;
     Sensors& sensors;
     Hms* hms;
