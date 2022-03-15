@@ -1,6 +1,7 @@
 import math
 import pygame as pg
 import time
+import numpy
 
 TELEOP_SLOW = 100
 TELEOP_MEDIUM = 170
@@ -9,6 +10,8 @@ MAX_TELEOP_POWER = 255
 
 PWR_TO_ACCEL = 0.0001
 ACC_LIN_TO_ANG = 100
+
+FRICTIONAL_MULTIPLIER = 0.9
 
 def sind(rad):
     return math.sin(math.radians(rad))
@@ -73,18 +76,20 @@ class Sim:
 
         prevPosX = self.pb.simPosX
         prevPosY = self.pb.simPosY
-        prevVelX = self.pb.simVelX
-        prevVelY = self.pb.simVelY
+        prevVelX = self.pb.simVelX * LINEAR_FRICTION
+        prevVelY = self.pb.simVelY * LINEAR_FRICTION
         prevAccX = self.pb.simAccX
         prevAccY = self.pb.simAccY
         prevAngXy = self.pb.simAngXy
-        prevAngVelXy = self.pb.simAngVelXy
+        prevAngVelXy = self.pb.simAngVelXy * ANGULAR_FRICTION
         prevAngAccXy = self.pb.simAngAccXy
+        prevAngVector = [cosd(prevAngXy), sind(prevAngXy)]
 
         curLeftAcc = leftPower*PWR_TO_ACCEL
         curRightAcc = rightPower*PWR_TO_ACCEL
        
         angAccMag = abs(curLeftAcc - curRightAcc)
+        
 
         linearAcc = 0
         if (curLeftAcc >= 0 and curRightAcc >= 0) or (curLeftAcc <= 0 and curRightAcc <= 0):
@@ -115,6 +120,9 @@ class Sim:
         curVelX = prevVelX + curAccX
         curVelY = prevVelY + curAccY
         print(f'curVelY: {curAccY}')
+        
+        curVelX = numpy.dot([curVelX, 0], prevAngVector)
+        curVelY = numpy.dot([0, curVelY], prevAngVector)
 
         curPosX = prevPosX + curVelX*dt + 0.5*curAccX*dt**2
         curPosY = prevPosY + curVelY*dt + 0.5*curAccY*dt**2
