@@ -72,8 +72,7 @@ class Sim:
         return (left_power, right_power)
 
     def simulate(self, leftPower, rightPower):
-        print(f'sim.lp:{leftPower},rp:{rightPower}')
-        import time
+        #  print(f'sim.lp:{leftPower},rp:{rightPower}')
         new_time = time.time()
         dt = new_time - self.last_tick
         self.last_tick = new_time
@@ -103,8 +102,6 @@ class Sim:
             else:
                 linearAccMag = abs(curRightAcc) - angAccMag
             if curLeftAcc < 0:
-                print(f'curLeftAcc: {curLeftAcc}')
-                print(f'linearAccMag: {linearAccMag}')
                 linearAcc = -linearAccMag
             else:
                 linearAcc = linearAccMag
@@ -120,16 +117,36 @@ class Sim:
         #  print(f'angAcc: {angAcc}')
 
         curAccX = linearAcc*cosd(prevAngXy)
-        print(f'curAccX: {curAccX}')
+        #  print(f'curAccX: {curAccX}')
         curAccY = linearAcc*sind(prevAngXy)
         #  print(f'curAccY: {curAccY}')
         
         curVelX = prevVelX + curAccX
         curVelY = prevVelY + curAccY
-        print(f'curVelX: {curVelX}')
+        #  print(f'curVelX before dot: {curVelX}')
         
-        curVelX = numpy.dot([curVelX, 0], prevAngVector) * sign(curVelX)
-        curVelY = numpy.dot([0, curVelY], prevAngVector) * sign(curVelY)
+        signX = sign(curVelX)
+        signY = sign(curVelY)
+
+        vTotal = (curVelX**2+curVelY**2)**0.5
+        
+        curVelX2 = numpy.dot([curVelX, 0], prevAngVector)
+        curVelY2 = numpy.dot([0, curVelY], prevAngVector) * sign(curVelY)
+        if sign(curVelX2) != signX:
+            curVelX2 *= -1
+        if sign(curVelY2) != signY:
+            curVelY2 *= -1
+
+        curVelX = curVelX * 0.5 + curVelX2 * 0.5
+        curVelY = curVelY * 0.5 + curVelY2 * 0.5
+
+        #  vTotal2 = (curVelX**2+curVelY**2)**0.5
+
+        #  if vTotal2:
+            #  curVelX *= vTotal/vTotal2
+            #  curVelY *= vTotal/vTotal2
+        
+        #  print(f'curVelX after dot: {curVelX}')
 
         curPosX = prevPosX + curVelX*dt + 0.5*curAccX*dt**2
         curPosY = prevPosY + curVelY*dt + 0.5*curAccY*dt**2

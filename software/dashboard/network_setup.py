@@ -20,17 +20,17 @@ def get_ssid():
             ssid_line = [x for x in current_network if 'SSID' in x and 'BSSID' not in x]
             if ssid_line:
                 ssid_list = ssid_line[0].split(':')
-                return ssid_list[1].strip()
+                return (ssid_list[1].strip(), True)
         else:
-            return os.popen("sudo iwgetid -r").read()[:-1]
+            return (os.popen("sudo iwgetid -r").read()[:-1], True)
     except Exception as e:
         print(f'error getting SSID: {e}')
-        proceed = input(f"Continue anyway? <y/n>")
-        if not proceed == 'y':
+        proceed = input(f"Continue anyway? o: offline | e: ethernet | n: no")
+        if not proceed in ('o', 'e'):
             sys.exit()
-        return ''
-        #  subprocess.check_output(['sudo', 'iwgetid']).split('"')[1]
-    #  print("Connected Wifi SSID: " + output.split('"')[1])
+        if proceed == 'e': # ethernet, assume ava
+            return ('anavacadothanks', True)
+        return ('', False)
 
 def get_byte_n(n):
     # JANK CODE TO GET SUBNET
@@ -70,13 +70,15 @@ def copy_constants_into_firmware(bytes, ssid):
         
 
 def network_setup():
-    ssid = get_ssid()
-    if ssid == '': # assume ethernet if blank ssid, assume its the avacado router
-        ssid = 'anavacadothanks'
-    elif ssid not in ALLOWED_SSIDS:
-        proceed = input(f"Wrong network! {ssid} should be in {ALLOWED_SSIDS}. Continue anyway? <y/n>")
+    ssid, online = get_ssid()
+    if not online:
+        return
+    if ssid not in ALLOWED_SSIDS:
+        proceed = input(f"Wrong network! {ssid} should be in {ALLOWED_SSIDS}. Continue offline? <y/n>")
         if not proceed == 'y':
             sys.exit()
+        else:
+            return
 
     ip_bytes = [get_byte_n(i) for i in range(3)]
     ip_bytes.append(SERVER_HOST_BYTE)
