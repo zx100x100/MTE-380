@@ -14,6 +14,10 @@
 #define USE_IMU false
 #define USE_TOFS true
 
+#define STARTING_X 1066.8
+#define STARTING_Y 1676.4
+#define STARTING_YAW 180
+
 #define FLT_INVALID 0xFFFF
 
 Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
@@ -22,6 +26,10 @@ Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
   hms(hms)
 {
   navData = NavData_init_zero;
+  navData.posX = STARTING_X;
+  navData.posY = STARTING_Y;
+  navData.angVelXy = STARTING_YAW;
+
   fusion = Fusion();
   /* fusion.setup(); */
 
@@ -42,35 +50,10 @@ float Nav::deg2rad(float deg){
 }
 
 NavData Nav::calculateImu(){
-
-  /* ImuData &latest = sensors.imu.getData(); */
-
-  // fusion.update(latest.gyroX, latest.gyroY, latest.gyroZ, latest.accelX, latest.accelY, latest.accelZ);
-  // float x[3], y[3], z[3];
-  // fusion.getXaxis( true, x );
-  // fusion.getYaxis( true, y );
-  // fusion.getZaxis( true, z );
-
-  // prev_position.x_loc = x[0];
-  // prev_position.y_loc = y[0];
-  // prev_position.z_loc = z[0];
-  // prev_position.x_velocity = x[1];
-  // prev_position.y_velocity = y[1];
-  // prev_position.z_velocity = z[1];
-  // prev_position.x_accel = x[2];
-  // prev_position.y_accel = y[2];
-  // prev_position.z_accel = z[2];
-
-  // prev_position.xy_rot = fusion.yaw();
-  // prev_position.xz_rot = fusion.pitch();
-  // prev_position.yz_rot = fusion.roll();
-  // prev_position.xy_ang_vel = latest.gyro_z;
-  // prev_position.xz_ang_vel = latest.gyro_y;
-  // prev_position.yz_ang_vel = latest.gyro_x;
   return NavData_init_zero;
 }
 
-bool Nav::tofsUpdated(){
+bool Nav::tofsUpdated(){  // TODO: Check this
     bool changed = true;
     for (int i = 0; i < 4; ++i){
         changed &= sensors.tof[i].getData().count != lastTofsCount[i];
@@ -87,57 +70,55 @@ TofPosition Nav::calculateTof(){
   TofPosition pos;
 
   if (tofsUpdated()){
+      if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
       float estimateLeft, estimateFront;
       if (isValid(L_FRONT) && isValid(L_BACK) && (int(navData.angXy) % 90 < 40 || int(navData.angXy) > 50)) {
-        if (hms->data.navLogLevel >= 2){
-          Serial.println("Left valid");
-        }
+        if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
+
         float theta = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
-        pos.yaw = round(navData.angXy / 90 ) + theta;
+        pos.yaw = round(navData.angXy / 90) + theta;
 
         // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
         estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cos(deg2rad(pos.yaw));
       }
-      else{
-        if (hms->data.navLogLevel >= 2){
-          Serial.println("Left invalid");
-        }
+      else{ // TODO: use gyro?
+        if (hms->data.navLogLevel >= 2) Serial.println("Left invalid");
         pos.yaw = FLT_INVALID;
         estimateLeft = FLT_INVALID;
       }
 
-      if (isValid(FRONT) && isValid(BACK)){
+      if (isValid(FRONT) && isValid(BACK)){ // TODO: do we wanna use pos.yaw or navData.angXy
         if (sensors.tof[FRONT].getData().dist <= sensors.tof[BACK].getData().dist)
-          estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+          estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) + F_X_OFFSET * sin(deg2rad(pos.yaw));
         else
-          estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+          estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) - B_X_OFFSET * sin(deg2rad(pos.yaw));
       }
       else if(isValid(FRONT))
-        estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(pos.yaw)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+        estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) + F_X_OFFSET * sin(deg2rad(pos.yaw));
       else if(isValid(BACK))
-        estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(pos.yaw)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+        estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) - B_X_OFFSET * sin(deg2rad(pos.yaw));
       else
         estimateFront = FLT_INVALID;
 
-      switch(int(pos.yaw     + 45) / 90 % 4){
+      switch(int(round(navData.angXy / 90)) % 4){
         case 0:
-          pos.x = estimateFront;
-          pos.y = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
-          break;
-        case 1:
-          pos.x = estimateLeft;
-          pos.y = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
-        case 2:
           pos.x = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
           pos.y = estimateLeft;
           break;
-        case 3:
+        case 1:
           pos.x = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
+          pos.y = (estimateFront == FLT_INVALID) ? TRACK_DIM - estimateFront : FLT_INVALID;
+        case 2:
+          pos.x = estimateFront;
+          pos.y = (estimateLeft == FLT_INVALID) ? TRACK_DIM - estimateLeft : FLT_INVALID;
+          break;
+        case 3:
+          pos.x = estimateLeft;
           pos.y = estimateFront;
       }
   }
   else{
-    pos.x = 0; pos.y = 0; pos.yaw = 0;
+    pos.x = FLT_INVALID; pos.y = FLT_INVALID; pos.yaw = FLT_INVALID;
   }
   return pos;
 }
@@ -173,7 +154,6 @@ void Nav::update(){
     if(hms->data.guidanceLogLevel >= 2){ Serial.println("NAV::::::::: NOT IN SIM MODE??????"); }
   }
 
-
   float delT = sensors.timestamp - navData.timestamp;
   NavData pred = getPred(delT);
   if (hms->data.navLogLevel >= 1){
@@ -199,8 +179,53 @@ NavData& Nav::getData(){
   return navData;
 }
 
-bool Nav::isValid(TofOrder tof){ // TODO: make him good
-  return sensors.tof[tof].getData().dist < TRACK_DIM / 2;
+bool Nav::isValid(TofOrder tof){
+  if (sensors.tof[tof].getData().dist > TRACK_DIM / 2)
+    return false;
+  return true;
+
+  float estimateLeft, estimateFront;
+  switch(int(round(navData.angXy / 90)) % 4){
+    case 0:
+      estimateLeft = navData.posY;
+      estimateFront = TRACK_DIM - navData.posX;
+      break;
+    case 1:
+      estimateLeft = TRACK_DIM - navData.posX;
+      estimateFront = TRACK_DIM - navData.posY;
+      break;
+    case 2:
+      estimateLeft = TRACK_DIM - navData.posY;
+      estimateFront = navData.posX;
+      break;
+    case 3:
+      estimateLeft = navData.posX;
+      estimateFront = navData.posY;
+  }
+
+  switch (tof){
+    case FRONT: // TODO: check absolute values of sin + cos
+      return estimateFront - ((sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * abs(cos(deg2rad(navData.angXy))) + F_X_OFFSET * abs(sin(deg2rad(navData.angXy)))) <= MAX_DEVIATION;
+      break;
+    case L_FRONT:
+      if (navData.angXy / 90 - int(navData.angXy / 90) <= 0.5){
+        return estimateLeft - ((sensors.tof[L_FRONT].getData().dist + L_X_OFFSET) * cos(deg2rad(navData.angXy)) + L_Y_DELTA / 2 * abs(sin(deg2rad(navData.angXy)))) <= MAX_DEVIATION;
+      }
+      else{
+        return estimateLeft - ((sensors.tof[L_FRONT].getData().dist + L_X_OFFSET) * cos(deg2rad(navData.angXy)) - L_Y_DELTA / 2 * abs(sin(deg2rad(navData.angXy)))) <= MAX_DEVIATION;
+      }
+      break;
+    case L_BACK:
+      if (navData.angXy / 90 - int(navData.angXy / 90) <= 0.5){
+        return estimateLeft - ((sensors.tof[L_BACK].getData().dist + L_X_OFFSET) * cos(deg2rad(navData.angXy)) - L_Y_DELTA / 2 * abs(sin(deg2rad(navData.angXy)))) <= MAX_DEVIATION;
+      }
+      else{
+        return estimateLeft - ((sensors.tof[L_BACK].getData().dist + L_X_OFFSET) * cos(deg2rad(navData.angXy)) + L_Y_DELTA / 2 * abs(sin(deg2rad(navData.angXy)))) <= MAX_DEVIATION;
+      }
+      break;
+    case BACK:
+      return estimateFront - (TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(navData.angXy)) - B_X_OFFSET * sin(deg2rad(navData.angXy))) <= MAX_DEVIATION;
+  }
 }
 
 NavData Nav::getPred(float delT){
@@ -233,20 +258,44 @@ void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimat
   if (USE_IMU && imuEstimate.posX != 0){  // TODO: make sure this never fucks up
     // TODO: implement this
   }
-  else if (USE_TOFS && tofEstimate.x != 0){
+  else if (USE_TOFS){
     float delT = pred.timestamp - navData.timestamp;
-    navData.posX = pred.posX + gain[0] * (tofEstimate.x - pred.posX);
-    navData.posY = pred.posY + gain[0] * (tofEstimate.y - pred.posY);
-    navData.velX = pred.velX + gain[1] * (tofEstimate.x - pred.posX) / delT;
-    navData.velX = pred.velY + gain[1] * (tofEstimate.y - pred.posY) / delT;
-    navData.accX = pred.accX + gain[2] * (tofEstimate.x - pred.posX) / (0.5 * delT * delT);
-    navData.accY = pred.accY + gain[2] * (tofEstimate.y - pred.posY) / (0.5 * delT * delT);
+    if (tofEstimate.x != FLT_INVALID){
+      navData.posX = pred.posX + gain[0] * (tofEstimate.x - pred.posX);
+      navData.velX = pred.velX + gain[1] * (tofEstimate.x - pred.posX) / delT;
+      navData.accX = pred.accX + gain[2] * (tofEstimate.x - pred.posX) / (0.5 * delT * delT);
+    }
+    else{
+      navData.posX = pred.posX;
+      navData.velX = pred.velX;
+      navData.accX = pred.accX;
+    }
 
-    navData.angXy = pred.angXy + gain[3] * (tofEstimate.yaw - pred.angXy);
-    navData.angVelXy = pred.angVelXy + gain[4] * (tofEstimate.yaw - pred.angXy) / delT;
-    navData.angAccXy = pred.angAccXy + gain[5] * (tofEstimate.yaw - pred.angXy) / (0.5 * delT * delT);
+    if (tofEstimate.y != FLT_INVALID){
+      navData.posY = pred.posY + gain[0] * (tofEstimate.y - pred.posY);
+      navData.velX = pred.velY + gain[1] * (tofEstimate.y - pred.posY) / delT;
+      navData.accY = pred.accY + gain[2] * (tofEstimate.y - pred.posY) / (0.5 * delT * delT);
+    }
+    else{
+      navData.posY = pred.posY;
+      navData.velY = pred.velY;
+      navData.accY = pred.accY;
+    }
+
+    if (tofEstimate.yaw != FLT_INVALID){
+      navData.angXy = pred.angXy + gain[3] * (tofEstimate.yaw - pred.angXy);
+      navData.angVelXy = pred.angVelXy + gain[4] * (tofEstimate.yaw - pred.angXy) / delT;
+      navData.angAccXy = pred.angAccXy + gain[5] * (tofEstimate.yaw - pred.angXy) / (0.5 * delT * delT);
+    }
+    else{
+      navData.angXy = pred.angXy;
+      navData.angVelXy = pred.angVelXy;
+      navData.angAccXy = pred.angAccXy;
+    }
+
+    navData.timestamp = pred.timestamp;
   }
   else{
-    navData = pred;  // TODO: check that we want to do this
+    navData = pred;
   }
 }
