@@ -25,7 +25,7 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
 }
 
 bool Sensors::init(){
-  return true;
+  /* return true; */
   imu = Imu(hms);
 
   Serial.println("WIRE begin");
@@ -58,7 +58,7 @@ void Sensors::updateBatteryVoltage(){
 // }
 
 void Sensors::update(){
-  return;
+  /* return; */
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   /* imu.poll(); */
   for (int i=0; i<4; i++){

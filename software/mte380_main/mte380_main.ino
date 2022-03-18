@@ -41,11 +41,11 @@ void setup() {
 
 void loop() {
   unsigned long startT = micros();
-  /* sensors.update(); */
+  sensors.update();
   unsigned long afterSensorT = micros();
   nav.update();
   guidance.update();
-  /* motors.update(); */
+  motors.update();
   unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();
   unsigned long afterNetworkT = micros();

@@ -162,7 +162,7 @@ bool TelemetryServer::update(){
           return false;
         }
         hms->data.mainLogLevel = HmsData_LogLevel(cmdData.mainLogLevel);
-        // hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
+        hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
         hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
         hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
       }
