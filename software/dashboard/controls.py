@@ -3,6 +3,8 @@ import pygame as pg
 from util import pos_inside_rect
 
 from constants import *
+SIM_DEFAULT = False
+
 CONTROL_WIDTH = CONTROL_ITEM_WIDTH
 CONTROL_HEIGHT = CONTROL_ITEM_HEIGHT
 TOGGLE_WIDTH = 60
@@ -170,7 +172,7 @@ class Controls:
         self.app = app
         self.screen = self.app.screen
         self.teleop = True
-        self.sim = True
+        self.sim = SIM_DEFAULT
 
         self.connect_button = Button(text_callback=self.connect_button_text,
                                 click_callback=self.connect_button_click,
