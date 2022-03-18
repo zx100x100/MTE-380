@@ -26,6 +26,7 @@ Subline::Subline(float d1, float d4, float v1, float v4):
 }
 
 float Subline::trapezoidal(float d){
+  // Serial.println("trapezoidal");
   if (d3 < d2){
     if (d < dt){
       return pow(2*ACC*(d-d1)+pow(v1,2),0.5);
@@ -56,8 +57,10 @@ float Line::velSetpoint(float xp, float yp){
   else{
     dp = yp;
   }
-  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); } */
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("Line::velSetpoint"); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); }
   for (int i=0; i<nSublines; i++){
+    if(hms->data.guidanceLogLevel >= 2){ Serial.println("loop?"); }
     /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("dp: "); Serial.println(dp); } */
     /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[i].isDOnLine(dp): "); Serial.println(sublines[i].isDOnLine(dp)); } */
     if (sublines[i].isDOnLine(dp)){
@@ -310,10 +313,10 @@ bool Line::isPointOnLine(float xp, float yp){
 
 float Line::getDist(float xp, float yp){
   if (horizontal){
-    return xp-xa;
+    return xa-xp;
   }
   else{
-    return yp-ya;
+    return ya-yp;
   }
 }
 
@@ -420,6 +423,11 @@ void Traj::updateTraps(){
       *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY);
     }
   }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->nSublines: "); Serial.println(segments[0]->nSublines); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].d1;: "); Serial.println(segments[0]->sublines[0].d1); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].v1;: "); Serial.println(segments[0]->sublines[0].v1); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].d4;: "); Serial.println(segments[0]->sublines[0].d4); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].v4;: "); Serial.println(segments[0]->sublines[0].v4); }
 }
 
 // returns true if finished driving the track, false otherwise
@@ -451,5 +459,6 @@ float Traj::getDist(float xp, float yp){
 }
 
 float Traj::getSetpointVel(float xp, float yp){
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("Traj::getSetpointVel"); }
   return segments[gd->segNum]->velSetpoint(xp, yp);
 }

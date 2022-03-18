@@ -208,6 +208,8 @@ class App:
                 self.data.cmd.pb.simAngXy = 180
                 self.data.nav.pb = NavData()
                 self.arena.reset_vel_setpoint_indicators()
+
+                
             self.prev_run_state = self.data.cmd.pb.runState
             self.before_tick = time.time()
             self.event_loop()

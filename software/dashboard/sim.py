@@ -73,6 +73,7 @@ class Sim:
 
     def simulate(self, leftPower, rightPower):
         #  print(f'sim.lp:{leftPower},rp:{rightPower}')
+
         new_time = time.time()
         dt = new_time - self.last_tick
         self.last_tick = new_time

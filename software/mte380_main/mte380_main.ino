@@ -32,7 +32,7 @@ void setup() {
   Serial.begin(115200);
 
   cmdData.runState = CmdData_RunState_E_STOP;
-  sensors.init();
+  /* sensors.init(); */
   nav.init();
   telemetryServer.init();
   hms.init();
@@ -41,11 +41,11 @@ void setup() {
 
 void loop() {
   unsigned long startT = micros();
-  sensors.update();
+  /* sensors.update(); */
   unsigned long afterSensorT = micros();
   nav.update();
   guidance.update();
-  motors.update();
+  /* motors.update(); */
   unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();
   unsigned long afterNetworkT = micros();
