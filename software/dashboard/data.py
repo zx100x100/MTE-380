@@ -22,7 +22,7 @@ class PbData:
     
     # pull value without decoding new one
     # for testing
-    def pull_fake(self):
+    def update_vals(self):
         self.readout.update_vals()
         #  self.readout.items[0].values[-1] = self.readout.items[0].values[-2]+0.01
         #  self.readout.items[0].values[-1] = 0.1 * (self.readout.items[0].values[-2]/abs(self.readout.items[0].values[-2]))*-1
@@ -69,6 +69,11 @@ class Data:
         #  print(f'self.imu.pb.gyroZ: {self.imu.pb.gyroZ}')
     
     # read the same value into the data array when disconnected so i can test my dang plots
-    def pull_fake(self):
+    def append_cmd_vals(self):
+        self.cmd.update_vals()
+
+    def append_pb_vals(self):
         for msg in self.incoming:
-            msg.pull_fake() # just push the same value without reading a new one
+            msg.update_vals() # just push the same value without reading a new one
+
+        self.cmd.update_vals()

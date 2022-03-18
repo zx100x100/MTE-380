@@ -48,7 +48,7 @@ class TelemetryClient(threading.Thread):
                 #  print(f'longest_pull: {longest_pull}')
 
             else:
-                #  self.pull_fake()
+                self.append_pb_vals()
                 time.sleep(0.1)
 
     def connect(self):
@@ -134,5 +134,8 @@ class TelemetryClient(threading.Thread):
             else:
                 print(f'unknown exception pulling data: {e}')
     
-    def pull_fake(self):
-        self.data.pull_fake()
+    def append_pb_vals(self):
+        self.data.append_pb_vals()
+
+    def append_cmd_vals(self):
+        self.data.append_cmd_vals()

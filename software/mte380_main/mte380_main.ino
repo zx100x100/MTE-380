@@ -41,11 +41,16 @@ void setup() {
 
 void loop() {
   unsigned long startT = micros();
+  Serial.println("main->sensors");
   sensors.update();
   unsigned long afterSensorT = micros();
+  Serial.println("main->nav");
   nav.update();
+  Serial.println("main->guidance");
   guidance.update();
+  Serial.println("main->motors");
   motors.update();
+  Serial.println("main->telemetry");
   unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();
   unsigned long afterNetworkT = micros();

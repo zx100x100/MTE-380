@@ -17,7 +17,7 @@ class Motors{
   private:
     GuidanceData& guidanceData;
     Hms* hms;
-    Servo propServo;
+    /* Servo propServo; */
 
     void setAllToZero();
 

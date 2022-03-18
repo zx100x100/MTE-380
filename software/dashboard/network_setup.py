@@ -74,8 +74,11 @@ def network_setup():
     if not online:
         return
     if ssid not in ALLOWED_SSIDS:
-        proceed = input(f"Wrong network! {ssid} should be in {ALLOWED_SSIDS}. Continue offline? <y/n>")
-        if not proceed == 'y':
+        proceed = input(f"Wrong network! {ssid} should be in {ALLOWED_SSIDS}. Continue offline? <y/n/e>")
+        if proceed == 'e':
+            ssid = 'anavacadothanks'
+            online = True
+        elif not proceed == 'y':
             sys.exit()
         else:
             return
