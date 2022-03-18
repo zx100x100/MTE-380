@@ -423,11 +423,11 @@ void Traj::updateTraps(){
       *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY);
     }
   }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->nSublines: "); Serial.println(segments[0]->nSublines); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].d1;: "); Serial.println(segments[0]->sublines[0].d1); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].v1;: "); Serial.println(segments[0]->sublines[0].v1); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].d4;: "); Serial.println(segments[0]->sublines[0].d4); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].v4;: "); Serial.println(segments[0]->sublines[0].v4); }
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->nSublines: "); Serial.println(segments[0]->nSublines); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].d1;: "); Serial.println(segments[0]->sublines[0].d1); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].v1;: "); Serial.println(segments[0]->sublines[0].v1); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].d4;: "); Serial.println(segments[0]->sublines[0].d4); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->sublines[0].v4;: "); Serial.println(segments[0]->sublines[0].v4); } */
 }
 
 // returns true if finished driving the track, false otherwise
