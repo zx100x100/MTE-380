@@ -13,17 +13,17 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
   hms(hms)
 {
   for (int i = 0; i < 4; ++i){
-  sensor_vl53lx_sat[i] = &tof_objects[i];
+    sensor_vl53lx_sat[i] = &tof_objects[i];
   }
 
   mux_addresses[FRONT] = 2;
   mux_addresses[L_FRONT] = 1;
   mux_addresses[L_BACK] = 0;
   mux_addresses[BACK] = 3;
+  updateBatteryVoltage();
 }
 
 bool Sensors::init(){
-  /* return true; */
   imu = Imu(hms);
 
   Serial.println("WIRE begin");
@@ -40,14 +40,13 @@ bool Sensors::init(){
   timestamp = 0;
 }
 
-// TODO: Zach
 void Sensors::updateBatteryVoltage(){
-  // analogRead(V_SENSE_PIN);
-  float voltage = 1.0;
+  pinMode(V_SENSE_PIN, INPUT);
+  float voltage = analogRead(V_SENSE_PIN)*0.0063977;
   hms->data.batteryVoltage = voltage;
-  if (hms->data.batteryVoltage < MIN_CELL_VOLTAGE*hms->data.nCells){
+  // if (hms->data.batteryVoltage < MIN_CELL_VOLTAGE*hms->data.nCells){
     /* hms->logError(HmsData_Error_LOW_BATTERY, "charge ur shit"); */
-  }
+  // }
 }
 
 // SensorData& Sensors::getData(){
@@ -55,15 +54,13 @@ void Sensors::updateBatteryVoltage(){
 // }
 
 void Sensors::update(){
-  /* return; */
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
-  /* imu.poll(); */
+  // imu.poll();
   for (int i=0; i<4; i++){
     digitalWrite(MUX_S1, mux_addresses[i]&0x01);
     digitalWrite(MUX_S2, mux_addresses[i]&0x02);
     tof[i].poll();
   }
-  updateBatteryVoltage();
   if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");
 
   timestamp = micros();

@@ -1,6 +1,6 @@
 #include "guidance.h"
 
-#define MAX_OUTPUT_POWER 100.0 // must be < 255
+#define MAX_OUTPUT_POWER 75.0 // must be < 255
 
 // constrainVal value to within + or - maximum
 float constrainVal(float val, float maximum){
@@ -42,10 +42,10 @@ void Guidance::update(){
   }
   prevRunState = cmdData.runState;
 
-  if (cmdData.runState != CmdData_RunState_SIM){
-    if (hms->data.guidanceLogLevel >= 2) Serial.println("returning");
-    return;
-  }
+  // if (cmdData.runState != CmdData_RunState_SIM){
+    // if (hms->data.guidanceLogLevel >= 2) Serial.println("returning");
+    // return;
+  // }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posX: "); Serial.println(navData.posX); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posY: "); Serial.println(navData.posY); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.velX: "); Serial.println(navData.velX); }
@@ -124,61 +124,19 @@ void Guidance::update(){
   gd.leftTotalPID = constrainVal(gd.leftTotalPID, MAX_OUTPUT_POWER);
   gd.rightTotalPID = constrainVal(gd.rightTotalPID, MAX_OUTPUT_POWER);
   if (hms->data.guidanceLogLevel >= 2) Serial.println("done guidance::update");
-  return; // TODO remove
 
-  /* if (cmdData.runState == CmdData_RunState_TELEOP){ */
-    /* gd.leftPower = cmdData.leftPower; */
-    /* gd.rightPower = cmdData.rightPower; */
-    /* gd.propPower = cmdData.propPower; */
-  /* } */
-  /* else if (cmdData.runState == CmdData_RunState_AUTO){ */
-    /* gd.leftPower = outputLeft; */
-    /* gd.rightPower = outputRight; */
-    /* gd.propPower = 0; // temp */
-  /* } */
-  /* else{ */
-    /* gd.leftPower = 0; */
-    /* gd.rightPower = 0; */
-    /* gd.propPower = 0; */
-    /* if (cmdData.runState == CmData_RunState_SIM){ */
-      /* float FAKE_VELOCITY_SCALE_FACTOR = 0.01; */
-      /* float speed = FAKE_VELOCITY_SCALE_FACTOR * (cmData.leftPower+cmData.rightPower)/2; */
-      /* navData.posX =  */
-      /* if cmData.leftPower */
-    /* } */
-  /* } */
-
-  // Serial.print("gd.leftPower:"); Serial.println(gd.leftPower);
-  // Serial.print("gd.rightPower:"); Serial.println(gd.rightPower);
-  // calculate everything, then
-  // float outputLeft = 0;
-  // float outputRight = 0; // TODO replace w/ real vals
-
-  // if (cmdData.runState == CmdData_RunState_TELEOP){
-    // if (hms->data.guidanceLogLevel >= 2){
-      // Serial.println("teleop");
-    // }
-    // guidanceData.leftPower = cmdData.leftPower;
-    // guidanceData.rightPower = cmdData.rightPower;
-    // guidanceData.propPower = cmdData.propPower;
-  // }
-  // else if (cmdData.runState == CmdData_RunState_AUTO){
-    // guidanceData.leftPower = outputLeft;
-    // guidanceData.rightPower = outputRight;
-    // guidanceData.propPower = 0; // temp
-  // }
-  // else{
-    // if (hms->data.guidanceLogLevel >= 2){
-      // Serial.println("stopped");
-    // }
-    // guidanceData.leftPower = 0;
-    // guidanceData.rightPower = 0;
-    // guidanceData.propPower = 0;
-  // }
-  // if (hms->data.guidanceLogLevel >= 2){
-    // Serial.print("guidanceData.leftPower:"); Serial.println(guidanceData.leftPower);
-    // Serial.print("guidanceData.rightPower:"); Serial.println(guidanceData.rightPower);
-  // }
+  if (cmdData.runState == CmdData_RunState_TELEOP){
+    gd.leftPower = cmdData.leftPower;
+    gd.rightPower = cmdData.rightPower;
+  }
+  else if (cmdData.runState == CmdData_RunState_AUTO){
+    gd.leftPower = gd.leftTotalPID;
+    gd.rightPower = gd.rightTotalPID;
+  }
+  else{
+    gd.leftPower = 0;
+    gd.rightPower = 0;
+  }
 }
 
 GuidanceData& Guidance::getData(){

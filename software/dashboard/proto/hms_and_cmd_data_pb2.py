@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1cproto/hms_and_cmd_data.proto\"\xc7\x03\n\x07HmsData\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x01 \x01(\x02\x12\x0e\n\x06nCells\x18\x02 \x01(\r\x12\'\n\x0cmainLogLevel\x18\x03 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x04 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x17\n\x0fnetworkTickRate\x18\x07 \x01(\r\x12\x14\n\x0cmainTickRate\x18\x08 \x01(\r\x12\x17\n\x0fsensorsTickRate\x18\t \x01(\r\x12\x18\n\x10\x63ombinedTickRate\x18\n \x01(\r\x12\x1b\n\x13longestCombinedTick\x18\x0b \x01(\r\x12\x11\n\terrorInfo\x18\x0c \x01(\t\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tWTF_AHMAD\x10\x01\"/\n\x08LogLevel\x12\n\n\x06NORMAL\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0c\n\x08OVERKILL\x10\x02\"\xae\x04\n\x07\x43mdData\x12\x13\n\x0bplaceholder\x18\x01 \x01(\x05\x12\x11\n\tleftPower\x18\x02 \x01(\x02\x12\x12\n\nrightPower\x18\x03 \x01(\x02\x12\x11\n\tpropPower\x18\x04 \x01(\x02\x12#\n\x08runState\x18\x05 \x01(\x0e\x32\x11.CmdData.RunState\x12\'\n\x0cmainLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x07 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x08 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\t \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x0e\n\x06nTraps\x18\n \x01(\r\x12\r\n\x05trapX\x18\x0b \x03(\x02\x12\r\n\x05trapY\x18\x0c \x03(\x02\x12\x0f\n\x07simPosX\x18\r \x01(\x02\x12\x0f\n\x07simPosY\x18\x0e \x01(\x02\x12\x0f\n\x07simVelX\x18\x0f \x01(\x02\x12\x0f\n\x07simVelY\x18\x10 \x01(\x02\x12\x0f\n\x07simAccX\x18\x11 \x01(\x02\x12\x0f\n\x07simAccY\x18\x12 \x01(\x02\x12\x10\n\x08simAngXy\x18\x13 \x01(\x02\x12\x13\n\x0bsimAngVelXy\x18\x14 \x01(\x02\x12\x13\n\x0bsimAngAccXy\x18\x15 \x01(\x02\"5\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x12\x07\n\x03SIM\x10\x03\x62\x06proto3'
+  serialized_pb=b'\n\x1cproto/hms_and_cmd_data.proto\"\xd7\x03\n\x07HmsData\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x01 \x01(\x02\x12\x0e\n\x06nCells\x18\x02 \x01(\r\x12\'\n\x0cmainLogLevel\x18\x03 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x04 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x17\n\x0fnetworkTickRate\x18\x07 \x01(\r\x12\x14\n\x0cmainTickRate\x18\x08 \x01(\r\x12\x17\n\x0fsensorsTickRate\x18\t \x01(\r\x12\x18\n\x10\x63ombinedTickRate\x18\n \x01(\r\x12\x1b\n\x13longestCombinedTick\x18\x0b \x01(\r\x12\x0e\n\x06nTicks\x18\x0c \x01(\r\x12\x11\n\terrorInfo\x18\r \x01(\t\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tWTF_AHMAD\x10\x01\"/\n\x08LogLevel\x12\n\n\x06NORMAL\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0c\n\x08OVERKILL\x10\x02\"\x99\x04\n\x07\x43mdData\x12\x11\n\tleftPower\x18\x01 \x01(\x02\x12\x12\n\nrightPower\x18\x02 \x01(\x02\x12\x11\n\tpropPower\x18\x03 \x01(\x02\x12#\n\x08runState\x18\x04 \x01(\x0e\x32\x11.CmdData.RunState\x12\'\n\x0cmainLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x07 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x08 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x0e\n\x06nTraps\x18\t \x01(\r\x12\r\n\x05trapX\x18\n \x03(\x02\x12\r\n\x05trapY\x18\x0b \x03(\x02\x12\x0f\n\x07simPosX\x18\x0c \x01(\x02\x12\x0f\n\x07simPosY\x18\r \x01(\x02\x12\x0f\n\x07simVelX\x18\x0e \x01(\x02\x12\x0f\n\x07simVelY\x18\x0f \x01(\x02\x12\x0f\n\x07simAccX\x18\x10 \x01(\x02\x12\x0f\n\x07simAccY\x18\x11 \x01(\x02\x12\x10\n\x08simAngXy\x18\x12 \x01(\x02\x12\x13\n\x0bsimAngVelXy\x18\x13 \x01(\x02\x12\x13\n\x0bsimAngAccXy\x18\x14 \x01(\x02\"5\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x12\x07\n\x03SIM\x10\x03\x62\x06proto3'
 )
 
 
@@ -44,8 +44,8 @@ _HMSDATA_ERROR = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=400,
-  serialized_end=439,
+  serialized_start=416,
+  serialized_end=455,
 )
 _sym_db.RegisterEnumDescriptor(_HMSDATA_ERROR)
 
@@ -74,8 +74,8 @@ _HMSDATA_LOGLEVEL = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=441,
-  serialized_end=488,
+  serialized_start=457,
+  serialized_end=504,
 )
 _sym_db.RegisterEnumDescriptor(_HMSDATA_LOGLEVEL)
 
@@ -109,8 +109,8 @@ _CMDDATA_RUNSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=996,
-  serialized_end=1049,
+  serialized_start=991,
+  serialized_end=1044,
 )
 _sym_db.RegisterEnumDescriptor(_CMDDATA_RUNSTATE)
 
@@ -201,8 +201,15 @@ _HMSDATA = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='errorInfo', full_name='HmsData.errorInfo', index=11,
-      number=12, type=9, cpp_type=9, label=1,
+      name='nTicks', full_name='HmsData.nTicks', index=11,
+      number=12, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='errorInfo', full_name='HmsData.errorInfo', index=12,
+      number=13, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -222,7 +229,7 @@ _HMSDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=33,
-  serialized_end=488,
+  serialized_end=504,
 )
 
 
@@ -235,148 +242,141 @@ _CMDDATA = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='placeholder', full_name='CmdData.placeholder', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      name='leftPower', full_name='CmdData.leftPower', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='leftPower', full_name='CmdData.leftPower', index=1,
+      name='rightPower', full_name='CmdData.rightPower', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='rightPower', full_name='CmdData.rightPower', index=2,
+      name='propPower', full_name='CmdData.propPower', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='propPower', full_name='CmdData.propPower', index=3,
-      number=4, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      name='runState', full_name='CmdData.runState', index=3,
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='runState', full_name='CmdData.runState', index=4,
+      name='mainLogLevel', full_name='CmdData.mainLogLevel', index=4,
       number=5, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='mainLogLevel', full_name='CmdData.mainLogLevel', index=5,
+      name='sensorsLogLevel', full_name='CmdData.sensorsLogLevel', index=5,
       number=6, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sensorsLogLevel', full_name='CmdData.sensorsLogLevel', index=6,
+      name='navLogLevel', full_name='CmdData.navLogLevel', index=6,
       number=7, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='navLogLevel', full_name='CmdData.navLogLevel', index=7,
+      name='guidanceLogLevel', full_name='CmdData.guidanceLogLevel', index=7,
       number=8, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='guidanceLogLevel', full_name='CmdData.guidanceLogLevel', index=8,
-      number=9, type=14, cpp_type=8, label=1,
+      name='nTraps', full_name='CmdData.nTraps', index=8,
+      number=9, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='nTraps', full_name='CmdData.nTraps', index=9,
-      number=10, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
+      name='trapX', full_name='CmdData.trapX', index=9,
+      number=10, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='trapX', full_name='CmdData.trapX', index=10,
+      name='trapY', full_name='CmdData.trapY', index=10,
       number=11, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='trapY', full_name='CmdData.trapY', index=11,
-      number=12, type=2, cpp_type=6, label=3,
-      has_default_value=False, default_value=[],
+      name='simPosX', full_name='CmdData.simPosX', index=11,
+      number=12, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simPosX', full_name='CmdData.simPosX', index=12,
+      name='simPosY', full_name='CmdData.simPosY', index=12,
       number=13, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simPosY', full_name='CmdData.simPosY', index=13,
+      name='simVelX', full_name='CmdData.simVelX', index=13,
       number=14, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simVelX', full_name='CmdData.simVelX', index=14,
+      name='simVelY', full_name='CmdData.simVelY', index=14,
       number=15, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simVelY', full_name='CmdData.simVelY', index=15,
+      name='simAccX', full_name='CmdData.simAccX', index=15,
       number=16, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simAccX', full_name='CmdData.simAccX', index=16,
+      name='simAccY', full_name='CmdData.simAccY', index=16,
       number=17, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simAccY', full_name='CmdData.simAccY', index=17,
+      name='simAngXy', full_name='CmdData.simAngXy', index=17,
       number=18, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simAngXy', full_name='CmdData.simAngXy', index=18,
+      name='simAngVelXy', full_name='CmdData.simAngVelXy', index=18,
       number=19, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='simAngVelXy', full_name='CmdData.simAngVelXy', index=19,
+      name='simAngAccXy', full_name='CmdData.simAngAccXy', index=19,
       number=20, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='simAngAccXy', full_name='CmdData.simAngAccXy', index=20,
-      number=21, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -394,8 +394,8 @@ _CMDDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=491,
-  serialized_end=1049,
+  serialized_start=507,
+  serialized_end=1044,
 )
 
 _HMSDATA.fields_by_name['mainLogLevel'].enum_type = _HMSDATA_LOGLEVEL

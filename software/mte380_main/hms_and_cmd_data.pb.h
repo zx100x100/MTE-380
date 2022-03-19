@@ -30,7 +30,11 @@ typedef enum _CmdData_RunState {
 
 /* Struct definitions */
 typedef struct _CmdData { 
-    int32_t placeholder; 
+    /* enum TelemetryMode{
+ FULL = 0;
+ INFREQUENT = 1;
+ NONE = 2;
+ } */
     float leftPower; 
     float rightPower; 
     float propPower; 
@@ -65,6 +69,7 @@ typedef struct _HmsData {
     uint32_t sensorsTickRate; 
     uint32_t combinedTickRate; 
     uint32_t longestCombinedTick; 
+    uint32_t nTicks; 
     char errorInfo[80]; /* MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code) */
 } HmsData;
 
@@ -88,33 +93,32 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, ""}
-#define CmdData_init_default                     {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, ""}
-#define CmdData_init_zero                        {0, 0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, 0, ""}
+#define CmdData_init_default                     {0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, 0, ""}
+#define CmdData_init_zero                        {0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define CmdData_placeholder_tag                  1
-#define CmdData_leftPower_tag                    2
-#define CmdData_rightPower_tag                   3
-#define CmdData_propPower_tag                    4
-#define CmdData_runState_tag                     5
-#define CmdData_mainLogLevel_tag                 6
-#define CmdData_sensorsLogLevel_tag              7
-#define CmdData_navLogLevel_tag                  8
-#define CmdData_guidanceLogLevel_tag             9
-#define CmdData_nTraps_tag                       10
-#define CmdData_trapX_tag                        11
-#define CmdData_trapY_tag                        12
-#define CmdData_simPosX_tag                      13
-#define CmdData_simPosY_tag                      14
-#define CmdData_simVelX_tag                      15
-#define CmdData_simVelY_tag                      16
-#define CmdData_simAccX_tag                      17
-#define CmdData_simAccY_tag                      18
-#define CmdData_simAngXy_tag                     19
-#define CmdData_simAngVelXy_tag                  20
-#define CmdData_simAngAccXy_tag                  21
+#define CmdData_leftPower_tag                    1
+#define CmdData_rightPower_tag                   2
+#define CmdData_propPower_tag                    3
+#define CmdData_runState_tag                     4
+#define CmdData_mainLogLevel_tag                 5
+#define CmdData_sensorsLogLevel_tag              6
+#define CmdData_navLogLevel_tag                  7
+#define CmdData_guidanceLogLevel_tag             8
+#define CmdData_nTraps_tag                       9
+#define CmdData_trapX_tag                        10
+#define CmdData_trapY_tag                        11
+#define CmdData_simPosX_tag                      12
+#define CmdData_simPosY_tag                      13
+#define CmdData_simVelX_tag                      14
+#define CmdData_simVelY_tag                      15
+#define CmdData_simAccX_tag                      16
+#define CmdData_simAccY_tag                      17
+#define CmdData_simAngXy_tag                     18
+#define CmdData_simAngVelXy_tag                  19
+#define CmdData_simAngAccXy_tag                  20
 #define HmsData_batteryVoltage_tag               1
 #define HmsData_nCells_tag                       2
 #define HmsData_mainLogLevel_tag                 3
@@ -126,7 +130,8 @@ extern "C" {
 #define HmsData_sensorsTickRate_tag              9
 #define HmsData_combinedTickRate_tag             10
 #define HmsData_longestCombinedTick_tag          11
-#define HmsData_errorInfo_tag                    12
+#define HmsData_nTicks_tag                       12
+#define HmsData_errorInfo_tag                    13
 
 /* Struct field encoding specification for nanopb */
 #define HmsData_FIELDLIST(X, a) \
@@ -141,32 +146,32 @@ X(a, STATIC,   SINGULAR, UINT32,   mainTickRate,      8) \
 X(a, STATIC,   SINGULAR, UINT32,   sensorsTickRate,   9) \
 X(a, STATIC,   SINGULAR, UINT32,   combinedTickRate,  10) \
 X(a, STATIC,   SINGULAR, UINT32,   longestCombinedTick,  11) \
-X(a, STATIC,   SINGULAR, STRING,   errorInfo,        12)
+X(a, STATIC,   SINGULAR, UINT32,   nTicks,           12) \
+X(a, STATIC,   SINGULAR, STRING,   errorInfo,        13)
 #define HmsData_CALLBACK NULL
 #define HmsData_DEFAULT NULL
 
 #define CmdData_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    placeholder,       1) \
-X(a, STATIC,   SINGULAR, FLOAT,    leftPower,         2) \
-X(a, STATIC,   SINGULAR, FLOAT,    rightPower,        3) \
-X(a, STATIC,   SINGULAR, FLOAT,    propPower,         4) \
-X(a, STATIC,   SINGULAR, UENUM,    runState,          5) \
-X(a, STATIC,   SINGULAR, UENUM,    mainLogLevel,      6) \
-X(a, STATIC,   SINGULAR, UENUM,    sensorsLogLevel,   7) \
-X(a, STATIC,   SINGULAR, UENUM,    navLogLevel,       8) \
-X(a, STATIC,   SINGULAR, UENUM,    guidanceLogLevel,   9) \
-X(a, STATIC,   SINGULAR, UINT32,   nTraps,           10) \
-X(a, STATIC,   FIXARRAY, FLOAT,    trapX,            11) \
-X(a, STATIC,   FIXARRAY, FLOAT,    trapY,            12) \
-X(a, STATIC,   SINGULAR, FLOAT,    simPosX,          13) \
-X(a, STATIC,   SINGULAR, FLOAT,    simPosY,          14) \
-X(a, STATIC,   SINGULAR, FLOAT,    simVelX,          15) \
-X(a, STATIC,   SINGULAR, FLOAT,    simVelY,          16) \
-X(a, STATIC,   SINGULAR, FLOAT,    simAccX,          17) \
-X(a, STATIC,   SINGULAR, FLOAT,    simAccY,          18) \
-X(a, STATIC,   SINGULAR, FLOAT,    simAngXy,         19) \
-X(a, STATIC,   SINGULAR, FLOAT,    simAngVelXy,      20) \
-X(a, STATIC,   SINGULAR, FLOAT,    simAngAccXy,      21)
+X(a, STATIC,   SINGULAR, FLOAT,    leftPower,         1) \
+X(a, STATIC,   SINGULAR, FLOAT,    rightPower,        2) \
+X(a, STATIC,   SINGULAR, FLOAT,    propPower,         3) \
+X(a, STATIC,   SINGULAR, UENUM,    runState,          4) \
+X(a, STATIC,   SINGULAR, UENUM,    mainLogLevel,      5) \
+X(a, STATIC,   SINGULAR, UENUM,    sensorsLogLevel,   6) \
+X(a, STATIC,   SINGULAR, UENUM,    navLogLevel,       7) \
+X(a, STATIC,   SINGULAR, UENUM,    guidanceLogLevel,   8) \
+X(a, STATIC,   SINGULAR, UINT32,   nTraps,            9) \
+X(a, STATIC,   FIXARRAY, FLOAT,    trapX,            10) \
+X(a, STATIC,   FIXARRAY, FLOAT,    trapY,            11) \
+X(a, STATIC,   SINGULAR, FLOAT,    simPosX,          12) \
+X(a, STATIC,   SINGULAR, FLOAT,    simPosY,          13) \
+X(a, STATIC,   SINGULAR, FLOAT,    simVelX,          14) \
+X(a, STATIC,   SINGULAR, FLOAT,    simVelY,          15) \
+X(a, STATIC,   SINGULAR, FLOAT,    simAccX,          16) \
+X(a, STATIC,   SINGULAR, FLOAT,    simAccY,          17) \
+X(a, STATIC,   SINGULAR, FLOAT,    simAngXy,         18) \
+X(a, STATIC,   SINGULAR, FLOAT,    simAngVelXy,      19) \
+X(a, STATIC,   SINGULAR, FLOAT,    simAngAccXy,      20)
 #define CmdData_CALLBACK NULL
 #define CmdData_DEFAULT NULL
 
@@ -178,8 +183,8 @@ extern const pb_msgdesc_t CmdData_msg;
 #define CmdData_fields &CmdData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define CmdData_size                             173
-#define HmsData_size                             130
+#define CmdData_size                             161
+#define HmsData_size                             136
 
 #ifdef __cplusplus
 } /* extern "C" */

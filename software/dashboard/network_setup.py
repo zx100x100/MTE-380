@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 SERVER_PORT = 23
 SERVER_HOST_BYTE = 111
@@ -22,14 +23,27 @@ def get_ssid():
                 ssid_list = ssid_line[0].split(':')
                 return (ssid_list[1].strip(), True)
         else:
-            return (os.popen("sudo iwgetid -r").read()[:-1], True)
+            ssid = os.popen("sudo iwgetid -r").read()[:-1]
+            if not ssid:
+                # ethernet
+                ssid = 'anavacadothanks'
+            elif ssid not in ALLOWED_SSIDS:
+                print(f'Changing to anavacadothanks')
+                out = os.popen("nmcli dev wifi connect anavacadothanks")
+                print('done')
+                time.sleep(3)
+                ssid = os.popen("sudo iwgetid -r").read()[:-1]
+                if ssid not in ALLOWED_SSIDS:
+                    time.sleep(2)
+                    ssid = os.popen("sudo iwgetid -r").read()[:-1]
+                print(ssid)
+            return ssid, True
+
     except Exception as e:
         print(f'error getting SSID: {e}')
-        proceed = input(f"Continue anyway? o: offline | e: ethernet | n: no")
+        proceed = input(f"Continue anyway? o: offline | n: no")
         if not proceed in ('o', 'e'):
             sys.exit()
-        if proceed == 'e': # ethernet, assume ava
-            return ('anavacadothanks', True)
         return ('', False)
 
 def get_byte_n(n):
@@ -74,8 +88,11 @@ def network_setup():
     if not online:
         return
     if ssid not in ALLOWED_SSIDS:
-        proceed = input(f"Wrong network! {ssid} should be in {ALLOWED_SSIDS}. Continue offline? <y/n>")
-        if not proceed == 'y':
+        proceed = input(f"Wrong network! {ssid} should be in {ALLOWED_SSIDS}. Continue offline? <y/n/e>")
+        if proceed == 'e':
+            ssid = 'anavacadothanks'
+            online = True
+        elif not proceed == 'y':
             sys.exit()
         else:
             return

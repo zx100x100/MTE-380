@@ -73,9 +73,15 @@ class App:
             # Display based on nav data for every other state, even if we are in SIM mode
             self.robot.angle = self.data.nav.pb.angXy
             try:
-                self.robot.rect.centerx = int(self.data.nav.pb.posX * PIXELS_PER_TILE)
-                self.robot.rect.centery = int(self.data.nav.pb.posY * PIXELS_PER_TILE)
+                x = int(self.data.nav.pb.posX * PIXELS_PER_TILE)
+                y = int(self.data.nav.pb.posY * PIXELS_PER_TILE)
+                self.robot.rect.centerx = x
+                self.robot.rect.centery = y
+                print(f'set robot to nav data. x: {x} | {self.data.nav.pb.posX}, y: {y}, robot.rect.center: {self.robot.rect.center}')
             except:
+                print("error setting posX/posY from nav data:")
+                print(f'self.data.nav.pb.posX: {self.data.nav.pb.posX}')
+                print(f'self.data.nav.pb.posY: {self.data.nav.pb.posY}')
                 self.robot.rect.centerx = 0
                 self.robot.rect.centery = 0
         self.robot.update_sprite_angle() 

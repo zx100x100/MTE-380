@@ -212,14 +212,12 @@ class TelemetryPlot:
             self.display_scale_min = new_min
 
             #  print('out.')
-            #  print(f'self.values: {self.values}')
             for i in range(len(self.values)):
                 minn = self.display_scale_min-breadth*self.display_scale_pad
                 dist_from_bot = self.values[-(i+1)]-minn
                 scaled_dist_from_bot = int(dist_from_bot*self.pixel_scale_factor)
                 height = self.rect.bottom-scaled_dist_from_bot
                 pixel_pos = (self.rect.right-i-1,height)
-                #  print(f'pixel_pos: {pixel_pos}')
                 #  print(f'self.rect: {self.rect}')
                 screen.set_at(pixel_pos,DATA_POINT_COLOUR)
                 #  print(f'out_pixel_pos: {pixel_pos}')

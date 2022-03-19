@@ -13,7 +13,7 @@ TITLE_HEIGHT = 24
 TITLE_L_MARGIN = 8
 ITEM_H_PAD = 5
 ITEM_T_MARGIN = 2
-ITEM_VALUE_RECT_WIDTH = 47
+ITEM_VALUE_RECT_WIDTH = 80
 ITEM_VALUE_H_MARGIN = 5
 ITEM_VALUE_L_PAD = 1
 ITEM_HEIGHT = 12
@@ -25,7 +25,7 @@ ITEM_LABEL_FONT_COLOUR = (255,255,255)
 READOUT_BG_COLOUR = (70,70,70)
 CONTROL_LABEL_FONT_COLOUR = (70,70,70)
 ITEM_LABEL_FONT_SIZE = 10
-ITEM_VALUE_FONT_SIZE = 10
+ITEM_VALUE_FONT_SIZE = 9
 TITLE_FONT_SIZE = 20
 MAX_ITEMS_PER_READOUT = (READOUT_HEIGHT-TITLE_HEIGHT)/(ITEM_HEIGHT+ITEM_T_MARGIN)
 ERROR_INFO_FIELD_NAME = "errorInfo"
@@ -100,7 +100,10 @@ class ReadoutItem:
         image = pg.Surface(self.value_rect.size).convert_alpha()
         image.fill((0,0,0,0))
         # TODO handle different types here so text fits nice eg. .02f
-        value_surf = self.value_font.render(f'{self.value}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
+        try:
+            value_surf = self.value_font.render(f'{self.value:.04f}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
+        except:
+            value_surf = self.value_font.render(f'{self.value}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
         value_height = value_surf.get_rect().height
         value_top_offset = (ITEM_VALUE_RECT_HEIGHT - value_height)/2+2
         image.blit(value_surf,(ITEM_VALUE_L_PAD,value_top_offset))
@@ -175,7 +178,7 @@ class Readout:
     def position(self, col, row, n):
         self.col = col
         self.row = row
-        self.rect.height = self.rect.height/n-(n-1)*READOUT_T_MARGIN
+        self.rect.height = self.rect.height/n
         self.rect.top = ARENA_SIZE_PIXELS+READOUT_T_MARGIN+(self.rect.height+READOUT_T_MARGIN)*row
         self.rect.left = READOUT_H_MARGIN+col*(READOUT_WIDTH+READOUT_H_MARGIN)
         self.toplefts = self.get_topleft_of_each_item()
@@ -226,6 +229,14 @@ class Readout:
                             new_name = enum_type.values_by_number[next_enum_num].name
                             setattr(item.proto, item.name, next_enum_num)
                             item.update_value()
+                        #  elif enum_val in CmdData.TelemetryMode.keys():
+                            #  enum_num = getattr(item.proto, item.name)
+                            #  total = len(CmdData.TelemetryMode.keys())
+                            #  next_enum_num = (enum_num+1) % total
+                            #  enum_type = item.proto.DESCRIPTOR.fields_by_name[item.name].enum_type
+                            #  new_name = enum_type.values_by_number[next_enum_num].name
+                            #  setattr(item.proto, item.name, next_enum_num)
+                            #  item.update_value()
                         return False
 
                 return item
