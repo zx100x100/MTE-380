@@ -39,28 +39,25 @@ message CmdData{
     // INFREQUENT = 1;
     // NONE = 2;
   // }
-  int32 placeholder = 1;
-  float leftPower = 2;
-  float rightPower = 3;
-  float propPower = 4;
-  RunState runState = 5;
-  HmsData.LogLevel mainLogLevel = 6;
-  HmsData.LogLevel sensorsLogLevel = 7;
-  HmsData.LogLevel navLogLevel = 8;
-  HmsData.LogLevel guidanceLogLevel = 9;
-
-  uint32 nTraps = 10;
-  repeated float trapX = 11;
-  repeated float trapY = 12;
-
-  float simPosX = 13;
-  float simPosY = 14;
-  float simVelX = 15;
-  float simVelY = 16;
-  float simAccX = 17;
-  float simAccY = 18;
-  float simAngXy = 19;
-  float simAngVelXy = 20;
-  float simAngAccXy = 21; // angular acceleration
+  float leftPower = 1;
+  float rightPower = 2;
+  float propPower = 3;
+  RunState runState = 4;
+  HmsData.LogLevel mainLogLevel = 5;
+  HmsData.LogLevel sensorsLogLevel = 6;
+  HmsData.LogLevel navLogLevel = 7;
+  HmsData.LogLevel guidanceLogLevel = 8;
+  uint32 nTraps = 9;
+  repeated float trapX = 10;
+  repeated float trapY = 11;
+  float simPosX = 12;
+  float simPosY = 13;
+  float simVelX = 14;
+  float simVelY = 15;
+  float simAccX = 16;
+  float simAccY = 17;
+  float simAngXy = 18;
+  float simAngVelXy = 19;
+  float simAngAccXy = 20; // angular acceleration
   // TelemetryMode telemetryMode = 22;
 }
