@@ -71,32 +71,42 @@ TofPosition Nav::calculateTof(){
 
   if (tofsUpdated()){
       if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
-      float estimateLeft, estimateFront;
-      if (isValid(L_FRONT) && isValid(L_BACK) && (int(navData.angXy) % 90 < 40 || int(navData.angXy) > 50)) {
+      float estimateLeft, estimateFront, angFromWall;
+      if (isValid(L_FRONT) && isValid(L_BACK) && (fmod(navData.angXy, 90) < 40 || fmod(navData.angXy, 90) > 50)) {
         if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
 
-        float theta = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
-        pos.yaw = round(navData.angXy / 90) + theta;
+        angFromWall = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
+        pos.yaw = round(navData.angXy / 90) + angFromWall;
 
         // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
-        estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cos(deg2rad(pos.yaw));
+        estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cos(deg2rad(angFromWall));
       }
-      else{ // TODO: use gyro?
+      else{
         if (hms->data.navLogLevel >= 2) Serial.println("Left invalid");
+
+         // TODO: use gyro?
         pos.yaw = FLT_INVALID;
         estimateLeft = FLT_INVALID;
+
+        // make angFromWall based on previous position
+        if (fmod(navData.angXy, 90) < 45){ // angFromWall should be > 0
+          angFromWall = fmod(navData.angXy, 90);
+        }
+        else{  // angFromWall should be < 0
+          angFromWall = fmod(navData.angXy, 90) - 90;
+        }
       }
 
-      if (isValid(FRONT) && isValid(BACK)){ // TODO: do we wanna use pos.yaw or navData.angXy
+      if (isValid(FRONT) && isValid(BACK)){
         if (sensors.tof[FRONT].getData().dist <= sensors.tof[BACK].getData().dist)
-          estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+          estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(angFromWall)) + F_X_OFFSET * sin(deg2rad(angFromWall));
         else
-          estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+          estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(angFromWall)) - B_X_OFFSET * sin(deg2rad(angFromWall));
       }
       else if(isValid(FRONT))
-        estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) + F_X_OFFSET * sin(deg2rad(pos.yaw));
+        estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cos(deg2rad(angFromWall)) + F_X_OFFSET * sin(deg2rad(pos.yaw));
       else if(isValid(BACK))
-        estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * abs(cos(deg2rad(pos.yaw))) - B_X_OFFSET * sin(deg2rad(pos.yaw));
+        estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cos(deg2rad(angFromWall)) - B_X_OFFSET * sin(deg2rad(pos.yaw));
       else
         estimateFront = FLT_INVALID;
 
@@ -255,7 +265,7 @@ NavData Nav::getPred(float delT){
 }
 
 void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimate, const NavData pred){
-  if (USE_IMU && imuEstimate.posX != 0){  // TODO: make sure this never fucks up
+  if (USE_IMU && imuEstimate.posX != 0){
     // TODO: implement this
   }
   else if (USE_TOFS){
