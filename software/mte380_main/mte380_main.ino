@@ -45,7 +45,7 @@ void setup() {
 void loop() {
   unsigned long startT = micros();
   Serial.println("main->sensors");
-  /* sensors.update(); */
+  sensors.update();
   unsigned long afterSensorT = micros();
   Serial.println("main->nav");
   nav.update();
