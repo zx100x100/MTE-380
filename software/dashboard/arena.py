@@ -64,7 +64,7 @@ class Arena():
 
     def generate_vel_setpoint_indicator(self, vel_setpoint):
         if not DISABLE_VEL_SETPOINT_INDICATORS:
-            print(f'sp: {vel_setpoint}, pos: {self.robot.rect.center}')
+            #  print(f'sp: {vel_setpoint}, pos: {self.robot.rect.center}')
             #  import time
             #  time.sleep(0.2)
             self.active.add_vel_setpoint_indicator_line(self.robot.rect.center, vel_setpoint)

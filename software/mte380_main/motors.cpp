@@ -1,10 +1,10 @@
 #include <analogWrite.h>
 #include "motors.h"
 
-#define LEFT_DRIVE_1 16
-#define LEFT_DRIVE_2 17
-#define RIGHT_DRIVE_1 2
-#define RIGHT_DRIVE_2 4
+#define LEFT_DRIVE_1 17
+#define LEFT_DRIVE_2 16
+#define RIGHT_DRIVE_1 4
+#define RIGHT_DRIVE_2 2
 
 // #define PROP_PIN 27
 
@@ -31,12 +31,10 @@ void Motors::setAllToZero(){
 void Motors::update(){
   if (hms->data.mainLogLevel >= 2) Serial.println("motors");
   if (guidanceData.leftPower >= 0){
-    if (guidanceData.leftPower >= 1){
-      analogWrite(LEFT_DRIVE_1, 255);
-      analogWrite(LEFT_DRIVE_2, 0);
-    }
-    /* analogWrite(LEFT_DRIVE_1, guidanceData.leftPower); */
-    /* analogWrite(LEFT_DRIVE_2, 0); */
+    // Serial.println("MOTORS::::::::::::::;");
+    // if(hms->data.guidanceLogLevel >= 2){ Serial.print("guidanceData.leftPower: "); Serial.println(guidanceData.leftPower); }
+    analogWrite(LEFT_DRIVE_1, guidanceData.leftPower);
+    analogWrite(LEFT_DRIVE_2, 0);
   }
   else{
     analogWrite(LEFT_DRIVE_1, 0);

@@ -12,6 +12,7 @@
 #define DEAD_MAN_TIMEOUT_MS 2000
 #define CMD_BUF_SIZE 30
 #define OUTPUT_BUF_SIZE 1000
+#define INFREQUENT_TELEMETRY_INTERVAL 100 // every 100 ticks, send back telem
 // Size of the buffer that contains literally just the number of bytes written
 
 const uint8_t delimit[3] = {uint8_t(':'),uint8_t(':'),uint8_t(':')};
@@ -42,15 +43,18 @@ void TelemetryServer::init(){
   Serial.println("Connecting to WiFi ..");
   int wifiConnectionTicks = 0;
   const int maxWifiConnectionTicksBeforeReboot = 40;
+  hms->greenLedState = LED_SLOW_FLASH;
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(100);
     if (wifiConnectionTicks++ >= maxWifiConnectionTicksBeforeReboot){
       ESP.restart();
     }
+    hms->updateLEDs();
   }
   Serial.println(WiFi.localIP());
   server.begin();
+  hms->greenLedState = LED_FAST_FLASH;
 }
 
 void delimitData(pb_ostream_t& stream){
@@ -134,9 +138,11 @@ bool TelemetryServer::update(){
       // client.flush(); // clear out the input buffer
       Serial.println("New client for tcp telemetry server");
       alreadyConnected = true;
+      hms->greenLedState = LED_ON;
       return false;
     }
     else{
+      hms->greenLedState = LED_ON;
       // TODO CHANGE THIS BEHAVIOR OR AT LEAST MAKE SURE DOING IT THIS WAY ISNT MAKING TICKRATES LESS CONSISTENT
       int receiveBytes = client.available();
       if (receiveBytes > 0){ // input available, update cmd, send back telemetry
@@ -165,24 +171,28 @@ bool TelemetryServer::update(){
         hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
         hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
         hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
+        client.flush();
       }
-      // SEND DATA --------------------------------------
-      pb_ostream_t stream;
-      // pb_ostream_t sizeStream;
-      uint8_t buffer[OUTPUT_BUF_SIZE];
-      // uint8_t sizeBuffer[4];
-      stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-      // sizeStream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-      serializeData(stream);
-      unsigned long beforeSendT = micros();
-      client.write(buffer, stream.bytes_written); // takes 0-2 ms
-      client.flush();
+      // if (cmdData.telemetryMode == CmdData_TelemetryMode_FULL ||
+          // (cmdData.telemetryMode == CmdData_TelemetryMode_INFREQUENT && hms->data.nTicks % INFREQUENT_TELEMETRY_INTERVAL == 0)){
+        // SEND DATA --------------------------------------
+        pb_ostream_t stream;
+        // pb_ostream_t sizeStream;
+        uint8_t buffer[OUTPUT_BUF_SIZE];
+        // uint8_t sizeBuffer[4];
+        stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+        // sizeStream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+        serializeData(stream);
+        unsigned long beforeSendT = micros();
+        client.write(buffer, stream.bytes_written); // takes 0-2 ms
+        client.flush();
 
+  //      if (newTimestamp-beforeSendT > 100){
+  //        Serial.print("justSend: "); Serial.println(newTimestamp-beforeSendT);
+//      }
+      // }
       unsigned long newTimestamp = micros();
       lastCommandTime = newTimestamp;
-//      if (newTimestamp-beforeSendT > 100){
-//        Serial.print("justSend: "); Serial.println(newTimestamp-beforeSendT);
-//      }
       return true;
     }
   }
@@ -190,6 +200,7 @@ bool TelemetryServer::update(){
     if (hms->data.mainLogLevel >= 1){
       Serial.println("No TCP client connected.");
     }
+    hms->greenLedState = LED_SLOW_FLASH;
     // DEAD MANS SWITCH!
     return false;
   }

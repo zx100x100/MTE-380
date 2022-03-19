@@ -226,6 +226,14 @@ class Readout:
                             new_name = enum_type.values_by_number[next_enum_num].name
                             setattr(item.proto, item.name, next_enum_num)
                             item.update_value()
+                        #  elif enum_val in CmdData.TelemetryMode.keys():
+                            #  enum_num = getattr(item.proto, item.name)
+                            #  total = len(CmdData.TelemetryMode.keys())
+                            #  next_enum_num = (enum_num+1) % total
+                            #  enum_type = item.proto.DESCRIPTOR.fields_by_name[item.name].enum_type
+                            #  new_name = enum_type.values_by_number[next_enum_num].name
+                            #  setattr(item.proto, item.name, next_enum_num)
+                            #  item.update_value()
                         return False
 
                 return item

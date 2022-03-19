@@ -3,8 +3,8 @@ import pygame as pg
 import time
 import numpy
 
-TELEOP_SLOW = 100
-TELEOP_MEDIUM = 170
+TELEOP_SLOW = 50
+TELEOP_MEDIUM = 120
 TELEOP_FAST = 255
 MAX_TELEOP_POWER = 255
 
@@ -33,7 +33,7 @@ class Sim:
         TURNING_WHILE_MOVING_SLOW_SIDE_FACTOR = 0.5 # run the slow side at 0.5 of its normal
         if keys[pg.K_LSHIFT]:
             TELEOP_POWER = TELEOP_SLOW
-        elif keys[pg.K_LALT]:
+        elif keys[pg.K_LCTRL]:
             TELEOP_POWER = TELEOP_FAST
         else:
             TELEOP_POWER = TELEOP_MEDIUM
