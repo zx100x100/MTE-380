@@ -16,10 +16,10 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
     sensor_vl53lx_sat[i] = &tof_objects[i];
   }
 
-  mux_addresses[FRONT] = 2;
-  mux_addresses[L_FRONT] = 1;
-  mux_addresses[L_BACK] = 0;
-  mux_addresses[BACK] = 3;
+  mux_addresses[FRONT] = 3;
+  mux_addresses[L_FRONT] = 0;
+  mux_addresses[L_BACK] = 1;
+  mux_addresses[BACK] = 2;
   updateBatteryVoltage();
 }
 
