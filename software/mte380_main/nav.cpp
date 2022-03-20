@@ -1,21 +1,21 @@
 #include "fusion.h"
 #include "nav.h"
 
-#define L_Y_DELTA 100  // mm
-#define L_X_OFFSET 50  // mm
-#define F_Y_OFFSET 100  // mm
-#define F_X_OFFSET 0  // mm
-#define B_Y_OFFSET 100  // mm
-#define B_X_OFFSET 0  // mm
+#define L_Y_DELTA 0.328084  // ft
+#define L_X_OFFSET 0.164042  // ft
+#define F_Y_OFFSET 0.328084  // ft
+#define F_X_OFFSET 0  // ft
+#define B_Y_OFFSET 0.328084  // ft
+#define B_X_OFFSET 0  // ft
 
-#define TRACK_DIM 1828.8  // mm
-#define MAX_DEVIATION 50  // mm
+#define TRACK_DIM 6  // ft
+#define MAX_DEVIATION 0.328084  // ft
 
 #define USE_IMU false
 #define USE_TOFS true
 
-#define STARTING_X 1066.8
-#define STARTING_Y 1676.4
+#define STARTING_X 3.5
+#define STARTING_Y 5.5
 #define STARTING_YAW 180
 
 #define FLT_INVALID 0xFFFF
@@ -57,6 +57,10 @@ float Nav::sind(float deg){
   return sin(deg2rad(deg));
 }
 
+float Nav::getTofFt(TofOrder tofNum){
+    return sensors.tof[tofNum].getData().dist * 0.00328084;
+}
+
 NavData Nav::calculateImu(){
   return NavData_init_zero;
 }
@@ -80,14 +84,14 @@ TofPosition Nav::calculateTof(){
   if (tofsUpdated()){
 //      if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
       float estimateLeft, estimateFront, angFromWall;
-      if (isValid(L_FRONT) && isValid(L_BACK) && (fmod(navData.angXy, 90) < 40 || fmod(navData.angXy, 90) > 50)) {
+      if (isValid(L_FRONT) && isValid(L_BACK) && (fmod(navData.angXy, 90) < 35 || fmod(navData.angXy, 90) > 55)) {
 //        if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
 
-        angFromWall = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
+        angFromWall = rad2deg(atan((getTofFt(L_FRONT) - getTofFt(L_BACK)) / L_Y_DELTA));
         pos.yaw = round(navData.angXy / 90) + angFromWall;
 
         // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
-        estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cosd(angFromWall);
+        estimateLeft = ((getTofFt(L_FRONT) + getTofFt(L_BACK)) / 2 + L_X_OFFSET) * cosd(angFromWall);
       }
       else{
 //        if (hms->data.navLogLevel >= 2) Serial.println("Left invalid");
@@ -106,15 +110,15 @@ TofPosition Nav::calculateTof(){
       }
 
       if (isValid(FRONT) && isValid(BACK)){
-        if (sensors.tof[FRONT].getData().dist <= sensors.tof[BACK].getData().dist)
-          estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
+        if (getTofFt(FRONT) <= getTofFt(BACK))
+          estimateFront = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
         else
-          estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
+          estimateFront = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
       }
       else if(isValid(FRONT))
-        estimateFront = (sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
+        estimateFront = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
       else if(isValid(BACK))
-        estimateFront = TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
+        estimateFront = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
       else
         estimateFront = FLT_INVALID;
 
@@ -176,7 +180,7 @@ void Nav::update(){
   }
 
   if (hms->data.navLogLevel >= 1){
-    Serial.print("tof: FR: "); Serial.print(sensors.tof[0].getData().dist); Serial.print(", LF: ");  Serial.print(sensors.tof[1].getData().dist); Serial.print(", BF: ");  Serial.print(sensors.tof[2].getData().dist); Serial.print(", BA: ");  Serial.println(sensors.tof[3].getData().dist);
+    Serial.print("tof: FR: "); Serial.print(getTofFt(FRONT)); Serial.print(", LF: ");  Serial.print(getTofFt(L_FRONT)); Serial.print(", BF: ");  Serial.print(getTofFt(L_BACK)); Serial.print(", BA: ");  Serial.println(getTofFt(BACK));
   }
   TofPosition tofEstimate = calculateTof();
   if (hms->data.navLogLevel >= 1){
@@ -228,16 +232,16 @@ bool Nav::isValid(TofOrder tof){
 
   switch (tof){
     case FRONT:
-      return estimateFront - ((sensors.tof[FRONT].getData().dist + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
+      return estimateFront - ((getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
       break;
     case L_FRONT:
-      return estimateLeft - ((sensors.tof[L_FRONT].getData().dist + L_X_OFFSET) * cosd(angFromWall) - L_Y_DELTA / 2 * sin(angFromWall)) <= MAX_DEVIATION;
+      return estimateLeft - ((getTofFt(L_FRONT) + L_X_OFFSET) * cosd(angFromWall) - L_Y_DELTA / 2 * sin(angFromWall)) <= MAX_DEVIATION;
       break;
     case L_BACK:
-      return estimateLeft - ((sensors.tof[L_BACK].getData().dist + L_X_OFFSET) * cosd(angFromWall) + L_Y_DELTA / 2 * sind(angFromWall)) <= MAX_DEVIATION;
+      return estimateLeft - ((getTofFt(L_BACK) + L_X_OFFSET) * cosd(angFromWall) + L_Y_DELTA / 2 * sind(angFromWall)) <= MAX_DEVIATION;
       break;
     case BACK:
-      return estimateFront - (TRACK_DIM - (sensors.tof[BACK].getData().dist + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
+      return estimateFront - (TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
   }
 }
 

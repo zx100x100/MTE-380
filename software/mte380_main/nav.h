@@ -38,6 +38,7 @@ class Nav{
     float rad2deg(float deg);
     float cosd(float deg);
     float sind(float deg);
+    float getTofFt(TofOrder tofNum);
     void updateEstimate(const NavData imuEstimate, const TofPosition tofEstimate, const NavData pred);
 };
 
