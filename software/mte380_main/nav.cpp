@@ -78,10 +78,10 @@ TofPosition Nav::calculateTof(){
   TofPosition pos;
 
   if (tofsUpdated()){
-      if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
+//      if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
       float estimateLeft, estimateFront, angFromWall;
       if (isValid(L_FRONT) && isValid(L_BACK) && (fmod(navData.angXy, 90) < 40 || fmod(navData.angXy, 90) > 50)) {
-        if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
+//        if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
 
         angFromWall = rad2deg(atan((sensors.tof[L_FRONT].getData().dist - sensors.tof[L_BACK].getData().dist) / L_Y_DELTA));
         pos.yaw = round(navData.angXy / 90) + angFromWall;
@@ -90,7 +90,7 @@ TofPosition Nav::calculateTof(){
         estimateLeft = ((sensors.tof[L_FRONT].getData().dist + sensors.tof[L_BACK].getData().dist) / 2 + L_X_OFFSET) * cosd(angFromWall);
       }
       else{
-        if (hms->data.navLogLevel >= 2) Serial.println("Left invalid");
+//        if (hms->data.navLogLevel >= 2) Serial.println("Left invalid");
 
          // TODO: use gyro?
         pos.yaw = FLT_INVALID;
@@ -142,13 +142,10 @@ TofPosition Nav::calculateTof(){
 }
 
 void Nav::update(){
-  if (hms->data.navLogLevel >= 2){
-    Serial.println("Nav::update()");
-  }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav update"); } // temp
+//  if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav update"); } // temp
   if (cmdData -> runState == CmdData_RunState_SIM){
-    if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav in SIM mode"); }
-    if(hms->data.guidanceLogLevel >= 2){ Serial.print("cmdData->simPosX: "); Serial.println(cmdData->simPosX); }
+//    if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav in SIM mode"); }
+//    if(hms->data.guidanceLogLevel >= 2){ Serial.print("cmdData->simPosX: "); Serial.println(cmdData->simPosX); }
     navData.posX = cmdData->simPosX;
     navData.posY = cmdData->simPosY;
     navData.posZ = 0;
@@ -169,7 +166,7 @@ void Nav::update(){
     return;
   }
   else{
-    if(hms->data.guidanceLogLevel >= 2){ Serial.println("NAV::::::::: NOT IN SIM MODE??????"); }
+//    if(hms->data.guidanceLogLevel >= 2){ Serial.println("NAV::::::::: NOT IN SIM MODE??????"); }
   }
 
   float delT = sensors.timestamp - navData.timestamp;

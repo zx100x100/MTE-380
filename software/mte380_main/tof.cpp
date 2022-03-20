@@ -14,17 +14,19 @@ Tof::Tof(Hms* hms, VL53LX* tof_sensor):
 {
   tofData = TofData_init_zero;
 
-  Serial.println("begin");
+  if (hms->data.sensorsLogLevel >= 1) Serial.println("begin");
 
   // Configure VL53LX satellite component.
+  // This will set TOF_PLACEHOLDER_PIN as output
   sensor_vl53lx_sat->begin();
 
-  Serial.println("init sensor");
+  if (hms->data.sensorsLogLevel >= 1) Serial.println("init sensor");
   //Initialize VL53LX satellite component.
+  // This will turn TOF_PLACEHOLDER_PIN LOW then HIGH, then continue initializing the sensor
   sensor_vl53lx_sat->InitSensor(0x12);
 
 
-  Serial.println("start measurement");
+  if (hms->data.sensorsLogLevel >= 1) Serial.println("start measurement");
   // Start Measurements
   sensor_vl53lx_sat->VL53LX_StartMeasurement();
 }
@@ -38,7 +40,7 @@ void Tof::poll(){
     VL53LX_MultiRangingData_t* pMultiRangingData = &MultiRangingData;
     unsigned long beforeT = micros();
     if(NewDataReady == 1){
-        if (hms->data.sensorsLogLevel >= 2) Serial.println("ready");
+//        if (hms->data.sensorsLogLevel >= 2) Serial.println("ready");
 
         status = sensor_vl53lx_sat->VL53LX_GetMultiRangingData(pMultiRangingData);
         unsigned long afterReadingT = micros();
@@ -48,8 +50,8 @@ void Tof::poll(){
             tofData.numObjs = pMultiRangingData->NumberOfObjectsFound;
             tofData.count = pMultiRangingData->StreamCount;
 
-            /* snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", tofData.count, tofData.numObjs); */
-            /* if (hms->data.sensorsLogLevel >= 2) Serial.print(report); */
+            snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", tofData.count, tofData.numObjs);
+            if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
 
             if (tofData.numObjs){ // if at least 1 object found
                 tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
@@ -73,14 +75,14 @@ void Tof::poll(){
             unsigned long afterClearT = micros();
             NewDataReady = 0;
             status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);  // TODO: what if status bad
-            if (hms->data.sensorsLogLevel >= 2){
-              unsigned long dt = micros() - beforeT;
-              unsigned long dt2 = micros() - afterReadingT;
-              unsigned long dt3 = afterClearT - beforeClearT;
-              Serial.print("Did the first thing in "); Serial.println(dt2);
-              Serial.print("cleared interrupt in "); Serial.println(dt3);
-              Serial.print("Did stuff. elapsed: "); Serial.println(dt);
-            }
+//            if (hms->data.sensorsLogLevel >= 2){
+//              unsigned long dt = micros() - beforeT;
+//              unsigned long dt2 = micros() - afterReadingT;
+//              unsigned long dt3 = afterClearT - beforeClearT;
+//              Serial.print("Did the first thing in "); Serial.println(dt2);
+//              Serial.print("cleared interrupt in "); Serial.println(dt3);
+//              Serial.print("Did stuff. elapsed: "); Serial.println(dt);
+//            }
         }
     }
     else{

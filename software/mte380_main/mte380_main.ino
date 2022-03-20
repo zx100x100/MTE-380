@@ -8,10 +8,10 @@
 #include "hms_and_cmd_data.pb.h"
 
 VL53LX sensor_vl53lx_sat[4] = {
-  VL53LX(&Wire, PLACEHOLDER_PIN),
-  VL53LX(&Wire, PLACEHOLDER_PIN),
-  VL53LX(&Wire, PLACEHOLDER_PIN),
-  VL53LX(&Wire, PLACEHOLDER_PIN)
+  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
+  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
+  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
+  VL53LX(&Wire, TOF_PLACEHOLDER_PIN)
 };
 
 unsigned long longest = 0;
