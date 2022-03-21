@@ -36,16 +36,16 @@ void setup() {
   /* cmdData.telemetryMode = CmdData_TelemetryMode_NONE; */
   /* cmdData.telemetryMode = CmdData_TelemetryMode_FULL; */
   cmdData.runState = CmdData_RunState_E_STOP;
-  /* sensors.init(); */
+  sensors.init();
   nav.init();
   telemetryServer.init();
-  guidance.init();
+  /* guidance.init(); */
 }
 
 void loop() {
   unsigned long startT = micros();
   Serial.println("main->sensors");
-  /* sensors.update(); */
+  sensors.update();
   unsigned long afterSensorT = micros();
   Serial.println("main->nav");
   nav.update();
