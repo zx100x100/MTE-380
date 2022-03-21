@@ -1,8 +1,7 @@
 #ifndef TOF_H
 #define TOF_H
 
-// IF SOMETHING IS WEIRD. CHECK HERE
-#define PLACEHOLDER_PIN 100 // DO NOT TRUST THIS
+#define TOF_PLACEHOLDER_PIN -1 // placeholder pin for the tof to power cycle. Never used. make sure this is empty
 
 #include "hms.h"
 #include "tof_data.pb.h"
