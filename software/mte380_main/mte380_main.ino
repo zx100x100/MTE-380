@@ -49,8 +49,8 @@ void loop() {
   unsigned long afterSensorT = micros();
   Serial.println("main->nav");
   nav.update();
-  Serial.println("main->guidance");
-  guidance.update();
+//   Serial.println("main->guidance");
+//   guidance.update();
   Serial.println("main->motors");
   motors.update();
   Serial.println("main->telemetry");
