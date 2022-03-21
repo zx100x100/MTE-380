@@ -38,7 +38,7 @@ class Robot():
         end_angle = np.deg2rad(360)
         pg.draw.arc(self.angled_image,ROBOT_HEADING_ARC_COLOUR,arc_rect,start_angle,end_angle,3)
         self.angled_rect.center = self.rect.center
-        print(f'robot center: {self.rect.center}')
+        #  print(f'robot center: {self.rect.center}')
 
     def render(self, screen):
         screen.blit(self.angled_image, self.angled_rect)

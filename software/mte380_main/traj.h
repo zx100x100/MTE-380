@@ -15,7 +15,7 @@ enum SegmentType { CURVE, LINE };
 class Subline{
   public:
     Subline();
-    Subline(float,float,float,float);
+    Subline(float,float,float,float,Hms*);
     float trapezoidal(float);
     bool isDOnLine(float);
     float d1;
@@ -27,6 +27,9 @@ class Subline{
     float v2;
     float v3;
     float v4;
+
+  private:
+    Hms* hms;
 };
 
 class Segment {
@@ -35,7 +38,6 @@ class Segment {
     virtual bool completed(float, float);
     virtual float velSetpoint(float, float);
     virtual SegmentType getType();
-
   // protected:
     // completed(float x, float y);
 };
@@ -58,6 +60,7 @@ class Curve: public Segment {
 class Line: public Segment {
   public:
     Line(float,float,float,float,float[MAX_N_TRAPS],float[MAX_N_TRAPS], Hms* hms);
+    Line(Line* line);
     float getDist(float, float);
     bool completed(float, float);
     float velSetpoint(float, float);
@@ -70,7 +73,6 @@ class Line: public Segment {
     float xb;
     float yb;
     Hms* hms;
-
     int nSublines; // temp, make private again
 
   private:
@@ -81,7 +83,7 @@ class Line: public Segment {
     float trapD[MAX_N_TRAPS];
 };
 
-Line copyAndRecalculateTraps(Line* line, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS]);
+Line copyAndRecalculateTraps(Line* line, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms);
 
 class Traj{
   public:

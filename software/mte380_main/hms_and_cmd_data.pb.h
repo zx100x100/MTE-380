@@ -55,6 +55,12 @@ typedef struct _CmdData {
     float simAngXy; 
     float simAngVelXy; 
     float simAngAccXy; /* angular acceleration */
+    float kP_vel; 
+    float kD_vel; 
+    float kI_vel; 
+    float kP_drift; 
+    float kD_drift; 
+    float kI_drift; /* TelemetryMode telemetryMode = 22; */
 } CmdData;
 
 typedef struct _HmsData { 
@@ -94,9 +100,9 @@ extern "C" {
 
 /* Initializer values for message structs */
 #define HmsData_init_default                     {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, 0, ""}
-#define CmdData_init_default                     {0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define CmdData_init_default                     {0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define HmsData_init_zero                        {0, 0, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, 0, 0, 0, 0, 0, ""}
-#define CmdData_init_zero                        {0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define CmdData_init_zero                        {0, 0, 0, _CmdData_RunState_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, _HmsData_LogLevel_MIN, 0, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define CmdData_leftPower_tag                    1
@@ -119,6 +125,12 @@ extern "C" {
 #define CmdData_simAngXy_tag                     18
 #define CmdData_simAngVelXy_tag                  19
 #define CmdData_simAngAccXy_tag                  20
+#define CmdData_kP_vel_tag                       21
+#define CmdData_kD_vel_tag                       22
+#define CmdData_kI_vel_tag                       23
+#define CmdData_kP_drift_tag                     24
+#define CmdData_kD_drift_tag                     25
+#define CmdData_kI_drift_tag                     26
 #define HmsData_batteryVoltage_tag               1
 #define HmsData_nCells_tag                       2
 #define HmsData_mainLogLevel_tag                 3
@@ -171,7 +183,13 @@ X(a, STATIC,   SINGULAR, FLOAT,    simAccX,          16) \
 X(a, STATIC,   SINGULAR, FLOAT,    simAccY,          17) \
 X(a, STATIC,   SINGULAR, FLOAT,    simAngXy,         18) \
 X(a, STATIC,   SINGULAR, FLOAT,    simAngVelXy,      19) \
-X(a, STATIC,   SINGULAR, FLOAT,    simAngAccXy,      20)
+X(a, STATIC,   SINGULAR, FLOAT,    simAngAccXy,      20) \
+X(a, STATIC,   SINGULAR, FLOAT,    kP_vel,           21) \
+X(a, STATIC,   SINGULAR, FLOAT,    kD_vel,           22) \
+X(a, STATIC,   SINGULAR, FLOAT,    kI_vel,           23) \
+X(a, STATIC,   SINGULAR, FLOAT,    kP_drift,         24) \
+X(a, STATIC,   SINGULAR, FLOAT,    kD_drift,         25) \
+X(a, STATIC,   SINGULAR, FLOAT,    kI_drift,         26)
 #define CmdData_CALLBACK NULL
 #define CmdData_DEFAULT NULL
 
@@ -183,7 +201,7 @@ extern const pb_msgdesc_t CmdData_msg;
 #define CmdData_fields &CmdData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define CmdData_size                             161
+#define CmdData_size                             197
 #define HmsData_size                             136
 
 #ifdef __cplusplus

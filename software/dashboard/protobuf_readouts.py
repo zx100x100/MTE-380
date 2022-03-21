@@ -48,12 +48,11 @@ class ReadoutItem:
         self.is_enum = self.detect_whether_item_is_enum()
         self.is_error_info = self.name == ERROR_INFO_FIELD_NAME
 
+        self.is_numeric = type(self.value) in (int, float)
         self.bg_image = self.generate_bg_image()
         self.value_image = self.generate_value_image()
         self.value_text_image = self.generate_value_text_image()
         self.name = name
-
-        self.is_numeric = type(self.value) in (int, float)
 
         self.values = deque([self.value],maxlen=DISPLAY_DATA_POINTS)
         self.plotted_latest_value = False
@@ -99,10 +98,15 @@ class ReadoutItem:
             return self.value_image # blank
         image = pg.Surface(self.value_rect.size).convert_alpha()
         image.fill((0,0,0,0))
+
         # TODO handle different types here so text fits nice eg. .02f
         try:
-            value_surf = self.value_font.render(f'{self.value:.04f}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
-        except:
+            if self.is_numeric:
+                value_surf = self.value_font.render(f'{self.value:.04f}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
+            else:
+                value_surf = self.value_font.render(f'{self.value}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
+        except Exception as e:
+            print(f'err rendering value for {self.name}: {e}')
             value_surf = self.value_font.render(f'{self.value}', True, ITEM_VALUE_FONT_COLOUR if not self.clicked else CLICKED_ITEM_VALUE_FONT_COLOUR)
         value_height = value_surf.get_rect().height
         value_top_offset = (ITEM_VALUE_RECT_HEIGHT - value_height)/2+2
@@ -229,6 +233,10 @@ class Readout:
                             new_name = enum_type.values_by_number[next_enum_num].name
                             setattr(item.proto, item.name, next_enum_num)
                             item.update_value()
+                    return False
+                elif item.name in ('kP_vel', 'kP_drift', 'kD_vel', 'kD_drift'):
+                    val_str = input(f"input new value for {item.name}({item.value}): ")
+                    setattr(item.proto, item.name, float(val_str))
                         #  elif enum_val in CmdData.TelemetryMode.keys():
                             #  enum_num = getattr(item.proto, item.name)
                             #  total = len(CmdData.TelemetryMode.keys())
@@ -237,7 +245,7 @@ class Readout:
                             #  new_name = enum_type.values_by_number[next_enum_num].name
                             #  setattr(item.proto, item.name, next_enum_num)
                             #  item.update_value()
-                        return False
+                    return False
 
                 return item
         return False

@@ -77,7 +77,10 @@ class CornerCircle:
         y_dist = pos[1] - nearest[1]
         dist = (x_dist**2+y_dist**2)**0.5
         desired_length = vel_setpoint / MAX_VEL_SETPOINT * MAX_VEL_INDICATOR_WIDTH/2
-        scalefac = desired_length / dist
+        if dist > 0:
+            scalefac = desired_length / dist
+        else:
+            scalefac = 0
         end_pos_outer = (nearest[0] - x_dist * scalefac, nearest[1] - y_dist * scalefac)
         end_pos_inner = (nearest[0] + x_dist * scalefac, nearest[1] + y_dist * scalefac)
 

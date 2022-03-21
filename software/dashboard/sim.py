@@ -8,11 +8,13 @@ TELEOP_MEDIUM = 120
 TELEOP_FAST = 255
 MAX_TELEOP_POWER = 255
 
-PWR_TO_ACCEL = 0.001
+#  PWR_TO_ACCEL = 0.001
+PWR_TO_ACCEL = 0.1#05
 ACC_LIN_TO_ANG = 80
 
 LINEAR_FRICTION = 0.99
-ANGULAR_FRICTION = 0.97
+ANGULAR_FRICTION = 0.9
+MAX_ANGULAR_VELOCITY = 360 * 5
 
 def sign(x):
     return 1 if x>0 else -1
@@ -22,6 +24,12 @@ def sind(rad):
 
 def cosd(rad):
     return math.cos(math.radians(rad))
+
+def constrain(val, maximum):
+    if val < 0:
+        return max(val, -maximum)
+    else:
+        return min(val, maximum)
 
 class Sim:
     def __init__(self, pb):
@@ -76,6 +84,7 @@ class Sim:
 
         new_time = time.time()
         dt = new_time - self.last_tick
+        #  print(f'dt: {dt}')
         self.last_tick = new_time
 
         prevPosX = self.pb.simPosX
@@ -91,81 +100,117 @@ class Sim:
 
         curLeftAcc = leftPower*PWR_TO_ACCEL
         curRightAcc = rightPower*PWR_TO_ACCEL
+
+        WHEELBASE_TILES = 2/3 * 200 # IDK
+
+        ang_acc = (curLeftAcc-curRightAcc) * WHEELBASE_TILES / 2
+
+        self.pb.simAngAccXy = ang_acc
+
+        self.pb.simAngVelXy = prevAngVelXy + ang_acc * dt
+
+        self.pb.simAngXy = prevAngXy + self.pb.simAngVelXy * dt + ang_acc * dt**2/2
+
+        if self.pb.simAngXy > 360:
+            self.pb.simAngXy -= 360
+        elif self.pb.simAngXy < -360:
+            self.pb.simAngXy += 360
+
+        self.pb.simAngXy = constrain(self.pb.simAngXy, MAX_ANGULAR_VELOCITY)
+
+        avg_acc = (curLeftAcc+curRightAcc)/2
+
+        self.pb.simAccX = avg_acc * cosd(self.pb.simAngXy)
+        self.pb.simAccY = avg_acc * sind(self.pb.simAngXy)
+
+        prevVelAvg = (prevVelX**2+prevVelY**2)**0.5
+
+        self.pb.simVelX = prevVelAvg * cosd(self.pb.simAngXy) + self.pb.simAccX * dt
+        self.pb.simVelY = prevVelAvg * sind(self.pb.simAngXy) + self.pb.simAccY * dt
+
+        self.pb.simPosX = prevPosX + self.pb.simVelX * dt + self.pb.simAccX * dt**2/2
+        self.pb.simPosY = prevPosY + self.pb.simVelY * dt + self.pb.simAccY * dt**2/2
+
+
        
-        angAccMag = abs(curLeftAcc - curRightAcc)
+
         
 
-        linearAcc = 0
-        if (curLeftAcc >= 0 and curRightAcc >= 0) or (curLeftAcc <= 0 and curRightAcc <= 0):
-            linearAccMag = 0
-            if abs(curLeftAcc) > (curRightAcc):
-                linearAccMag = abs(curLeftAcc) - angAccMag
-            else:
-                linearAccMag = abs(curRightAcc) - angAccMag
-            if curLeftAcc < 0:
-                linearAcc = -linearAccMag
-            else:
-                linearAcc = linearAccMag
-
-        else:
-            linearAcc = (curLeftAcc + curRightAcc)/2
-            linearAccMag = abs(linearAcc)
-
-        if curLeftAcc < curRightAcc:
-            angAccMag = -angAccMag
+        #  angAccMag = abs(curLeftAcc - curRightAcc)
         
-        angAcc = angAccMag*ACC_LIN_TO_ANG
-        #  print(f'angAcc: {angAcc}')
 
-        curAccX = linearAcc*cosd(prevAngXy)
-        #  print(f'curAccX: {curAccX}')
-        curAccY = linearAcc*sind(prevAngXy)
-        #  print(f'curAccY: {curAccY}')
+
+        #  linearAcc = 0
+        #  if (curLeftAcc >= 0 and curRightAcc >= 0) or (curLeftAcc <= 0 and curRightAcc <= 0):
+            #  linearAccMag = 0
+            #  if abs(curLeftAcc) > (curRightAcc):
+                #  linearAccMag = abs(curLeftAcc) - angAccMag
+            #  else:
+                #  linearAccMag = abs(curRightAcc) - angAccMag
+            #  if curLeftAcc < 0:
+                #  linearAcc = -linearAccMag
+            #  else:
+                #  linearAcc = linearAccMag
+
+        #  else:
+            #  linearAcc = (curLeftAcc + curRightAcc)/2
+            #  linearAccMag = abs(linearAcc)
+
+        #  if curLeftAcc < curRightAcc:
+            #  angAccMag = -angAccMag
         
-        curVelX = prevVelX + curAccX
-        curVelY = prevVelY + curAccY
-        #  print(f'curVelX before dot: {curVelX}')
+        #  angAcc = angAccMag*ACC_LIN_TO_ANG
+        #  #  print(f'angAcc: {angAcc}')
+
+        #  curAccX = linearAcc*cosd(prevAngXy)
+        #  #  print(f'curAccX: {curAccX}')
+        #  curAccY = linearAcc*sind(prevAngXy)
+        #  #  print(f'curAccY: {curAccY}')
         
-        signX = sign(curVelX)
-        signY = sign(curVelY)
-
-        vTotal = (curVelX**2+curVelY**2)**0.5
+        #  curVelX = prevVelX + curAccX
+        #  curVelY = prevVelY + curAccY
+        #  #  print(f'curVelX before dot: {curVelX}')
         
-        curVelX2 = numpy.dot([curVelX, 0], prevAngVector)
-        curVelY2 = numpy.dot([0, curVelY], prevAngVector) * sign(curVelY)
-        if sign(curVelX2) != signX:
-            curVelX2 *= -1
-        if sign(curVelY2) != signY:
-            curVelY2 *= -1
+        #  signX = sign(curVelX)
+        #  signY = sign(curVelY)
 
-        curVelX = curVelX * 0.5 + curVelX2 * 0.5
-        curVelY = curVelY * 0.5 + curVelY2 * 0.5
-
-        #  vTotal2 = (curVelX**2+curVelY**2)**0.5
-
-        #  if vTotal2:
-            #  curVelX *= vTotal/vTotal2
-            #  curVelY *= vTotal/vTotal2
+        #  vTotal = (curVelX**2+curVelY**2)**0.5
         
-        #  print(f'curVelX after dot: {curVelX}')
+        #  curVelX2 = numpy.dot([curVelX, 0], prevAngVector)
+        #  curVelY2 = numpy.dot([0, curVelY], prevAngVector) * sign(curVelY)
+        #  if sign(curVelX2) != signX:
+            #  curVelX2 *= -1
+        #  if sign(curVelY2) != signY:
+            #  curVelY2 *= -1
 
-        curPosX = prevPosX + curVelX*dt + 0.5*curAccX*dt**2
-        curPosY = prevPosY + curVelY*dt + 0.5*curAccY*dt**2
+        #  curVelX = curVelX * 0.5 + curVelX2 * 0.5
+        #  curVelY = curVelY * 0.5 + curVelY2 * 0.5
 
-        curAngAccXy = angAccMag*ACC_LIN_TO_ANG
+        #  #  vTotal2 = (curVelX**2+curVelY**2)**0.5
+
+        #  #  if vTotal2:
+            #  #  curVelX *= vTotal/vTotal2
+            #  #  curVelY *= vTotal/vTotal2
         
-        curAngVelXy = prevAngVelXy + curAngAccXy
+        #  #  print(f'curVelX after dot: {curVelX}')
 
-        curAngXy = prevAngXy + curAngVelXy*dt + 0.5*curAngAccXy*dt**2
+        #  curPosX = prevPosX + curVelX*dt + 0.5*curAccX*dt**2
+        #  curPosY = prevPosY + curVelY*dt + 0.5*curAccY*dt**2
 
-        self.pb.simPosX = curPosX
-        #  print(f'curPosX: {curPosX}')
-        #  print(f'curPosY: {curPosY}')
-        self.pb.simPosY = curPosY
-        self.pb.simVelX = curVelX
-        self.pb.simVelY = curVelY
-        self.pb.simAccX = curAccX
-        self.pb.simAccY = curAccY
-        self.pb.simAngXy = curAngXy
-        self.pb.simAngVelXy = curAngVelXy
-        self.pb.simAngAccXy = curAngAccXy
+        #  curAngAccXy = angAccMag*ACC_LIN_TO_ANG
+        
+        #  curAngVelXy = prevAngVelXy + curAngAccXy
+
+        #  curAngXy = prevAngXy + curAngVelXy*dt + 0.5*curAngAccXy*dt**2
+
+        #  self.pb.simPosX = curPosX
+        #  #  print(f'curPosX: {curPosX}')
+        #  #  print(f'curPosY: {curPosY}')
+        #  self.pb.simPosY = curPosY
+        #  self.pb.simVelX = curVelX
+        #  self.pb.simVelY = curVelY
+        #  self.pb.simAccX = curAccX
+        #  self.pb.simAccY = curAccY
+        #  self.pb.simAngXy = curAngXy
+        #  self.pb.simAngVelXy = curAngVelXy
+        #  self.pb.simAngAccXy = curAngAccXy

@@ -6,7 +6,7 @@ from proto.hms_and_cmd_data_pb2 import (HmsData, CmdData)
 
 from protobuf_readouts import ProtobufReadouts
 
-N_TRAPS = 8
+import constants
 
 class PbData:
     def __init__(self, pb):
@@ -34,8 +34,15 @@ class Data:
         self.cmd.pb.runState = CmdData.RunState.E_STOP
         #  for i in range(len(self.cmd.pb.trapX)):
             #  self.cmd.pb.trapX[i] = self.cmd.pb.trapY[i] = -1
-        self.cmd.pb.trapX.extend([-1] * N_TRAPS)
-        self.cmd.pb.trapY.extend([-1] * N_TRAPS)
+        self.cmd.pb.trapX.extend([-1] * constants.N_TRAPS)
+        self.cmd.pb.trapY.extend([-1] * constants.N_TRAPS)
+        self.cmd.pb.kP_vel = constants.KP_VEL
+        self.cmd.pb.kI_vel = constants.KI_VEL
+        self.cmd.pb.kD_vel = constants.KD_VEL
+        self.cmd.pb.kP_drift = constants.KP_DRIFT
+        self.cmd.pb.kI_drift = constants.KI_DRIFT
+        self.cmd.pb.kD_drift = constants.KD_DRIFT
+        self.cmd.pb.guidanceLogLevel = HmsData.LogLevel.OVERKILL
         self.nav = PbData(NavData())
         self.guidance = PbData(GuidanceData())
         self.hms = PbData(HmsData())
@@ -64,8 +71,6 @@ class Data:
         #  print(f'raw: {raw}')
         for raw_msg, msg in zip(raw.split(b':::'),self.incoming):
             msg.parse_new(raw_msg)
-
-        #  print(f'self.nav.pb.posX: {self.nav.pb.posX}')
         #  print(f'self.imu.pb.gyroZ: {self.imu.pb.gyroZ}')
     
     # read the same value into the data array when disconnected so i can test my dang plots

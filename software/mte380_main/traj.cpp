@@ -3,40 +3,67 @@
 
 #define CURVE_RADIUS 0.5 // tiles
 #define CURVE_SPEED 1 // tiles/s
-#define ACC 3 // tiles/s^2
-#define VMAX 8 // tiles/s^2
-#define TRAP_SPEED 4 // tiles/s
+#define ACC 12 // tiles/s^2
+#define VMAX 3 // tiles/s^2
+#define TRAP_SPEED 2 // tiles/s
 #define EPSILON 0.000001 // for float equality
 
-Line copyAndRecalculateTraps(Line* line, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS]){
-  return Line(line->xa, line->ya, line->xb, line->yb, trapX, trapY, line->hms);
-}
+/* Line::Line(float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms){ */
+/* } */
+
+/* Line copyAndRecalculateTraps(Line* line, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms){ */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.println("copyAndRecalculateTraps"); } */
+  /* return Line(line->xa, line->ya, line->xb, line->yb, trapX, trapY, line->hms); */
+/* } */
 
 
 Subline::Subline(){}
-Subline::Subline(float d1, float d4, float v1, float v4):
+Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
   d1(d1),
   d4(d4),
   v1(v1),
-  v4(v4)
+  v4(v4),
+  hms(hms)
 {
-  d2 = (pow(VMAX,2) - pow(v1,2))/(2*ACC) - d1;
+  d2 = d1 + (pow(VMAX,2) - pow(v1,2))/(2*ACC);// - d1;
   d3 = d4 - (pow(VMAX,2)-pow(v4,2))/(2*ACC);
   dt = 0.5*((pow(v4,2)-pow(v1,2))/(2*ACC) + d1 + d4);
 }
 
 float Subline::trapezoidal(float d){
   // Serial.println("trapezoidal");
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("trapezoidal"); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d2: "); Serial.println(d2); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d3: "); Serial.println(d3); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d4: "); Serial.println(d4); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("dt: "); Serial.println(dt); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("v1: "); Serial.println(v1); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("v4: "); Serial.println(v4); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d: "); Serial.println(d); }
   if (d3 < d2){
+    if (dt < d1){
+      if(hms->data.guidanceLogLevel >= 2){ Serial.println("dt < d1"); }
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("v1+(v4-v1)*(d-d1)/(d4-d1): "); Serial.println(v1+(v4-v1)*(d-d1)/(d4-d1)); }
+      return v1+(v4-v1)*(d-d1)/(d4-d1);
+    }
     if (d < dt){
+      if(hms->data.guidanceLogLevel >= 2){ Serial.println("d < dt"); }
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("pow(2*ACC*(d-d1)+pow(v1,2),0.5): "); Serial.println(pow(2*ACC*(d-d1)+pow(v1,2),0.5)); }
       return pow(2*ACC*(d-d1)+pow(v1,2),0.5);
     }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.println("d > dt"); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("pow(pow(v4,2)+2*ACC*(d4-d),0.5): "); Serial.println(pow(pow(v4,2)+2*ACC*(d4-d),0.5)); }
     return pow(pow(v4,2)+2*ACC*(d4-d),0.5);
   }
   if (d<d2){
-      return pow(2*ACC*(d-d1)+pow(v1,2),0.5);
+    if(hms->data.guidanceLogLevel >= 2){ Serial.println("d<d2"); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("pow(2*ACC*(d-d1)+pow(v1,2),0.5): "); Serial.println(pow(2*ACC*(d-d1)+pow(v1,2),0.5)); }
+    return pow(2*ACC*(d-d1)+pow(v1,2),0.5);
   }
   if (d<d3){
+    if(hms->data.guidanceLogLevel >= 2){ Serial.println("d<d3"); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("VMAX: "); Serial.println(VMAX); }
     return VMAX;
   }
   return pow(pow(v4,2)+2*ACC*(d4-d),0.5);
@@ -63,15 +90,20 @@ float Line::velSetpoint(float xp, float yp){
     if(hms->data.guidanceLogLevel >= 2){ Serial.println("loop?"); }
     /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("dp: "); Serial.println(dp); } */
     /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[i].isDOnLine(dp): "); Serial.println(sublines[i].isDOnLine(dp)); } */
-    if (sublines[i].isDOnLine(dp)){
-      if (orientation == -1){
+    if (sublines[i].isDOnLine(dp+EPSILON) || sublines[i].isDOnLine(dp-EPSILON)){
+      if (orientation == -1 && false){
         // if the line segment goes bottom to top or right to left, that means we reversed our d1 and d4
         // which means that we need to mirror our d across the center of the line segment.
-        float fromStart = dp - sublines[i].d1; 
+        /* float fromStart = dp - sublines[i].d1;  */
+        float fromStart = sublines[i].d4 - dp; 
         /* now make d be the same distance from d4 as it was from d1: */
-        dp = sublines[i].d4 - fromStart;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("fromStart: "); Serial.println(fromStart); }
+        dp = sublines[i].d1 + fromStart;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("dp: "); Serial.println(dp); }
         /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("TRUEdp: "); Serial.println(dp); } */
       }
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("dp: "); Serial.println(dp); }
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("BLAHHHHHHHHH nTraps: "); Serial.println(nTraps); } */
       return sublines[i].trapezoidal(dp);
     }
   }
@@ -86,6 +118,7 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
   yb(yb),
   hms(hms)
 {
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("Line::init"); }
   horizontal = ya == yb;
   if (horizontal){
     orientation = xa > xb ? -1 : 1;
@@ -94,50 +127,76 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
     orientation = ya > yb ? -1 : 1;
   }
   
-  float included[MAX_N_TRAPS] = {-1};
+  float included[MAX_N_TRAPS];
   nTraps = 0;
 
   for (int i=0; i<MAX_N_TRAPS; i++){
     if (isPointOnLine(trapX[i], trapY[i])){
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("Trap "); Serial.print(i); Serial.println(" found on line");}
       included[i] = 0;
       nTraps++;
     }
+    else{
+      included[i] = -1;
+    }
   }
   int nIncluded = 0;
+  int nIterations = 0;
+  int MAX_ITERATIONS = 100;
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("begin line init trap loop"); }
   while(nIncluded < nTraps){
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("nIncluded: "); Serial.println(nIncluded); }
+    if(nIterations++ > MAX_ITERATIONS){
+      Serial.println("LOOP DIDNT EXIT, FIX UR SHIT KAELAN!!!!!!!!");
+      while(true){
+        sleep(100);
+      }
+      break;
+    }
     for (int i=0; i<MAX_N_TRAPS; i++){
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("starting candidate i="); Serial.println(i); }
       // candidate i.
       // must be: not already in array (order 1)
       //          be off the line (order -1)
       //          be LATER than any other NOT INCLUDED (so order != 1) yet valid (order > -1) candidate
       if (included[i] == -1 || included[i] == 1){
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("skipping, included[i]: "); Serial.println(included[i]); }
         continue;
       }
       bool foundOtherCandidate = false;
       for (int j=0; j<MAX_N_TRAPS; j++){
-        if (i == j || included[j] == -2 || included[j] == 1){
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("starting alt-candidate j="); Serial.println(j); }
+        if (i == j || included[j] == -1 || included[j] == 1){
+          if(hms->data.guidanceLogLevel >= 2){ Serial.println("skipping"); }
           continue;
         }
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("included[j]: "); Serial.println(included[j]); }
         /* if (isFirstPointSooner(trapX[j],trapY[j],trapX[i],trapY[i])){ */
         if (isFirstPointLower(trapX[j],trapY[j],trapX[i],trapY[i])){
+          if(hms->data.guidanceLogLevel >= 2){ Serial.print("trap j="); Serial.print(j); Serial.print(" was encountered sooner than i="); Serial.print(i); Serial.println(", breaking");}
           foundOtherCandidate = true;
           break;
         }
       }
       if (foundOtherCandidate){
-        break;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.println("foundOtherCandidate=true, continuing outer candidate loop"); }
+        continue;
       }
+      if(hms->data.guidanceLogLevel >= 2){ Serial.println("setting trapD thing, incrementing nIncluded"); }
       trapD[nIncluded++]=horizontal?trapX[i]:trapY[i];
       included[i] = 1;
     }
   }
+
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("nIncluded: "); Serial.println(nIncluded); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("trapD[0]: "); Serial.println(trapD[0]); }
 
   /* if(hms->data.guidanceLogLevel >= 2){ Serial.println("begin subline creation"); } */
   /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("nTraps: "); Serial.println(nTraps); } */
   /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("orientation: "); Serial.println(orientation); } */
   /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("horizontal: "); Serial.println(horizontal); } */
   int nTrapsUsedInASubline = 0;
-  nSublines = 0;
+  int lastSubline = -1;
   float da;
   float db;
   if (horizontal){
@@ -154,7 +213,7 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
     float v1;
     float v4;
     // assign left
-    if (nSublines == 0){
+    if (lastSubline == -1){
       if (orientation == 1){
         d1 = da;
         if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
@@ -163,17 +222,25 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
       else{
         d4 = da;
         if(hms->data.guidanceLogLevel >= 2){ Serial.print("d4: "); Serial.println(d4); }
-        v4 = CURVE_SPEED;
+        if(da<3.5+EPSILON && da>3.5-EPSILON){ // if this is the starting line segment, start with v=0
+          v4 = 0;
+        }
+        else{
+          v4 = CURVE_SPEED;
+        }
       }
     }
     else{
       if (orientation == 1){
-        d1 = sublines[nSublines].d4;
-        v1 = sublines[nSublines].v4;
+        d1 = sublines[lastSubline].d4;
+        v1 = sublines[lastSubline].v4;
       }
       else{
-        d4 = sublines[nSublines].d4;
-        v4 = sublines[nSublines].v4;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.println("Should be assigning d4=2"); }
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("lastSubline: "); Serial.println(lastSubline); }
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[lastSubline]: "); Serial.println(sublines[lastSubline].d1); }
+        d4 = sublines[lastSubline].d1;
+        v4 = sublines[lastSubline].v1;
       }
     }
 
@@ -181,31 +248,46 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
     if (nTraps-nTrapsUsedInASubline == 0){ // should end with main line seg ending
       if (orientation == 1){
         d4 = db;
-        if(hms->data.guidanceLogLevel >= 2){ Serial.print("_____d4: "); Serial.println(d4); }
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("ending w main line seg: d4: "); Serial.println(d4); }
         v4 = CURVE_SPEED;
       }
-      else{
+      else{ // ends with next trap
         d1 = db;
-        if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1_blah: "); Serial.println(d1); }
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("ending w main line seg: d1: "); Serial.println(d1); }
         v1 = CURVE_SPEED;
       }
     }
     else{ // create a subline ending w/ start of next trap followed by a trap subline
+      bool skipPreTrapSubline = false; // skip if this is the 0th subline and also a trap
       if (orientation == 1){
-        // trapD is a distance along its axis in units of tiles
-        d4 = trapD[nTrapsUsedInASubline]+0.5;
-        v4 = TRAP_SPEED;
+        if (trapD[nTrapsUsedInASubline] - 0.5 == d1){
+          skipPreTrapSubline = true;
+        }
       }
-      else {
-        d1 = trapD[nTrapsUsedInASubline]-0.5;
-        v1 = TRAP_SPEED;
+      else{
+        if (trapD[nTrapsUsedInASubline] + 0.5 == d4){
+          skipPreTrapSubline = true;
+        }
       }
-      if (nSublines > MAX_N_TRAPS-1){
-        Serial.println("TOO MANY SUBLINES!!!!!!");
-        return;
+      if (!skipPreTrapSubline){
+        if (orientation == 1){
+          // trapD is a distance along its axis in units of tiles
+          d4 = trapD[nTrapsUsedInASubline]-0.5;
+          v4 = TRAP_SPEED;
+        }
+        else {
+          if(hms->data.guidanceLogLevel >= 2){ Serial.print("trapD[nTrapsUsedInASubline]: "); Serial.println(trapD[nTrapsUsedInASubline]); }
+          d1 = trapD[nTrapsUsedInASubline]+0.5;
+          v1 = TRAP_SPEED;
+        }
+        if (lastSubline > MAX_N_TRAPS-1){
+          Serial.println("TOO MANY SUBLINES!!!!!!");
+          return;
+        }
+        sublines[++lastSubline] = Subline(d1, d4, v1, v4, hms);
+        nTrapsUsedInASubline++;
       }
-      sublines[nSublines++] = Subline(d1, d4, v1, v4);
-      nTrapsUsedInASubline++;
+      // set up trap subline
       if (orientation == 1){
         d1 = d4;
         d4 = d1+1;
@@ -232,36 +314,66 @@ Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], flo
         }
       }
     }
-    if (nSublines > MAX_N_TRAPS-1){
+    if (lastSubline > MAX_N_TRAPS-1){
       Serial.println("TOO MANY SUBLINES!!!!!!");
       return;
     }
     else{
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); }
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("x lastSubline: "); Serial.println(lastSubline); }
     }
-    sublines[nSublines] = Subline(d1, d4, v1, v4);
+    sublines[++lastSubline] = Subline(d1, d4, v1, v4, hms);
     if (orientation == 1){
-      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4+EPSILON: "); Serial.println(sublines[nSublines].d4 + EPSILON); } */
+      if(hms->data.guidanceLogLevel >= 2){ Serial.println("stuff123"); }
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[lastSubline].d4+EPSILON: "); Serial.println(sublines[lastSubline].d4 + EPSILON); } */
       /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("db: "); Serial.println(db); } */
-      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d4+EPSILON >= db: "); Serial.println(sublines[nSublines].d4+EPSILON >= db); } */
-      if (sublines[nSublines].d4+EPSILON >= db){
-        nSublines++;
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[lastSubline].d4+EPSILON >= db: "); Serial.println(sublines[lastSubline].d4+EPSILON >= db); } */
+      heap_caps_check_integrity(MALLOC_CAP_8BIT, true);
+      if (sublines[lastSubline].d4+EPSILON >= db){
         break;
       }
     }
     else{
-      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d1-EPSILON: "); Serial.println(sublines[nSublines].d1-EPSILON); } */
+      if(hms->data.guidanceLogLevel >= 2){ Serial.println("stuff789"); }
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[lastSubline].d1-EPSILON: "); Serial.println(sublines[lastSubline].d1-EPSILON); } */
       /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("db: "); Serial.println(db); } */
-      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[nSublines].d1-EPSILON <= db: "); Serial.println(sublines[nSublines].d1-EPSILON <= db); } */
-      if (sublines[nSublines].d1-EPSILON <= db){
-        nSublines++;
+      /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[lastSubline].d1-EPSILON <= db: "); Serial.println(sublines[lastSubline].d1-EPSILON <= db); } */
+      if (sublines[lastSubline].d1-EPSILON <= db){
+        if(hms->data.guidanceLogLevel >= 2){ Serial.println("break????"); }
         /* if(hms->data.guidanceLogLevel >= 2){ Serial.println("breaking"); } */
         break;
       }
     }
-    nSublines++;
   }
-  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); } */
+  nSublines = lastSubline + 1;
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); }
+
+  heap_caps_check_integrity(MALLOC_CAP_8BIT, true);
+  if (nSublines > 1){
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].d1: "); Serial.println(sublines[0].d1); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].d2: "); Serial.println(sublines[0].d2); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].d3: "); Serial.println(sublines[0].d3); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].d4: "); Serial.println(sublines[0].d4); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].v1: "); Serial.println(sublines[0].v1); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].v2: "); Serial.println(sublines[0].v2); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].v3: "); Serial.println(sublines[0].v3); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].v4: "); Serial.println(sublines[0].v4); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].d1: "); Serial.println(sublines[1].d1); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].d2: "); Serial.println(sublines[1].d2); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].d3: "); Serial.println(sublines[1].d3); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].d4: "); Serial.println(sublines[1].d4); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].v1: "); Serial.println(sublines[1].v1); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].v2: "); Serial.println(sublines[1].v2); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].v3: "); Serial.println(sublines[1].v3); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[1].v4: "); Serial.println(sublines[1].v4); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].d1: "); Serial.println(sublines[2].d1); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].d2: "); Serial.println(sublines[2].d2); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].d3: "); Serial.println(sublines[2].d3); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].d4: "); Serial.println(sublines[2].d4); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].v1: "); Serial.println(sublines[2].v1); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].v2: "); Serial.println(sublines[2].v2); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].v3: "); Serial.println(sublines[2].v3); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[2].v4: "); Serial.println(sublines[2].v4); }
+  }
 }
 
 SegmentType Line::getType(){
@@ -313,10 +425,20 @@ bool Line::isPointOnLine(float xp, float yp){
 
 float Line::getDist(float xp, float yp){
   if (horizontal){
-    return xa-xp;
+    if (orientation == -1){
+      return yp - ya;
+    }
+    else{
+      return ya - yp;
+    }
   }
   else{
-    return ya-yp;
+    if (orientation == -1){
+      return xa - xp;
+    }
+    else{
+      return xp - xa;
+    }
   }
 }
 
@@ -413,14 +535,23 @@ void Traj::init(){
 
 // returns true if cmdData contanis new traps
 bool Traj::trapsChanged(){
-  return cmdData->nTraps != nTraps;
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("cmdData-nTraps: "); Serial.println(cmdData->nTraps); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("nTraps: "); Serial.println(nTraps); }
+  bool changed = cmdData->nTraps != nTraps;
+  nTraps = cmdData->nTraps;
+  return changed;
 }
 
 void Traj::updateTraps(){
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Traj::updateTraps()");
-  for (int i=0; i<NUM_SEGMENTS; i++){
+  for (int i=0; NUM_SEGMENTS; i++){
     if (segments[i]->getType() == LINE){
-      *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY);
+      /* *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY, hms); */
+  /* return Line(line->xa, line->ya, line->xb, line->yb, trapX, trapY, line->hms); */
+      Line* tempLine = static_cast<Line*>(segments[i]);
+      Line* newLine = new Line(tempLine->xa, tempLine->ya, tempLine->xb, tempLine->yb, cmdData->trapX, cmdData->trapY, hms);
+      delete segments[i];
+      segments[i] = newLine;
     }
   }
   /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("segments[0]->nSublines: "); Serial.println(segments[0]->nSublines); } */

@@ -2,6 +2,15 @@ from enum import Enum
 import numpy as np
 from proto.hms_and_cmd_data_pb2 import CmdData
 
+
+KP_VEL = 100.0
+KI_VEL = 0.0
+KD_VEL = 0.0
+KP_DRIFT = 150.0
+KI_DRIFT = 0.0
+KD_DRIFT = 180.0
+
+N_TRAPS = 8
 #  MAX_DATA_POINTS = 100
 PLOT_SIZE = (200,140) # pixels for the size of the inner plot
 DISPLAY_DATA_POINTS = PLOT_SIZE[0]

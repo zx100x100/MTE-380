@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1cproto/hms_and_cmd_data.proto\"\xd7\x03\n\x07HmsData\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x01 \x01(\x02\x12\x0e\n\x06nCells\x18\x02 \x01(\r\x12\'\n\x0cmainLogLevel\x18\x03 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x04 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x17\n\x0fnetworkTickRate\x18\x07 \x01(\r\x12\x14\n\x0cmainTickRate\x18\x08 \x01(\r\x12\x17\n\x0fsensorsTickRate\x18\t \x01(\r\x12\x18\n\x10\x63ombinedTickRate\x18\n \x01(\r\x12\x1b\n\x13longestCombinedTick\x18\x0b \x01(\r\x12\x0e\n\x06nTicks\x18\x0c \x01(\r\x12\x11\n\terrorInfo\x18\r \x01(\t\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tWTF_AHMAD\x10\x01\"/\n\x08LogLevel\x12\n\n\x06NORMAL\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0c\n\x08OVERKILL\x10\x02\"\x99\x04\n\x07\x43mdData\x12\x11\n\tleftPower\x18\x01 \x01(\x02\x12\x12\n\nrightPower\x18\x02 \x01(\x02\x12\x11\n\tpropPower\x18\x03 \x01(\x02\x12#\n\x08runState\x18\x04 \x01(\x0e\x32\x11.CmdData.RunState\x12\'\n\x0cmainLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x07 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x08 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x0e\n\x06nTraps\x18\t \x01(\r\x12\r\n\x05trapX\x18\n \x03(\x02\x12\r\n\x05trapY\x18\x0b \x03(\x02\x12\x0f\n\x07simPosX\x18\x0c \x01(\x02\x12\x0f\n\x07simPosY\x18\r \x01(\x02\x12\x0f\n\x07simVelX\x18\x0e \x01(\x02\x12\x0f\n\x07simVelY\x18\x0f \x01(\x02\x12\x0f\n\x07simAccX\x18\x10 \x01(\x02\x12\x0f\n\x07simAccY\x18\x11 \x01(\x02\x12\x10\n\x08simAngXy\x18\x12 \x01(\x02\x12\x13\n\x0bsimAngVelXy\x18\x13 \x01(\x02\x12\x13\n\x0bsimAngAccXy\x18\x14 \x01(\x02\"5\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x12\x07\n\x03SIM\x10\x03\x62\x06proto3'
+  serialized_pb=b'\n\x1cproto/hms_and_cmd_data.proto\"\xd7\x03\n\x07HmsData\x12\x16\n\x0e\x62\x61tteryVoltage\x18\x01 \x01(\x02\x12\x0e\n\x06nCells\x18\x02 \x01(\r\x12\'\n\x0cmainLogLevel\x18\x03 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x04 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x17\n\x0fnetworkTickRate\x18\x07 \x01(\r\x12\x14\n\x0cmainTickRate\x18\x08 \x01(\r\x12\x17\n\x0fsensorsTickRate\x18\t \x01(\r\x12\x18\n\x10\x63ombinedTickRate\x18\n \x01(\r\x12\x1b\n\x13longestCombinedTick\x18\x0b \x01(\r\x12\x0e\n\x06nTicks\x18\x0c \x01(\r\x12\x11\n\terrorInfo\x18\r \x01(\t\"\'\n\x05\x45rror\x12\x0f\n\x0bLOW_BATTERY\x10\x00\x12\r\n\tWTF_AHMAD\x10\x01\"/\n\x08LogLevel\x12\n\n\x06NORMAL\x10\x00\x12\t\n\x05\x44\x45\x42UG\x10\x01\x12\x0c\n\x08OVERKILL\x10\x02\"\xff\x04\n\x07\x43mdData\x12\x11\n\tleftPower\x18\x01 \x01(\x02\x12\x12\n\nrightPower\x18\x02 \x01(\x02\x12\x11\n\tpropPower\x18\x03 \x01(\x02\x12#\n\x08runState\x18\x04 \x01(\x0e\x32\x11.CmdData.RunState\x12\'\n\x0cmainLogLevel\x18\x05 \x01(\x0e\x32\x11.HmsData.LogLevel\x12*\n\x0fsensorsLogLevel\x18\x06 \x01(\x0e\x32\x11.HmsData.LogLevel\x12&\n\x0bnavLogLevel\x18\x07 \x01(\x0e\x32\x11.HmsData.LogLevel\x12+\n\x10guidanceLogLevel\x18\x08 \x01(\x0e\x32\x11.HmsData.LogLevel\x12\x0e\n\x06nTraps\x18\t \x01(\r\x12\r\n\x05trapX\x18\n \x03(\x02\x12\r\n\x05trapY\x18\x0b \x03(\x02\x12\x0f\n\x07simPosX\x18\x0c \x01(\x02\x12\x0f\n\x07simPosY\x18\r \x01(\x02\x12\x0f\n\x07simVelX\x18\x0e \x01(\x02\x12\x0f\n\x07simVelY\x18\x0f \x01(\x02\x12\x0f\n\x07simAccX\x18\x10 \x01(\x02\x12\x0f\n\x07simAccY\x18\x11 \x01(\x02\x12\x10\n\x08simAngXy\x18\x12 \x01(\x02\x12\x13\n\x0bsimAngVelXy\x18\x13 \x01(\x02\x12\x13\n\x0bsimAngAccXy\x18\x14 \x01(\x02\x12\x0e\n\x06kP_vel\x18\x15 \x01(\x02\x12\x0e\n\x06kD_vel\x18\x16 \x01(\x02\x12\x0e\n\x06kI_vel\x18\x17 \x01(\x02\x12\x10\n\x08kP_drift\x18\x18 \x01(\x02\x12\x10\n\x08kD_drift\x18\x19 \x01(\x02\x12\x10\n\x08kI_drift\x18\x1a \x01(\x02\"5\n\x08RunState\x12\n\n\x06\x45_STOP\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x12\x07\n\x03SIM\x10\x03\x62\x06proto3'
 )
 
 
@@ -109,8 +109,8 @@ _CMDDATA_RUNSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=991,
-  serialized_end=1044,
+  serialized_start=1093,
+  serialized_end=1146,
 )
 _sym_db.RegisterEnumDescriptor(_CMDDATA_RUNSTATE)
 
@@ -381,6 +381,48 @@ _CMDDATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='kP_vel', full_name='CmdData.kP_vel', index=20,
+      number=21, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='kD_vel', full_name='CmdData.kD_vel', index=21,
+      number=22, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='kI_vel', full_name='CmdData.kI_vel', index=22,
+      number=23, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='kP_drift', full_name='CmdData.kP_drift', index=23,
+      number=24, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='kD_drift', full_name='CmdData.kD_drift', index=24,
+      number=25, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='kI_drift', full_name='CmdData.kI_drift', index=25,
+      number=26, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -395,7 +437,7 @@ _CMDDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=507,
-  serialized_end=1044,
+  serialized_end=1146,
 )
 
 _HMSDATA.fields_by_name['mainLogLevel'].enum_type = _HMSDATA_LOGLEVEL

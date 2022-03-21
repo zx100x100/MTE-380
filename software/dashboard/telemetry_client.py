@@ -38,6 +38,7 @@ class TelemetryClient(threading.Thread):
                 push_time = new_time - before_tick
                 #  time.sleep(0.1)
                 self.pull()
+                
                 new_time2 = time.time()
                 pull_time = new_time2 - new_time
                 if pull_time > longest_pull:

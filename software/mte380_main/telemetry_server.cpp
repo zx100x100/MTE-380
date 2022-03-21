@@ -171,6 +171,13 @@ bool TelemetryServer::update(){
         hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
         hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
         hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
+        guidanceData.kP_vel = cmdData.kP_vel;
+        guidanceData.kD_vel = cmdData.kD_vel;
+        // if(hms->data.guidanceLogLevel >= 2){ Serial.print("guidanceData.kD_vel: "); Serial.println(guidanceData.kD_vel); }
+        guidanceData.kI_vel = cmdData.kI_vel;
+        guidanceData.kP_drift = cmdData.kP_drift;
+        guidanceData.kD_drift = cmdData.kD_drift;
+        guidanceData.kI_drift = cmdData.kI_drift;
         client.flush();
       }
       // if (cmdData.telemetryMode == CmdData_TelemetryMode_FULL ||

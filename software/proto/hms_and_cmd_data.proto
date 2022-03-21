@@ -59,5 +59,11 @@ message CmdData{
   float simAngXy = 18;
   float simAngVelXy = 19;
   float simAngAccXy = 20; // angular acceleration
+  float kP_vel = 21;
+  float kD_vel = 22;
+  float kI_vel = 23;
+  float kP_drift = 24;
+  float kD_drift = 25;
+  float kI_drift = 26;
   // TelemetryMode telemetryMode = 22;
 }

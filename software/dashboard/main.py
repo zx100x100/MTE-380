@@ -21,6 +21,8 @@ from constants import *
 SERVER_PORT = network_setup.SERVER_PORT
 SERVER_IP = network_setup.network_setup()
 
+SIM_USE_GUIDANCE_PID = False
+
 PROP_POWER_THROTTLE_INCREMENT = 20
 
 # 720 x 720 @ 10 PIXELS_PER_INCH
@@ -77,7 +79,7 @@ class App:
                 y = int(self.data.nav.pb.posY * PIXELS_PER_TILE)
                 self.robot.rect.centerx = x
                 self.robot.rect.centery = y
-                print(f'set robot to nav data. x: {x} | {self.data.nav.pb.posX}, y: {y}, robot.rect.center: {self.robot.rect.center}')
+                #  print(f'set robot to nav data. x: {x} | {self.data.nav.pb.posX}, y: {y}, robot.rect.center: {self.robot.rect.center}')
             except:
                 print("error setting posX/posY from nav data:")
                 print(f'self.data.nav.pb.posX: {self.data.nav.pb.posX}')
@@ -185,7 +187,11 @@ class App:
             self.data.cmd.pb.propPower = min(self.data.cmd.pb.propPower + PROP_POWER_THROTTLE_INCREMENT, 255)
 
         if self.data.cmd.pb.runState in (CmdData.RunState.TELEOP, CmdData.RunState.SIM):
-            left_power, right_power = self.sim.keys_to_motor_power(self.keys)
+            if SIM_USE_GUIDANCE_PID and self.telemetry_client.connected:
+                left_power = self.data.guidance.pb.leftTotalPID
+                right_power = self.data.guidance.pb.rightTotalPID
+            else:
+                left_power, right_power = self.sim.keys_to_motor_power(self.keys)
             if self.data.cmd.pb.runState is CmdData.RunState.TELEOP:
                 self.data.cmd.pb.leftPower = left_power
                 self.data.cmd.pb.rightPower = right_power
@@ -196,7 +202,7 @@ class App:
 
     def main_loop(self):
         while(True):
-
+            #  self.data.nav.pb.posX
             # edge detect: switching into sim mode should reset position
             if self.prev_run_state is not CmdData.RunState.SIM and self.data.cmd.pb.runState is CmdData.RunState.SIM:
                 # TODO MOVE THIS CODE SOMEWHEREE -------------------------- OVER THE RAINBOW -----------------------------------
@@ -212,7 +218,11 @@ class App:
                 self.data.cmd.pb.simVelX = 0
                 self.data.cmd.pb.simAngVelXy = 0
                 self.data.cmd.pb.simAngXy = 180
-                self.data.nav.pb = NavData()
+                nav_zeros = NavData()
+
+                nav_fields = self.data.nav.pb.DESCRIPTOR.fields_by_name.keys()
+                for field in nav_fields:
+                    setattr(self.data.nav.pb, field, getattr(nav_zeros, field))
                 self.arena.reset_vel_setpoint_indicators()
 
                 
