@@ -16,8 +16,8 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
     sensor_vl53lx_sat[i] = &tof_objects[i];
   }
 
-  mux_addresses[FRONT] = 1;
-  mux_addresses[L_FRONT] = 2;
+  mux_addresses[FRONT] = 2;
+  mux_addresses[L_FRONT] = 1;
   mux_addresses[L_BACK] = 0;
   mux_addresses[BACK] = 3;
   updateBatteryVoltage();
@@ -37,6 +37,8 @@ bool Sensors::init(){
   delay(10);
   digitalWrite(TOF_SHUTDOWN_PIN, HIGH);
   delay(10);
+
+  delay(3000);
 
   for (int i=0; i<4; i++){
     //    Serial.println("Starting mux shit");
@@ -63,7 +65,7 @@ void Sensors::updateBatteryVoltage(){
 
 void Sensors::update(){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
-  // imu.poll();
+  imu.poll();
   for (int i=0; i<4; i++){
     digitalWrite(MUX_S1, mux_addresses[i]&0x01);
     digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);

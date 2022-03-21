@@ -21,59 +21,53 @@
 #define MUX_S1 27
 #define MUX_S2 14
 
+#define PLACEHOLDER_PIN -1
+#define TOF_SHUTDOWN_PIN 18
 
+VL53LX sensor_vl53lx_sat[4] = {
+  VL53LX(&Wire, PLACEHOLDER_PIN),
+  VL53LX(&Wire, PLACEHOLDER_PIN),
+  VL53LX(&Wire, PLACEHOLDER_PIN),
+  VL53LX(&Wire, PLACEHOLDER_PIN)
+};
 
-VL53LX sensor_vl53lx_sat(&Wire, 0); //2nd arg is shutdown pin (use placeholder)
+uint8_t mux_addresses[4] = {1, 2, 0, 3};
 
-/*
-void TOF_ select(uint8_t i) {
-  if (i > 7) return;
-
-  Wire.beginTransmission(TCAADDR);
-  Wire.write(1 << i);
-  Wire.endTransmission();
-}
-*/
-/* Setup ---------------------------------------------------------------------*/
 
 void setup()
 {
-
    // Initialize serial for output.
    Serial.begin(115200);
    Serial.println("Starting...");
 
    // Initialize I2C bus.
    Wire.begin();
-  Wire.setClock(1000000);
+   Wire.setClock(400000);
 
-//    Wire.beginTransmission(TCAADDR);
-//    Wire.write(1 << MUX_ADDR);
-//    Wire.endTransmission();
+    // set mux as output
     pinMode(MUX_S1, OUTPUT);
     pinMode(MUX_S2, OUTPUT);
-    digitalWrite(MUX_S1, LOW);
-    digitalWrite(MUX_S2, LOW);
-   delay(100);
 
-   // Configure VL53LX satellite component.
-   Serial.println("begin()");
-   sensor_vl53lx_sat.begin();
+    for (int i = 0; i < 4; ++i){
+      digitalWrite(MUX_S1, mux_addresses[i]&0x01);
+      digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);
+      Serial.print("Setting up tof "); Serial.println(i);
+      delay(100);
+
+      // Configure VL53LX satellite component.
+      Serial.println("begin()");
+      sensor_vl53lx_sat[i].begin();
 
 
-   //Initialize VL53LX satellite component.
-   Serial.println("InitSensor(0x12)");
-   sensor_vl53lx_sat.InitSensor(0x12);
+      //Initialize VL53LX satellite component.
+      Serial.println("InitSensor(0x12)");
+      sensor_vl53lx_sat[i].InitSensor(0x12);
 
-   // Start Measurements
-   Serial.println("StartMeasurement");
-   sensor_vl53lx_sat.VL53LX_StartMeasurement();
-
-   pinMode(2, OUTPUT);
-   pinMode(4, OUTPUT);
-   digitalWrite(2, LOW);
-   digitalWrite(4, LOW);
-Serial.println("Done setup");
+      // Start Measurements
+      Serial.println("StartMeasurement");
+      sensor_vl53lx_sat[i].VL53LX_StartMeasurement();
+    }
+    Serial.println("Done setup");
 }
 
 void loop()
@@ -86,41 +80,45 @@ void loop()
    char report[64];
    int status;
 
-   do
-   {
-      status = sensor_vl53lx_sat.VL53LX_GetMeasurementDataReady(&NewDataReady);
-   } while (!NewDataReady);
+   for (int i = 0; i < 4; ++i){
+       digitalWrite(MUX_S1, mux_addresses[i]&0x01);
+       digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);
+       do
+       {
+          status = sensor_vl53lx_sat[i].VL53LX_GetMeasurementDataReady(&NewDataReady);
+       } while (!NewDataReady);
 
-   if((!status)&&(NewDataReady!=0))
-   {
-      status = sensor_vl53lx_sat.VL53LX_GetMultiRangingData(pMultiRangingData);
-      Serial.print("Status: ");
-      Serial.print(status);
-      no_of_object_found=pMultiRangingData->NumberOfObjectsFound;
-      snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", pMultiRangingData->StreamCount, no_of_object_found);
-      Serial.print(report);
-      for(j=0;j<no_of_object_found;j++)
-      {
+       if((!status)&&(NewDataReady!=0))
+       {
+          status = sensor_vl53lx_sat[i].VL53LX_GetMultiRangingData(pMultiRangingData);
+          Serial.print("Status: ");
+          Serial.print(status);
+          no_of_object_found=pMultiRangingData->NumberOfObjectsFound;
+          snprintf(report, sizeof(report), ": Count=%d, #Objs=%1d ", pMultiRangingData->StreamCount, no_of_object_found);
+          Serial.print("tof: "); Serial.print(i); Serial.print(report);
+          for(j=0;j<no_of_object_found;j++)
+          {
 
-         //if(pMultiRangingData->RangeData[j].RangeStatus == 0){
-           Serial.print("status=");
-           Serial.print(pMultiRangingData->RangeData[j].RangeStatus);
-           Serial.print(", D=");
-           Serial.print(pMultiRangingData->RangeData[j].RangeMilliMeter);
-           Serial.print("mm");
-           Serial.print(", Signal=");
-           Serial.print((float)pMultiRangingData->RangeData[j].SignalRateRtnMegaCps/65536.0);
-           Serial.print(" Mcps, Ambient=");
-           Serial.print((float)pMultiRangingData->RangeData[j].AmbientRateRtnMegaCps/65536.0);
-           Serial.print(" Mcps");
-         //}
+             //if(pMultiRangingData->RangeData[j].RangeStatus == 0){
+               Serial.print("status=");
+               Serial.print(pMultiRangingData->RangeData[j].RangeStatus);
+               Serial.print(", D=");
+               Serial.print(pMultiRangingData->RangeData[j].RangeMilliMeter);
+               Serial.print("mm");
+               Serial.print(", Signal=");
+               Serial.print((float)pMultiRangingData->RangeData[j].SignalRateRtnMegaCps/65536.0);
+               Serial.print(" Mcps, Ambient=");
+               Serial.print((float)pMultiRangingData->RangeData[j].AmbientRateRtnMegaCps/65536.0);
+               Serial.print(" Mcps");
+             //}
 
-      }
-      Serial.println("");
-      if (status==0)
-      {
-         status = sensor_vl53lx_sat.VL53LX_ClearInterruptAndStartMeasurement();
-      }
-      NewDataReady = 0;
+          }
+          Serial.println("");
+          if (status==0)
+          {
+             status = sensor_vl53lx_sat[i].VL53LX_ClearInterruptAndStartMeasurement();
+          }
+          NewDataReady = 0;
+       }
    }
 }
