@@ -52,8 +52,6 @@ void loop() {
   Serial.println("main->sensors");
   sensors.update();
   unsigned long afterSensorT = micros();
-  Serial.println("main->nav");
-  nav.update();
   Serial.println("main->guidance");
   guidance.update();
   Serial.println("main->motors");

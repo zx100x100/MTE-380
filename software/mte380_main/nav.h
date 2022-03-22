@@ -29,8 +29,6 @@ class Nav{
     NavData getPred(float delT);
     float getGyroAngle();
 
-    float getGyroAngle();
-
   private:
     NavData navData;
     CmdData* cmdData;

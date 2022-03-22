@@ -76,10 +76,10 @@ class Line: public Segment {
     float yb;
     Hms* hms;
     int nSublines; // temp, make private again
-
-  private:
     int orientation;
     bool horizontal;
+
+  private:
     int nTraps;
     Subline sublines[MAX_N_TRAPS];
     float trapD[MAX_N_TRAPS];

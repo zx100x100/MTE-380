@@ -62,6 +62,20 @@ void Guidance::update(){
     // if (hms->data.guidanceLogLevel >= 2) Serial.println("returning");
     // return;
   // }
+  
+  // GET SEGMENT NUMBER TO TELL NUT MANS DUMB NUT CODE TO NUT HARDER FUCK DADDY
+  //
+  //
+  //  AHUFAFIOJafioaf
+  //
+  //
+  //
+  if (traj.segments[gd.segNum]->getType() == LINE){
+    Line* tempLine = static_cast<Line*>(traj.segments[gd.segNum]);
+    heading_t enumShit = tempLine->horizontal?(tempLine->orientation==1?RIGHT:LEFT):(tempLine->orientation==1?DOWN:UP);
+    nav->update(enumShit);
+  }
+
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posX: "); Serial.println(navData.posX); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posY: "); Serial.println(navData.posY); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.velX: "); Serial.println(navData.velX); }
