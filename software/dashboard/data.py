@@ -3,10 +3,12 @@ from proto.imu_data_pb2 import ImuData
 from proto.tof_data_pb2 import TofData
 from proto.guidance_data_pb2 import GuidanceData
 from proto.hms_and_cmd_data_pb2 import (HmsData, CmdData)
-
 from protobuf_readouts import ProtobufReadouts
-
 import constants
+from constants import (BETWEEN_MESSAGE_SETS_SEP, BETWEEN_MESSAGES_SEP, MESSAGE_SET_START)
+
+import datetime
+
 
 class PbData:
     def __init__(self, pb):
@@ -48,6 +50,7 @@ class Data:
         self.hms = PbData(HmsData())
         self.imu = PbData(ImuData())
         self.tof = [PbData(TofData()) for i in range(4)]
+        self.recording_to_dirname = None
         self.incoming = [self.nav,
                          self.guidance,
                          self.hms,
@@ -60,6 +63,25 @@ class Data:
                            self.tof]
         self.readouts = ProtobufReadouts(self.app, readout_columns)
 
+    def generate_recording_filename(self):
+        (dt, micro) = datetime.datetime.now().strftime('%Y%m%d%H%M%S.%f').split('.')
+        dt = "%s%03d" % (dt, int(micro) / 1000)
+        return str(dt)
+
+    def append_pb_data_to_file(self, data_received, data_sent):
+        if self.recording_to_dirname is None:
+            print('!!!!!!!!!!!!!!!')
+            return
+        new_filename = self.generate_recording_filename()
+        print(f'self.recording_to_dirname: {self.recording_to_dirname}')
+        rec_filename = self.recording_to_dirname+'/'+'rec_'+new_filename
+        print(f'rec_filename: {rec_filename}')
+        with open(rec_filename, 'ab') as f:
+            f.write(data_received)
+        with open(self.recording_to_dirname+'/'+'cmd_'+new_filename, 'ab') as f:
+            f.write(data_sent)
+
+
 
     def encode_outgoing(self):
         out = self.cmd.pb.SerializeToString()
@@ -69,7 +91,7 @@ class Data:
 
     def decode_incoming(self, raw):
         #  print(f'raw: {raw}')
-        for raw_msg, msg in zip(raw.split(b':::'),self.incoming):
+        for raw_msg, msg in zip(raw.split(BETWEEN_MESSAGES_SEP),self.incoming):
             msg.parse_new(raw_msg)
         #  print(f'self.imu.pb.gyroZ: {self.imu.pb.gyroZ}')
     

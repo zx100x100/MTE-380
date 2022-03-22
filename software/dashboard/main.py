@@ -63,6 +63,7 @@ class App:
         self.protobuf_readouts = self.data.readouts
         self.previously_clicked_item = None
         self.telemetry_client.start()
+        self.recording_to_dirname = None
 
     def update_robot_data(self):
         if self.data.cmd.pb.runState is CmdData.RunState.SIM and not self.telemetry_client.connected:
@@ -166,6 +167,20 @@ class App:
                                     else:
                                         self.previously_clicked_item = None
 
+        if self.keys[pg.K_r]:
+            # start recording shit
+            if self.keys[pg.K_LSHIFT]:
+                self.data.recording_to_dirname = None
+            else:
+                if self.data.recording_to_dirname is None:
+                    basedir = os.path.join(os.path.expanduser('~'), 'robot_data')
+                    if not os.path.exists(basedir):
+                        os.makedirs(basedir)
+                    self.data.recording_to_dirname = os.path.join(basedir,self.data.generate_recording_filename())
+                    if not os.path.exists(self.data.recording_to_dirname):
+                        os.makedirs(self.data.recording_to_dirname)
+                print(f'self.data.recording_to_dirname: {self.data.recording_to_dirname}')
+                print(f'path exists: {os.path.exists(self.data.recording_to_dirname)}')
         if self.keys[pg.K_SPACE]:
             # ESTOP:
             self.data.cmd.pb.propPower = 0
@@ -224,7 +239,6 @@ class App:
                 for field in nav_fields:
                     setattr(self.data.nav.pb, field, getattr(nav_zeros, field))
                 self.arena.reset_vel_setpoint_indicators()
-
                 
             self.prev_run_state = self.data.cmd.pb.runState
             self.before_tick = time.time()

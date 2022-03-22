@@ -18,7 +18,7 @@ class TelemetryServer{
     WiFiClient client;
     bool alreadyConnected = false;
 
-    IPAddress localIP = IPAddress(SERVER_BYTE0, SERVER_BYTE1, SERVER_BYTE2, 0x69);//SERVER_BYTE3); // static IP of esp
+    IPAddress localIP = IPAddress(SERVER_BYTE0, SERVER_BYTE1, SERVER_BYTE2, SERVER_BYTE3);//0x69);//SERVER_BYTE3); // static IP of esp
     // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 

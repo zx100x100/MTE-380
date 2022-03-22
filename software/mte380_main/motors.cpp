@@ -28,6 +28,25 @@ void Motors::setAllToZero(){
   // propServo.write(PROP_MIN);
 }
 
+void Motors::setToShit(float leftPower, float rightPower){
+  if (leftPower >= 0){
+    analogWrite(LEFT_DRIVE_1, leftPower);
+    analogWrite(LEFT_DRIVE_2, 0);
+  }
+  else{
+    analogWrite(LEFT_DRIVE_1, 0);
+    analogWrite(LEFT_DRIVE_2, -leftPower);
+  }
+  if (rightPower >= 0){
+    analogWrite(RIGHT_DRIVE_1, rightPower);
+    analogWrite(RIGHT_DRIVE_2, 0);
+  }
+  else{
+    analogWrite(RIGHT_DRIVE_1, 0);
+    analogWrite(RIGHT_DRIVE_2, -rightPower);
+  }
+}
+
 void Motors::update(){
   if (hms->data.mainLogLevel >= 2) Serial.println("motors");
   if (guidanceData.leftPower >= 0){

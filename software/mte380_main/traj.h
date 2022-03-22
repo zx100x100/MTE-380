@@ -7,6 +7,8 @@
 
 #define NUM_SEGMENTS 20
 #define MAX_N_TRAPS 8
+#define BULLSHIT 0.5
+
 
 enum CornerType { TL, TR, BL, BR_ };
 enum SegmentType { CURVE, LINE };
@@ -95,9 +97,9 @@ class Traj{
     void updateTraps();
     float getDist(float xp, float yp);
     float getSetpointVel(float xp, float yp);
+    Segment* segments[NUM_SEGMENTS];
 
   private:
-    Segment* segments[NUM_SEGMENTS];
     int nTraps;
     Hms* hms;
     GuidanceData* gd;

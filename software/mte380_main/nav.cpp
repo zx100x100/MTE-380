@@ -54,6 +54,17 @@ float Nav::getTofFt(TofOrder tofNum){
     return sensors.tof[tofNum].getData().dist * 0.00328084;
 }
 
+float Nav::getGyroAngle(){
+  sensors.imu.poll();
+
+  fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
+
+  float yaw = fusion.yaw();
+  Serial.print("yaw: "); Serial.println(yaw);
+
+  return yaw;
+}
+
 NavData Nav::calculateImu(){
   fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 

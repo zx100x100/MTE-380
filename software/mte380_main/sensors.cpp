@@ -25,6 +25,7 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
 
 bool Sensors::init(){
   imu = Imu(hms);
+  imu.poll();
 
   Wire.begin();
   Wire.setClock(400000);

@@ -20,7 +20,11 @@ Hms hms = Hms();
 CmdData cmdData = CmdData_init_zero;
 Sensors sensors = Sensors(&hms, &sensor_vl53lx_sat[0]);
 Nav nav = Nav(sensors, &cmdData, &hms);
-Guidance guidance = Guidance(nav.getData(), cmdData, &hms);
+Guidance guidance = Guidance(nav.getData(),
+                             cmdData,
+                             &hms,
+                             NULL,
+                             &nav);
 TelemetryServer telemetryServer = TelemetryServer(sensors,
                                                   nav.getData(),
                                                   guidance.getData(),
@@ -33,13 +37,14 @@ void setup() {
   pinMode(15, INPUT);
   hms.init();
 
+  guidance.motors = &motors;
   /* cmdData.telemetryMode = CmdData_TelemetryMode_NONE; */
   /* cmdData.telemetryMode = CmdData_TelemetryMode_FULL; */
   cmdData.runState = CmdData_RunState_E_STOP;
   sensors.init();
   nav.init();
   telemetryServer.init();
-  /* guidance.init(); */
+  guidance.init();
 }
 
 void loop() {
@@ -49,8 +54,8 @@ void loop() {
   unsigned long afterSensorT = micros();
   Serial.println("main->nav");
   nav.update();
-//   Serial.println("main->guidance");
-//   guidance.update();
+  Serial.println("main->guidance");
+  guidance.update();
   Serial.println("main->motors");
   motors.update();
   Serial.println("main->telemetry");

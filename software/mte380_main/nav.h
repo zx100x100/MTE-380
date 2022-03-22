@@ -20,6 +20,7 @@ class Nav{
     void init();
     NavData& getData();
     NavData getPred(float delT);
+    float getGyroAngle();
 
   private:
     NavData navData;

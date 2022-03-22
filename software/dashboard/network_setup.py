@@ -28,15 +28,18 @@ def get_ssid():
                 # ethernet
                 ssid = 'anavacadothanks'
             elif ssid not in ALLOWED_SSIDS:
-                print(f'Changing to anavacadothanks')
-                out = os.popen("nmcli dev wifi connect anavacadothanks")
-                print('done')
-                time.sleep(3)
-                ssid = os.popen("sudo iwgetid -r").read()[:-1]
-                if ssid not in ALLOWED_SSIDS:
-                    time.sleep(2)
+                try:
+                    print(f'Changing to anavacadothanks')
+                    out = os.popen("nmcli dev wifi connect anavacadothanks")
+                    print('done')
+                    time.sleep(3)
                     ssid = os.popen("sudo iwgetid -r").read()[:-1]
-                print(ssid)
+                    if ssid not in ALLOWED_SSIDS:
+                        time.sleep(2)
+                        ssid = os.popen("sudo iwgetid -r").read()[:-1]
+                    print(ssid)
+                except:
+                    return '', False
             return ssid, True
 
     except Exception as e:

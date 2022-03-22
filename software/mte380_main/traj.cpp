@@ -111,20 +111,28 @@ float Line::velSetpoint(float xp, float yp){
   return 0;
 }
 
-Line::Line(float xa, float ya, float xb, float yb, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms):
-  xa(xa),
-  ya(ya),
-  xb(xb),
-  yb(yb),
+Line::Line(float _xa, float _ya, float _xb, float _yb, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms):
   hms(hms)
 {
   if(hms->data.guidanceLogLevel >= 2){ Serial.println("Line::init"); }
-  horizontal = ya == yb;
+  horizontal = _ya == _yb;
   if (horizontal){
-    orientation = xa > xb ? -1 : 1;
+    orientation = _xa > _xb ? -1 : 1;
   }
   else{
-    orientation = ya > yb ? -1 : 1;
+    orientation = _ya > _yb ? -1 : 1;
+  }
+  if (horizontal){
+    xa = _xa+BULLSHIT*orientation==-1?0.5:-0.5;
+    xb = _xb-BULLSHIT*orientation==-1?0.5:-0.5;
+    ya = _ya;
+    yb = _yb;
+  }
+  else{
+    ya = _ya+BULLSHIT*orientation==-1?0.5:-0.5;
+    yb = _yb-BULLSHIT*orientation==-1?0.5:-0.5;
+    xa = _xa;
+    xb = _xb;
   }
   
   float included[MAX_N_TRAPS];
@@ -509,9 +517,7 @@ void Traj::init(){
   /* heap_caps_check_integrity(MALLOC_CAP_8BIT, true); */
 
   /* segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms); */
-  Line* newLine = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->nSublines: "); Serial.println(newLine->nSublines); }
-  segments[0] = newLine;
+  segments[0] = new Line(3.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
   segments[1] = new Curve(1,5,BL,hms);
   segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY,hms);
   segments[3] = new Curve(1,1,TL,hms);
@@ -563,6 +569,7 @@ void Traj::updateTraps(){
 
 // returns true if finished driving the track, false otherwise
 bool Traj::updatePos(float xp, float yp){
+
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Traj::updatePos");
   bool advanced = false;
 

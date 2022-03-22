@@ -1,6 +1,8 @@
 #include "guidance.h"
 
-#define MAX_OUTPUT_POWER 255.0 // must be < 255
+// #define MAX_OUTPUT_POWER 255.0 // must be < 255
+#define MAX_OUTPUT_POWER 40 //255.0 // must be < 255
+#define MAX_TURNING_BULLSHIT_OUTPUT_POWER 90// 100 //255.0 // must be < 255
 
 // constrainVal value to within + or - maximum
 float constrainVal(float val, float maximum){
@@ -16,10 +18,12 @@ float constrainVal(float val, float maximum){
   return val;
 }
 
-Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms):
+Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav):
   navData(_navData),
   cmdData(_cmdData),
-  hms(_hms)
+  hms(_hms),
+  motors(motors),
+  nav(nav)
 {
   gd = GuidanceData_init_zero;
   prevRunState = cmdData.runState;
@@ -43,6 +47,15 @@ void Guidance::update(){
     lastTimestamp = micros();
     return; // dont trust the position data on first tick of sim mode
   }
+  if (cmdData.runState == CmdData_RunState_AUTO && cmdData.runState != prevRunState){
+    // edge detection - switching into SIM mode
+    gd.segNum = 0;
+    prevRunState = cmdData.runState;
+    gd.errVelI = 0;
+    gd.errDriftI = 0;
+    lastTimestamp = micros();
+    return; // dont trust the position data on first tick of sim mode
+  }
   prevRunState = cmdData.runState;
 
   // if (cmdData.runState != CmdData_RunState_SIM){
@@ -56,8 +69,65 @@ void Guidance::update(){
 
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.segNum: "); Serial.println(gd.segNum); }
 
-
   gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
+
+  // if (BULLSHIT > 0){
+    // if (traj.segments[gd.segNum]->getType() == CURVE || true){
+      // float startAngle = nav->getGyroAngle();
+      // float curAngle = startAngle;
+      // float threshhold = 5; // end loop when 5 degrees from donezo
+      // float angleDelta = curAngle - startAngle;
+      // float error = 90 - angleDelta;
+      // float lastError = error;
+      // float kp_turny = 1;
+      // float kd_turny = 0.2;
+      // float ki_turny = 0.0;
+      // float lastTimestamp = micros();
+      // float curTimestamp = micros();
+      // float firstTimestamp = micros();
+      // float deltaT = curTimestamp - lastTimestamp;
+      // float errorD;
+      // float errorI;
+      // float P;
+      // float I;
+      // float D;
+      // float total;
+      // if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
+      // while(abs(error)>threshhold){
+        // float newAngle = nav->getGyroAngle();
+        // if (curAngle - newAngle > 300){
+          // newAngle += 360;
+        // }
+        // curAngle = newAngle;
+        // angleDelta = curAngle - startAngle;
+        // error = 90 - angleDelta;
+        // if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
+        // curTimestamp = micros();
+        // if (curTimestamp - firstTimestamp > 3000){
+          // Serial.println("turn better next time please");
+          // break;
+        // }
+        // deltaT = curTimestamp - lastTimestamp;
+        // lastTimestamp = curTimestamp;
+        // errorD = (error - lastError)/deltaT;
+        // errorI += error * deltaT;
+        // P = error * kp_turny;
+        // I = errorI * ki_turny;
+        // D = errorD * kd_turny;
+
+        // total = P + I + D;
+        // total = constrainVal(P + I + D, MAX_TURNING_BULLSHIT_OUTPUT_POWER);
+        // motors->setToShit(-total, total);
+      // }
+      // gd.segNum++;
+      // Serial.println("DONEZO");
+      // motors->setAllToZero();
+      // while(true){
+      // }
+      // return;
+    // }
+  // }
+
   gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.vel: "); Serial.println(gd.vel); }
 
