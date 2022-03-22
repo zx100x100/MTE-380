@@ -23,8 +23,6 @@ message HmsData {
   uint32 longestCombinedTick = 11;
 
   uint32 nTicks = 12;
-
-  string errorInfo = 13; // MUST ALWAYS BE THE LAST ENTRY!! (due to some janky dashboard code)
 }
 
 message CmdData{
