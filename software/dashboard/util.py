@@ -1,5 +1,9 @@
 import numpy as np
 import pygame as pg
+import os
+
+def is_windows():
+    return os.name == 'nt'
 
 def pixels_to_tiles(pixel_loc):
     return (pixel_loc[0]/PIXELS_PER_TILE, pixel_loc[1]/PIXELS_PER_TILE)

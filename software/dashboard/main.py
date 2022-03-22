@@ -15,6 +15,7 @@ from telemetry_client import TelemetryClient
 from proto.nav_data_pb2 import NavData
 import network_setup
 from sim import Sim
+from recording import Recording
 
 from constants import *
 
@@ -64,6 +65,7 @@ class App:
         self.previously_clicked_item = None
         self.telemetry_client.start()
         self.recording_to_dirname = None
+        self.recording = Recording(self)
 
     def update_robot_data(self):
         if self.data.cmd.pb.runState is CmdData.RunState.SIM and not self.telemetry_client.connected:
@@ -109,6 +111,7 @@ class App:
         self.arena.render_active(self.screen)
         self.protobuf_readouts.render()
         self.robot.render(self.screen)
+        self.recording.render()
         pg.display.update()
 
     def event_loop(self):

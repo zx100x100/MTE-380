@@ -173,6 +173,7 @@ class Controls:
         self.screen = self.app.screen
         self.teleop = True
         self.sim = SIM_DEFAULT
+        self.telemetry_enabled = True
 
         self.connect_button = Button(text_callback=self.connect_button_text,
                                 click_callback=self.connect_button_click,
@@ -183,8 +184,13 @@ class Controls:
                               is_disabled_callback=self.start_button_disabled)
         self.teleop_toggle = Toggle("teleop", self.teleop, callback=self.toggle_teleop)
         self.sim_toggle = Toggle("sim", self.sim, callback=self.toggle_sim)
-        self.elements = [self.connect_button, self.start_button, self.teleop_toggle, self.sim_toggle]
+        self.telemetry_toggle = Toggle("telemetry", self.telemetry_enabled, callback=self.toggle_telemetry)
+        self.elements = [self.connect_button, self.start_button, self.teleop_toggle, self.sim_toggle, self.telemetry_toggle]
         self.position_elements()
+    
+    def toggle_telemetry(self):
+        self.telemetry_enabled = not self.telemetry_enabled
+        self.app.data.cmd.pb.disableTelemetry = not self.telemetry_enabled
 
     def toggle_teleop(self):
         self.teleop = not self.teleop

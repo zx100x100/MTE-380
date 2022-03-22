@@ -1,9 +1,18 @@
 import threading
 import socket
 import time
+import os
+import subprocess  # For executing a shell command
+
+from util import is_windows
 from constants import (BETWEEN_MESSAGE_SETS_SEP, BETWEEN_MESSAGES_SEP, MESSAGE_SET_START)
 
-COMMS_TIMEOUT = 6
+COMMS_TIMEOUT = 4
+PING_SILENT = True
+
+class PullDataTimedOutException(Exception):
+    pass
+
 
 class TelemetryClient(threading.Thread):
     def __init__(self, data, server_ip, server_port):
@@ -15,12 +24,35 @@ class TelemetryClient(threading.Thread):
         self.server_port = server_port
         self.killme = False
         self.disconnectme = False
+        self.last_pinged_robot = None
+        self.already_cleared_data = False
 
     def kill_thread(self):
         self.killme = True
     
     def disconnect_when_convenient(self):
         self.disconnectme = True
+
+    def ping_robot(self):
+        """
+        Returns True if host responds to a ping request.
+        Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
+        """
+
+        try:
+            # Option for the number of packets as a function of
+            param = '-n' if is_windows() else '-c'
+
+            # Building the command. Ex: "ping -c 1 google.com"
+            command = ['ping', param, '1', self.server_ip]
+
+            if PING_SILENT:
+                return subprocess.call(command, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL) == 0
+            else:
+                return subprocess.call(command) == 0
+        except Exception as e:
+            print(f'failed to ping robot, {e}')
+            return False
 
     def run(self):
         longest_pull = 0
@@ -33,11 +65,7 @@ class TelemetryClient(threading.Thread):
                 self.disconnect()
                 self.disconnectme = False
             if self.connected:
-                before_tick = time.time()
                 encoded_out = self.push()
-                new_time = time.time()
-                push_time = new_time - before_tick
-                #  time.sleep(0.1)
                 encoded_in = self.pull()
                 
                 if self.data.recording_to_dirname is not None:
@@ -47,14 +75,6 @@ class TelemetryClient(threading.Thread):
                     elif encoded_out is None:
                         encoded_out = b'None'
                     self.data.append_pb_data_to_file(data_received=encoded_in, data_sent=encoded_out)
-                new_time2 = time.time()
-                pull_time = new_time2 - new_time
-                if pull_time > longest_pull:
-                    longest_pull = pull_time
-                if push_time > longest_push:
-                    longest_push = push_time
-
-                #  print(f'longest_pull: {longest_pull}')
 
             else:
                 self.append_pb_vals()
@@ -111,47 +131,90 @@ class TelemetryClient(threading.Thread):
             return None
             #  self.controls.connect_button.refresh_state()
 
-    def pull(self):
+    def pull_raw(self):
+        if self.data.cmd.pb.disableTelemetry and self.already_cleared_data:
+            return None
+        else:
+            self.already_cleared_data = False
         try:
-            #  print('pull')
             rx_raw = self.socket.recv(1000)
-
-            message_sets = rx_raw.split(BETWEEN_MESSAGE_SETS_SEP)[:-1]
-            if len(message_sets) == 1:
-                if BETWEEN_MESSAGE_SETS_SEP not in rx_raw:
-                    print('partial message data!')
-                    raise Exception
-            #  print(len(message_sets))
-            new_raw = None
-            prev_raw = None
-            message_sets_unfucked = []
-            for message_set_raw in message_sets:
-                if not message_set_raw.startswith(MESSAGE_SET_START):
-                    if MESSAGE_SET_START in message_set_raw:
-                        try:
-                            # not gonna lie I have no idea what this line is for anymore
-                            message_set_raw = MESSAGE_SET_START+MESSAGE_SET_START.join(message_set_raw.split(MESSAGE_SET_START)[1:])
-                        except Exception as e:
-                            print(f'wtf: {e}')
-                            print(f'message_set_raw: {message_set_raw}')
-                            raise Exception
-                    else:
-                        continue
-                message_sets_unfucked.append(message_set_raw[3:])
-            return message_sets_unfucked
+            self.last_pinged_robot = time.time()
+            return rx_raw
         except Exception as e:
             if type(e) is socket.timeout:
-                print('Connection timed out!!! Disconnecting')
-                self.connected = False
-            elif f'{type(e)}' == "<class 'google.protobuf.message.DecodeError>'":
-                print(f"Failed to decode data: {e}")
+                print('Pull data timed out!!!')
+                if not self.data.cmd.pb.disableTelemetry:
+                    self.connected = False
+                    raise PullDataTimedOutException
+                else:
+                    print('Telemetry is disabled, so thats probably fine.')
+                    self.already_cleared_data = True
+                    t = time.time()
+                    if self.last_pinged_robot is not None:
+                        dt = t - self.last_pinged_robot
+                        should_ping = dt > COMMS_TIMEOUT
+                    else:
+                        dt = '[literally never]'
+                        should_ping = True
+                    if should_ping:
+                        print(f'Last robot heartbeat was {dt} seconds ago.')
+                        print('Let\'s ping the robot to make sure its still vibing:')
+                    if self.ping_robot():
+                        print("Ping succesful.")
+                        self.last_pinged_robot = t
+                    else:
+                        print("Ping unsuccesful... ok guess we are disconnected.")
+                        self.connected = False
             else:
-                print(f'unknown exception pulling data: {e}')
+                print(f'ERRORRRRRRRRRR: {e}')
+        return None
 
+    def pull(self):
+        try:
+            rx_raw = self.pull_raw()
+            if rx_raw is None:
+                return None
+            msg_sets = self.raw_to_msg_sets(rx_raw)
+            self.decode_message_sets(msg_sets)
+            return msg_sets
+        except PullDataTimedOutException:
             return None
-        self.data.decode_incoming()
-        prev_raw = message_set_raw
-        return rx_raw
+
+
+    def raw_to_msg_sets(self, rx_raw):
+        message_sets = rx_raw.split(BETWEEN_MESSAGE_SETS_SEP)[:-1]
+        if len(message_sets) == 1:
+            if BETWEEN_MESSAGE_SETS_SEP not in rx_raw:
+                print('partial message data!')
+                raise Exception
+        #  print(len(message_sets))
+        new_raw = None
+        prev_raw = None
+        message_sets_unfucked = []
+        for message_set_raw in message_sets:
+            if not message_set_raw.startswith(MESSAGE_SET_START):
+                if MESSAGE_SET_START in message_set_raw:
+                    try:
+                        # not gonna lie I have no idea what this line is for anymore
+                        message_set_raw = MESSAGE_SET_START+MESSAGE_SET_START.join(message_set_raw.split(MESSAGE_SET_START)[1:])
+                    except Exception as e:
+                        print(f'wtf: {e}')
+                        print(f'message_set_raw: {message_set_raw}')
+                        raise Exception
+                else:
+                    continue
+            message_sets_unfucked.append(message_set_raw[3:])
+        return message_sets_unfucked
+
+    def decode_message_sets(self, msg_sets):
+        for msg_set in msg_sets:
+            try:
+                self.data.decode_incoming(msg_set)
+            except Exception as e:
+                if f'{type(e)}' == "<class 'google.protobuf.message.DecodeError>'":
+                    print(f"Failed to decode data: {e}")
+                else:
+                    print(f'unknown exception pulling data: {e}')
 
     
     def append_pb_vals(self):

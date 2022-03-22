@@ -5,14 +5,13 @@ import subprocess
 import sys
 import time
 
+from util import is_windows
+
 SERVER_PORT = 23
 SERVER_HOST_BYTE = 111
 PASSWORDS = {'EMU': '11111111', 'anavacadothanks': '42069666'}
 ALLOWED_SSIDS = list(PASSWORDS.keys())
 SKIP_SSIDS = ('eduroam',)
-
-def is_windows():
-    return os.name == 'nt'
 
 def get_ssid():
     try:
@@ -31,7 +30,6 @@ def get_ssid():
                 try:
                     print(f'Changing to anavacadothanks')
                     out = os.popen("nmcli dev wifi connect anavacadothanks")
-                    print('done')
                     time.sleep(3)
                     ssid = os.popen("sudo iwgetid -r").read()[:-1]
                     if ssid not in ALLOWED_SSIDS:
@@ -55,7 +53,6 @@ def get_byte_n(n):
     s.connect(("8.8.8.8", 80))
     byte = s.getsockname()[0].split('.')[n]
     s.close()
-    print(byte)
     return byte
 
 

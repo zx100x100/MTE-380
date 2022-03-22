@@ -34,14 +34,13 @@ Motors motors = Motors(guidance.getData(), &hms);
 
 void setup() {
   Serial.begin(115200);
-  pinMode(15, INPUT);
   hms.init();
 
   guidance.motors = &motors;
   /* cmdData.telemetryMode = CmdData_TelemetryMode_NONE; */
   /* cmdData.telemetryMode = CmdData_TelemetryMode_FULL; */
   cmdData.runState = CmdData_RunState_E_STOP;
-  sensors.init();
+  /* sensors.init(); */
   nav.init();
   telemetryServer.init();
   guidance.init();
@@ -50,7 +49,7 @@ void setup() {
 void loop() {
   unsigned long startT = micros();
   Serial.println("main->sensors");
-  sensors.update();
+  /* sensors.update(); */
   unsigned long afterSensorT = micros();
   Serial.println("main->guidance");
   guidance.update();

@@ -180,7 +180,7 @@ bool TelemetryServer::update(){
         guidanceData.kI_drift = cmdData.kI_drift;
         client.flush();
       }
-      // if (cmdData.telemetryMode == CmdData_TelemetryMode_FULL ||
+      if (!cmdData.disableTelemetry){
           // (cmdData.telemetryMode == CmdData_TelemetryMode_INFREQUENT && hms->data.nTicks % INFREQUENT_TELEMETRY_INTERVAL == 0)){
         // SEND DATA --------------------------------------
         pb_ostream_t stream;
@@ -193,11 +193,7 @@ bool TelemetryServer::update(){
         unsigned long beforeSendT = micros();
         client.write(buffer, stream.bytes_written); // takes 0-2 ms
         client.flush();
-
-  //      if (newTimestamp-beforeSendT > 100){
-  //        Serial.print("justSend: "); Serial.println(newTimestamp-beforeSendT);
-//      }
-      // }
+      }
       unsigned long newTimestamp = micros();
       lastCommandTime = newTimestamp;
       return true;
