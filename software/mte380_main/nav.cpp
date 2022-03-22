@@ -66,14 +66,18 @@ float Nav::getGyroAngle(){
 }
 
 NavData Nav::calculateImu(){
+  return NavData_init_zero;
+}
+
+float Nav::getGyroAngle(){
+  sensors.imu.poll();
+
   fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
-  NavData imu = NavData_init_zero;
-  imu.angXy = fusion.yaw();
-  imu.angXz = fusion.roll();
-  imu.angYz = fusion.pitch();
+  float yaw = fusion.yaw();
+  Serial.print("yaw: "); Serial.println(yaw);
 
-  return imu;
+  return yaw;
 }
 
 bool Nav::tofsUpdated(){
@@ -89,78 +93,79 @@ bool Nav::tofsUpdated(){
     return changed;
 }
 
-TofPosition Nav::calculateTof(){
-  TofPosition pos;
-
+void Nav::updateTof(heading_t heading){
   if (tofsUpdated()){
+      float angFromWall, front, left;
+      bool angFromWallValid, frontValid, leftValid;
+
       if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
-      float estimateLeft, estimateFront, angFromWall;
       if (isValid(L_FRONT) && isValid(L_BACK)) {//TODO && (fmod(navData.angXy, 90) < 35 || fmod(navData.angXy, 90) > 55)) {
+        angFromWallValid = true;
+        leftValid = true;
         if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
 
         angFromWall = rad2deg(atan((getTofFt(L_FRONT) - getTofFt(L_BACK)) / L_Y_DELTA));
-        Serial.print("angFromWall: "); Serial.println(angFromWall);
-        pos.yaw = round(navData.angXy / 90) * 90 + angFromWall;
-
         // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
-        estimateLeft = ((getTofFt(L_FRONT) + getTofFt(L_BACK)) / 2 + L_X_OFFSET) * cosd(angFromWall);
+        left = ((getTofFt(L_FRONT) + getTofFt(L_BACK)) / 2 + L_X_OFFSET) * cosd(angFromWall);
       }
       else{
         if (hms->data.navLogLevel >= 2) Serial.println("Left invalid");
-
-         // TODO: use gyro?
-        pos.yaw = FLT_INVALID;
-        estimateLeft = FLT_INVALID;
-
-        // make angFromWall based on previous position
-        if (fmod(navData.angXy, 90) < 45){ // angFromWall should be > 0
-          angFromWall = fmod(navData.angXy, 90);
-        }
-        else{  // angFromWall should be < 0
-          angFromWall = fmod(navData.angXy, 90) - 90;
-        }
+        angFromWallValid = false;
+        leftValid = false;
       }
 
       if (isValid(FRONT) && isValid(BACK)){
+        frontValid = true;
         if (getTofFt(FRONT) <= getTofFt(BACK))
-          estimateFront = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
+          front = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
         else
-          estimateFront = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
+          front = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
       }
-      else if(isValid(FRONT))
-        estimateFront = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
-      else if(isValid(BACK))
-        estimateFront = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
+      else if(isValid(FRONT)){
+        frontValid = true;
+        front = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
+      }
+      else if(isValid(BACK)){
+        frontValid = true;
+        front = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
+      }
       else{
         if (hms->data.navLogLevel >= 2) Serial.println("vertical tofs INVALID");
-        estimateFront = FLT_INVALID;
+        frontValid = false;
       }
 
-      switch(int(round(navData.angXy / 90)) % 4){
-        case 0:
-          pos.x = (estimateFront == FLT_INVALID) ? FLT_INVALID : TRACK_DIM - estimateFront;
-          pos.y = estimateLeft;
-          break;
-        case 1:
-          pos.x = (estimateLeft == FLT_INVALID) ? FLT_INVALID : TRACK_DIM - estimateLeft;
-          pos.y = (estimateFront == FLT_INVALID) ? FLT_INVALID : TRACK_DIM - estimateFront;
-        case 2:
-          pos.x = estimateFront;
-          pos.y = (estimateLeft == FLT_INVALID) ? FLT_INVALID : TRACK_DIM - estimateLeft;
-          break;
-        case 3:
-          pos.x = estimateLeft;
-          pos.y = estimateFront;
-      }
+    switch(heading){
+      case UP:
+        if (leftValid) tofPos.x = left;
+        if (frontValid) tofPos.y = front;
+        if (angFromWallValid) tofPos.yaw = angFromWall + 270;
+        break;
+      case RIGHT:
+        if (frontValid) tofPos.x = TRACK_DIM - front;
+        if (leftValid) tofPos.y = left;
+        if (angFromWallValid) tofPos.yaw = angFromWall;
+        break;
+      case DOWN:
+        if (leftValid) tofPos.x = TRACK_DIM - left;
+        if (frontValid) tofPos.y = TRACK_DIM - front;
+        if (angFromWallValid) tofPos.yaw = angFromWall + 90;
+        break;
+      case LEFT:
+        if (frontValid) tofPos.x = front;
+        if (leftValid) tofPos.y = TRACK_DIM - left;
+        if (angFromWallValid) tofPos.yaw = angFromWall + 180;
+        break;
+    }
   }
   else{
     if (hms->data.navLogLevel >= 2) Serial.println("tofs NOT updated");
-    pos.x = FLT_INVALID; pos.y = FLT_INVALID; pos.yaw = FLT_INVALID;
+    tofPos.x = false;
+    tofPos.y = false;
+    tofPos.yaw = false;
   }
-  return pos;
 }
 
-void Nav::update(){
+void Nav::update(heading_t heading){
 //  if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav update"); } // temp
   if (cmdData -> runState == CmdData_RunState_SIM){
 //    if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav in SIM mode"); }
@@ -194,16 +199,13 @@ void Nav::update(){
     Serial.print("pred: x: "); Serial.print(pred.posX); Serial.print(", y: ");  Serial.print(pred.posY); Serial.print(", yaw: ");  Serial.print(pred.angXy); Serial.print(", dt: "); Serial.println(delT);
   }
 
+  updateTof(heading);
   if (hms->data.navLogLevel >= 1){
     Serial.print("tof: FR: "); Serial.print(getTofFt(FRONT)); Serial.print(", LF: ");  Serial.print(getTofFt(L_FRONT)); Serial.print(", LB: ");  Serial.print(getTofFt(L_BACK)); Serial.print(", BA: ");  Serial.println(getTofFt(BACK));
+    Serial.print("tof estimate: x: "); Serial.print(tofPos.x); Serial.print(", left: ");  Serial.print(tofPos.y); Serial.print(", yaw: ");  Serial.println(tofPos.yaw);
   }
-  TofPosition tofEstimate = calculateTof();
-  if (hms->data.navLogLevel >= 1){
-    Serial.print("tof estimate: x: "); Serial.print(tofEstimate.x); Serial.print(", y: ");  Serial.print(tofEstimate.y); Serial.print(", yaw: ");  Serial.println(tofEstimate.yaw);
-  }
-  NavData imuEstimate = calculateImu();
 
-  updateEstimate(imuEstimate, tofEstimate, pred);
+  updateEstimate(pred);
   if (hms->data.navLogLevel >= 1){
     Serial.print("estimate: x: "); Serial.print(navData.posX); Serial.print(", y: ");  Serial.print(navData.posY); Serial.print(", yaw: ");  Serial.println(navData.angXy);
   }
@@ -216,7 +218,7 @@ NavData& Nav::getData(){
 bool Nav::isValid(TofOrder tof){
   if (getTofFt(tof) > TRACK_DIM)
     return false;
-  return true;
+  return true;  // TODO: make more checks
 
   float angFromWall;
   if (fmod(navData.angXy, 90) < 45){ // angFromWall should be > 0
@@ -265,12 +267,12 @@ NavData Nav::getPred(float delT){  // delT in seconds
   pred.angAccXy = navData.angAccXy;
   pred.angAccXz = navData.angAccXz;
   pred.angAccYz = navData.angAccYz;
-  pred.angVelXy = navData.angVelXy + navData.angAccXy * delT;
-  pred.angVelXz = navData.angVelXz + navData.angAccXz * delT;
-  pred.angVelYz = navData.angVelYz + navData.angAccYz * delT;
-  pred.angXy = navData.angXy + navData.angVelXy * delT + navData.angAccXy * delT * delT / 2;
-  pred.angXz = navData.angXz + navData.angVelXz * delT + navData.angAccXz * delT * delT / 2;
-  pred.angYz = navData.angYz + navData.angVelYz * delT + navData.angAccYz * delT * delT / 2;
+  pred.angVelXy = navData.angVelXy;
+  pred.angVelXz = navData.angVelXz;
+  pred.angVelYz = navData.angVelYz;
+  pred.angXy = navData.angXy;
+  pred.angXz = navData.angXz;
+  pred.angYz = navData.angYz;  // TODO: do we just want it to equal the previous one?
 
   // TODO: take rotation into account
   pred.accX = navData.accX;
@@ -288,16 +290,12 @@ NavData Nav::getPred(float delT){  // delT in seconds
   return pred;
 }
 
-void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimate, const NavData pred){
-//  if (USE_IMU && imuEstimate.posX != 0){
-//    // TODO: implement this
-//  }
-
+void Nav::updateEstimate(const NavData pred){
   float delT = float(pred.timestamp - navData.timestamp) / 1000000;
-  if (USE_TOFS && tofEstimate.x != FLT_INVALID){
-    navData.posX = pred.posX + gain[0] * (tofEstimate.x - pred.posX);
-    navData.velX = pred.velX + gain[1] * (tofEstimate.x - pred.posX) / delT;
-    navData.accX = pred.accX + gain[2] * (tofEstimate.x - pred.posX) / (0.5 * delT * delT);
+  if (USE_TOFS && tofPos.xValid){
+    navData.posX = pred.posX + gain[0] * (tofPos.x - pred.posX);
+    navData.velX = pred.velX + gain[1] * (tofPos.x - pred.posX) / delT;
+    navData.accX = pred.accX + gain[2] * (tofPos.x - pred.posX) / (0.5 * delT * delT);
   }
   else{
     navData.posX = pred.posX;
@@ -305,10 +303,10 @@ void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimat
     navData.accX = pred.accX;
   }
 
-  if (USE_TOFS && tofEstimate.y != FLT_INVALID){
-    navData.posY = pred.posY + gain[0] * (tofEstimate.y - pred.posY);
-    navData.velX = pred.velY + gain[1] * (tofEstimate.y - pred.posY) / delT;
-    navData.accY = pred.accY + gain[2] * (tofEstimate.y - pred.posY) / (0.5 * delT * delT);
+  if (USE_TOFS && tofPos.yValid){
+    navData.posY = pred.posY + gain[0] * (tofPos.y - pred.posY);
+    navData.velX = pred.velY + gain[1] * (tofPos.y - pred.posY) / delT;
+    navData.accY = pred.accY + gain[2] * (tofPos.y - pred.posY) / (0.5 * delT * delT);
   }
   else{
     navData.posY = pred.posY;
@@ -316,15 +314,16 @@ void Nav::updateEstimate(const NavData imuEstimate, const TofPosition tofEstimat
     navData.accY = pred.accY;
   }
 
-  if (USE_IMU && imuEstimate.angXy != FLT_INVALID){
-    navData.angXy = pred.angXy + gain[3] * (imuEstimate.angXy - pred.angXy);
-    navData.angVelXy = pred.angVelXy + gain[4] * (imuEstimate.angXy - pred.angXy) / delT;
-    navData.angAccXy = pred.angAccXy + gain[5] * (imuEstimate.angXy - pred.angXy) / (0.5 * delT * delT);
-  }
-  else if (USE_TOFS && tofEstimate.yaw != FLT_INVALID){
-    navData.angXy = pred.angXy + gain[3] * (tofEstimate.yaw - pred.angXy);
-    navData.angVelXy = pred.angVelXy + gain[4] * (tofEstimate.yaw - pred.angXy) / delT;
-    navData.angAccXy = pred.angAccXy + gain[5] * (tofEstimate.yaw - pred.angXy) / (0.5 * delT * delT);
+//  if (USE_IMU && imuEstimate.angXy != FLT_INVALID){
+//    navData.angXy = pred.angXy + gain[3] * (imuEstimate.angXy - pred.angXy);
+//    navData.angVelXy = pred.angVelXy + gain[4] * (imuEstimate.angXy - pred.angXy) / delT;
+//    navData.angAccXy = pred.angAccXy + gain[5] * (imuEstimate.angXy - pred.angXy) / (0.5 * delT * delT);
+//  }
+//  else if (USE_TOFS && tofPos.yawValid){
+  if (USE_TOFS && tofPos.yawValid){
+    navData.angXy = pred.angXy + gain[3] * (tofPos.yaw - pred.angXy);
+    navData.angVelXy = pred.angVelXy + gain[4] * (tofPos.yaw - pred.angXy) / delT;
+    navData.angAccXy = pred.angAccXy + gain[5] * (tofPos.yaw - pred.angXy) / (0.5 * delT * delT);
   }
   else{
     navData.angXy = pred.angXy;

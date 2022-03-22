@@ -34,7 +34,7 @@ Imu::Imu(Hms* hms):
     success = false;
   }
 
-  displayDetails();
+//  displayDetails();
   /* return success; */
 }
 
@@ -68,41 +68,41 @@ ImuData& Imu::getData(){
   return imuData;
 }
 
-void Imu::displayDetails(){
-  //ACCEL
-  sensor_t sensor;
-  accel.getSensor(&sensor);
-  Serial.println("------------------------------------");
-  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
-  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
-  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
-  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" m/s^2");
-  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" m/s^2");
-  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" m/s^2");
-  Serial.println("------------------------------------");
-  Serial.println("");
-
-  //MAG
-  mag.getSensor(&sensor);
-  Serial.println("------------------------------------");
-  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
-  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
-  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
-  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" uT");
-  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" uT");
-  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" uT");
-  Serial.println("------------------------------------");
-  Serial.println("");
-
-  //GYRO
-  gyro.getSensor(&sensor);
-  Serial.println("------------------------------------");
-  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
-  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
-  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
-  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" rad/s");
-  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" rad/s");
-  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" rad/s");  
-  Serial.println("------------------------------------");
-  Serial.println("");
-}
+//void Imu::displayDetails(){
+//  //ACCEL
+//  sensor_t sensor;
+//  accel.getSensor(&sensor);
+//  Serial.println("------------------------------------");
+//  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
+//  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
+//  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
+//  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" m/s^2");
+//  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" m/s^2");
+//  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" m/s^2");
+//  Serial.println("------------------------------------");
+//  Serial.println("");
+//
+//  //MAG
+//  mag.getSensor(&sensor);
+//  Serial.println("------------------------------------");
+//  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
+//  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
+//  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
+//  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" uT");
+//  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" uT");
+//  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" uT");
+//  Serial.println("------------------------------------");
+//  Serial.println("");
+//
+//  //GYRO
+//  gyro.getSensor(&sensor);
+//  Serial.println("------------------------------------");
+//  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
+//  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
+//  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
+//  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" rad/s");
+//  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" rad/s");
+//  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" rad/s");
+//  Serial.println("------------------------------------");
+//  Serial.println("");
+//}
