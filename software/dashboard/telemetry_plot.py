@@ -110,6 +110,7 @@ class TelemetryPlot:
 
     def erase_update_render(self, screen):
         #  print('eur.',end='')
+        print('start erase_update_render')
         self.ticks_since_last_rescale += 1
         if self.pb_item.plotted_latest_value:
             #  pass
@@ -231,6 +232,7 @@ class TelemetryPlot:
             #  pass
             print(f"ERROR UPDATING PLOTS: {e}")
             print(f"{traceback.format_exc()}")
+        print('end erase_update_render')
 
 # (200,0,200)
         #  self.values.append()
