@@ -21,8 +21,9 @@ class Tof{
     Tof(Hms* hms, VL53LX* tof_sensor);
     void poll();
     TofData& getData();
-//    bool init();
+    bool init();
     /* void displayDetails(); */
+    bool needsToBeInitialized = true;
 
   private:
     TofData tofData;
@@ -32,6 +33,7 @@ class Tof{
     unsigned long lastReading = 0;
     char report[64];
     int status;
+
 };
 
 #endif

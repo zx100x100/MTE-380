@@ -8,12 +8,9 @@ Tof::Tof()
 {
 }
 
-Tof::Tof(Hms* hms, VL53LX* tof_sensor):
-  hms(hms),
-  sensor_vl53lx_sat(tof_sensor)
-{
-  tofData = TofData_init_zero;
+bool Tof::init(){
 
+  bool initializedProperly = true;
   if (hms->data.sensorsLogLevel >= 1) Serial.println("begin");
 
   // Configure VL53LX satellite component.
@@ -23,12 +20,24 @@ Tof::Tof(Hms* hms, VL53LX* tof_sensor):
   if (hms->data.sensorsLogLevel >= 1) Serial.println("init sensor");
   //Initialize VL53LX satellite component.
   // This will turn TOF_PLACEHOLDER_PIN LOW then HIGH, then continue initializing the sensor
-  sensor_vl53lx_sat->InitSensor(0x12);
+  initializedProperly &= sensor_vl53lx_sat->InitSensor(0x12) == 0;  // ensure sensor initialized properly
 
 
   if (hms->data.sensorsLogLevel >= 1) Serial.println("start measurement");
   // Start Measurements
   sensor_vl53lx_sat->VL53LX_StartMeasurement();
+
+  needsToBeInitialized = false;
+
+  return initializedProperly;
+}
+
+Tof::Tof(Hms* hms, VL53LX* tof_sensor):
+  hms(hms),
+  sensor_vl53lx_sat(tof_sensor)
+{
+  tofData = TofData_init_zero;
+  init();
 }
 
 TofData& Tof::getData(){
@@ -79,10 +88,14 @@ void Tof::poll(){
     else{
       /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
       if (micros() - lastReading > TIMEOUT){
-          if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
-          status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
-          NewDataReady = 0;
-          tofData.timeoutCount++;
+        if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
+        status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
+        NewDataReady = 0;
+        tofData.timeoutCount++;
+
+        if (tofData.timeoutCount % 3 == 0){
+          needsToBeInitialized = true;
+        }
       }
     }
 }

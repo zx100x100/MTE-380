@@ -101,10 +101,15 @@ void loop()
         notFinished &= currNum[i] < NUM_TO_READ && currReadingsTillNew[i] <= OH_SHIT_COUNT_BAD;
     }
     if (!notFinished){
-        Serial.print(currReadingsTillNew[0]);Serial.print(currReadingsTillNew[1]);Serial.print(currReadingsTillNew[2]);Serial.println(currReadingsTillNew[3]);
-        for (int i = 0; i < 4; i++){
-            Serial.print("### tof: "); Serial.println(i);
-            for (int j = 0; j < NUM_TO_READ; ++j){
+        for (int i = 0; i < 4; ++i){
+            Serial.print("Tof "); Serial.print(i); Serial.print(" currReadingsTillNew: "); Serial.println(currReadingsTillNew[i]);
+        }
+        for (int i = 0; i < 4; ++i) {
+            Serial.print("delT;dist;numObjs;count;timeoutCount;readingsTillNew;;;");
+        }
+        Serial.println();
+        for (int j = 0; j < NUM_TO_READ; j++){
+            for (int i = 0; i < 4; ++i){
                 Serial.print(delT[i][j]);
                 Serial.print(";");
                 Serial.print(data[i][j].dist);
@@ -116,8 +121,9 @@ void loop()
                 Serial.print(data[i][j].timeoutCount);
                 Serial.print(";");
                 Serial.print(readingsTillNew[i][j]);
-                Serial.println();
+                Serial.print(";;;");
             }
+            Serial.println();
         }
         while(1);
     }
