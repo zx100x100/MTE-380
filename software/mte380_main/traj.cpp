@@ -79,7 +79,6 @@ bool Subline::isDOnLine(float d, int endCondition){
     return float_le(d,d4);
   }
   else if (endCondition == 1){
-  }
     return float_ge(d,d1);
   }
   return float_le(d,d4) && float_ge(d,d1);
