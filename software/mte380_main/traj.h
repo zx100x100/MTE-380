@@ -7,7 +7,7 @@
 
 #define NUM_SEGMENTS 20
 #define MAX_N_TRAPS 8
-#define BULLSHIT 0.2
+#define CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE 0.2
 //0.5
 
 

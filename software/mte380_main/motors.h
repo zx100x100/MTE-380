@@ -13,7 +13,7 @@ class Motors{
     Motors(GuidanceData& guidanceData,
            Hms* hms);
     void update();
-    void setToShit(float leftPower, float rightPower);
+    void setPower(float leftPower, float rightPower);
 
     void setAllToZero();
 

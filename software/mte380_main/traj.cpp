@@ -17,6 +17,7 @@ Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
   v4(v4),
   hms(hms)
 {
+  // this math is all on the whiteboard ----------------------------------------------
   if (d4 > d1){
     a = -ACC;
     vm = VMAX;
@@ -38,11 +39,13 @@ Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
     d3 = (pow(d1,2)-pow(d4,2))/(4*a)+(d1+d4)/2;
     d2 = d3;
   }
+  // end of whiteboard math ----------------------------------------------------------
 }
 
+// get velocity based on trapezoidal acceleration profile.
+// d represents distance along the axis in which we are doing position based velocity
 float Subline::trapezoidal(float d){
-  // Serial.println("trapezoidal");
-  if(hms->data.guidanceLogLevel >= 2){ Serial.println("trapezoidal"); }
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("Trapezoidal velocity"); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d2: "); Serial.println(d2); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d3: "); Serial.println(d3); }
@@ -50,9 +53,8 @@ float Subline::trapezoidal(float d){
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("v1: "); Serial.println(v1); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("v4: "); Serial.println(v4); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d: "); Serial.println(d); }
-  
 
-  float v;
+  float v; // were gonna return a velocity. whiteboard math-------------------------
   if(float_le(d*sign(vm), d1*sign(vm))){
     v = v1;
   }
@@ -71,9 +73,15 @@ float Subline::trapezoidal(float d){
 
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("v: "); Serial.println(v); }
   return v;
+  // end of whiteboard math -------------------------------------------------------
+  //
+  //
+  // If it doesnt make sense, look at the fucking whiteboard
 }
 
 
+// Check if a line in an axis contains a distance in that axis without paying attention to the orthogonal direction
+// use endcondition = -1 to look beyond the left bound, 1 to look beyond the right
 bool Subline::isDOnLine(float d, int endCondition){
   if (endCondition == -1){
     return float_le(d,d4);
@@ -84,6 +92,7 @@ bool Subline::isDOnLine(float d, int endCondition){
   return float_le(d,d4) && float_ge(d,d1);
 }
 
+// Get a velocity setpoint for the line given a position.
 float Line::velSetpoint(float xp, float yp){
   float dp;
   if (horizontal){
@@ -92,12 +101,7 @@ float Line::velSetpoint(float xp, float yp){
   else{
     dp = yp;
   }
-  // if(hms->data.guidanceLogLevel >= 2){ Serial.println("Line::velSetpoint"); }
-  // if(hms->data.guidanceLogLevel >= 2){ Serial.print("nSublines: "); Serial.println(nSublines); }
   for (int i=0; i<nSublines; i++){
-    // if(hms->data.guidanceLogLevel >= 2){ Serial.println("loop?"); }
-    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("dp: "); Serial.println(dp); } */
-    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[i].isDOnLine(dp): "); Serial.println(sublines[i].isDOnLine(dp)); } */
     int endCondition = 0;
     if (i == 0){
       if (orientation == 1){
@@ -122,32 +126,42 @@ float Line::velSetpoint(float xp, float yp){
   return 0;
 }
 
+
+// Create a line from a to b.
+// either xa=xb or ya=yb, eg. line must be either horizontal or vertical
+// xa may be larger or smaller than xb, and same in y axis. eg. may go backwards
 Line::Line(float _xa, float _ya, float _xb, float _yb, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms):
   hms(hms)
 {
   if(hms->data.guidanceLogLevel >= 2){ Serial.println("Line::init"); }
+
+  // horizontal line?
   horizontal = _ya == _yb;
+
+
+  // orientation = -1 indicates a backwards line, ie. going from larger to smaller x or y
   if (horizontal){
     orientation = _xa > _xb ? -1 : 1;
   }
   else{
     orientation = _ya > _yb ? -1 : 1;
   }
+
+  // if we want to turn on the spot, we need to do longer line segments. so we offset them by this variable
+  // and multiply by orientation to offset in the correct direction.
   if (horizontal){
-    xa = _xa+BULLSHIT*(orientation==-1?0.5:-0.5);
-    xb = _xb-BULLSHIT*(orientation==-1?0.5:-0.5);
+    xa = _xa+CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE*(orientation==-1?0.5:-0.5);
+    xb = _xb-CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE*(orientation==-1?0.5:-0.5);
     ya = _ya;
     yb = _yb;
   }
   else{
-    ya = _ya+BULLSHIT*(orientation==-1?0.5:-0.5);
-    yb = _yb-BULLSHIT*(orientation==-1?0.5:-0.5);
+    ya = _ya+CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE*(orientation==-1?0.5:-0.5);
+    yb = _yb-CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE*(orientation==-1?0.5:-0.5);
     xa = _xa;
     xb = _xb;
   }
   
-  float included[MAX_N_TRAPS];
-
   for (int i=0; i<MAX_N_TRAPS; i++){
     if (isPointOnLine(trapX[i], trapY[i])){
       if(hms->data.guidanceLogLevel >= 2){ Serial.print("Trap "); Serial.print(i); Serial.println(" found on line");}
@@ -157,8 +171,14 @@ Line::Line(float _xa, float _ya, float _xb, float _yb, float trapX[MAX_N_TRAPS],
       trapD[i] = -1;
     }
   }
+  // distance of line endpoint a in the axis that the line is in. 
+  // eg. for a horizontal line starting at (1,2), da = xa = 1
   float da;
+
+  // see above
   float db;
+
+  // dLow and dHigh are like da and db but based on numerical order whereas db may be less than da
   float dLow;
   float dHigh;
   if (horizontal){
@@ -169,22 +189,32 @@ Line::Line(float _xa, float _ya, float _xb, float _yb, float trapX[MAX_N_TRAPS],
     dLow = min(ya,yb);
     dHigh = max(ya,yb);
   }
-  float last_d1;
+
+
+
+  // VERY MAJOR TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+  // 
+  // break the following code into functions because its pretty gross even though its arguably not bloated
+  //
+  //
+  // !!!!!!!!!!!!!
+  //
+
+  // assign sublines. sublines are for trapezoidal velocity ramping between trapezoid corners.
+  // the 4 trapezoid corners of the velocity are d1,d2,d3,d4 with velocities interpolated between.
+  //
+  // Save the d1 and d4 of the previous segment
   float last_d4 = dLow;
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("dLow: "); Serial.println(dLow); }
-  float last_v1;
   float last_v4 = CURVE_SPEED;
-  int lastSubline = -1;
+
+  int lastSubline = -1; // keep track of how many sublines have been assigned
   while(true){
-    // assign start
     float d1;
     float d4;
     float v1;
     float v4;
 
-    // always
     d1 = last_d4;
-    if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
     v1 = last_v4;
 
     // now, we could either be a trap subline, long trap subline, or regular subline.
@@ -231,22 +261,18 @@ Line::Line(float _xa, float _ya, float _xb, float _yb, float trapX[MAX_N_TRAPS],
         d4 = trapD[nearestTrapInd]-0.5;
       }
     }
+
+    // create a subline using the variables created in gross if statements above
     sublines[++lastSubline] = Subline(d1,d4,v1,v4,hms);
 
     if (d4 == dHigh){
       break;
     }
 
-    last_d1 = d1;
     last_d4 = d4;
-    last_v1 = v1;
     last_v4 = v4;
   }
   nSublines = lastSubline + 1;
-
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].d1;: "); Serial.println(sublines[0].d1); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].d4;: "); Serial.println(sublines[0].d4); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[0].isDOnLine(4.5): "); Serial.println(sublines[0].isDOnLine(4)); }
 }
 
 SegmentType Line::getType(){
@@ -266,6 +292,7 @@ bool Line::isPointOnLine(float xp, float yp){
   return false;
 }
 
+// nearest distance to line
 float Line::getDist(float xp, float yp){
   if (horizontal){
     if (orientation == -1){
@@ -285,6 +312,7 @@ float Line::getDist(float xp, float yp){
   }
 }
 
+// check if we have ventured beyond the final bound of the line so we can move to next segment
 bool Line::completed(float xp, float yp){
   if (horizontal){
     if (xb > xa){
@@ -310,6 +338,7 @@ SegmentType Curve::getType(){
   return CURVE;
 }
 
+// travel at constant speed on curves
 float Curve::velSetpoint(float xp, float yp){
   return CURVE_SPEED;
 }
@@ -319,6 +348,7 @@ float Curve::getDist(float xp, float yp){
   return pow(pow(xp-xc,2)+pow(yp-yc,2),0.5) - CURVE_RADIUS;
 }
 
+// have we moved beyond the curve?
 bool Curve::completed(float xp, float yp){
   if (cornerType == BL){
     return yp < yc;
@@ -351,9 +381,8 @@ void Traj::init(){
 
   /* heap_caps_check_integrity(MALLOC_CAP_8BIT, true); */
 
-  segments[0] = new Line(4.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
-  /* segments[0] = new Line(4.5,5,1,5,cmdData->trapX,cmdData->trapY,hms); */
-  segments[1] = new Curve(1,5,BL,hms);
+  segments[0] = new Line(4.5,5.5,1,4.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[1] = new Curve(1,5,BL,hms); // BL = bottom left, etc.
   segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY,hms);
   segments[3] = new Curve(1,1,TL,hms);
   segments[4] = new Line(1,0.5,5,0.5,cmdData->trapX,cmdData->trapY,hms);
@@ -374,10 +403,8 @@ void Traj::init(){
   segments[19] = new Line(3,2.5,3.5,2.5,cmdData->trapX,cmdData->trapY,hms);
 }
 
-// returns true if cmdData contanis new traps
+// returns true if cmdData contains new traps or deleted existing ones
 bool Traj::trapsChanged(){
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("cmdData-nTraps: "); Serial.println(cmdData->nTraps); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("nTraps: "); Serial.println(nTraps); }
   bool changed = cmdData->nTraps != nTraps;
   nTraps = cmdData->nTraps;
   return changed;
@@ -385,37 +412,14 @@ bool Traj::trapsChanged(){
 
 void Traj::updateTraps(){
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Traj::updateTraps()");
+
+  // update traps by simply re-generating lines and passing in the trap arrays, then deleting the old lines
   for (int i=0; i < NUM_SEGMENTS; i++){
     if (segments[i]->getType() == LINE){
-      /* *segments[i] = copyAndRecalculateTraps(static_cast<Line*>(segments[i]), cmdData->trapX, cmdData->trapY, hms); */
-  /* return Line(line->xa, line->ya, line->xb, line->yb, trapX, trapY, line->hms); */
       Line* tempLine = static_cast<Line*>(segments[i]);
       Line* newLine = new Line(tempLine->xa, tempLine->ya, tempLine->xb, tempLine->yb, cmdData->trapX, cmdData->trapY, hms);
       delete segments[i];
       segments[i] = newLine;
-
-      // Line* tempLine = static_cast<Line*>(segments[i]);
-      // tempLine -> updateTraps(cmdData->trapX, cmdData->trapY);
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->nSublines: "); Serial.println(newLine->nSublines); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[0].d1: "); Serial.println(newLine->sublines[0].d1); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[0].d2: "); Serial.println(newLine->sublines[0].d2); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[0].d3: "); Serial.println(newLine->sublines[0].d3); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[0].d4: "); Serial.println(newLine->sublines[0].d4); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[0].v1: "); Serial.println(newLine->sublines[0].v1); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[0].v4: "); Serial.println(newLine->sublines[0].v4); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[1].d1: "); Serial.println(newLine->sublines[1].d1); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[1].d2: "); Serial.println(newLine->sublines[1].d2); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[1].d3: "); Serial.println(newLine->sublines[1].d3); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[1].d4: "); Serial.println(newLine->sublines[1].d4); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[1].v1: "); Serial.println(newLine->sublines[1].v1); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[1].v4: "); Serial.println(newLine->sublines[1].v4); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[2].d1: "); Serial.println(newLine->sublines[2].d1); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[2].d2: "); Serial.println(newLine->sublines[2].d2); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[2].d3: "); Serial.println(newLine->sublines[2].d3); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[2].d4: "); Serial.println(newLine->sublines[2].d4); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[2].v1: "); Serial.println(newLine->sublines[2].v1); }
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("newLine->sublines[2].v4: "); Serial.println(newLine->sublines[2].v4); }
-      // while(true){}
     }
   }
 }
@@ -424,32 +428,31 @@ void Traj::updateTraps(){
 bool Traj::updatePos(float xp, float yp){
 
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Traj::updatePos");
-  bool advanced = false;
+
+  bool alreadyAdvancedHowTheFuckIsThatPossible = false;
 
   while(segments[gd->segNum]->completed(xp, yp)){
-    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd->segNum: "); Serial.println(gd->segNum); } */
-    /* if (hms->data.guidanceLogLevel >= 2) Serial.println("blah1"); */
-    if (advanced){
-      /* if (hms->data.guidanceLogLevel >= 2) Serial.println("blah2"); */
+    if (alreadyAdvancedHowTheFuckIsThatPossible){
       /* hms->logError(HmsData_Error_WTF_AHMAD, "skipped track segment!"); */
+      if(hms->data.guidanceLogLevel >= 1){ Serial.println("wtf ahmad, skipped track segment???"); }
     }
-    /* if (hms->data.guidanceLogLevel >= 2) Serial.println("blah3"); */
     if (gd->segNum++ >= NUM_SEGMENTS){
       Serial.println("Completed track!");
-      gd->segNum--;
+      gd->segNum--; // dont wanna go overflowing arrays now do we???? DO WE?????
       return true;
     }
-    advanced = true;
+    alreadyAdvancedHowTheFuckIsThatPossible = true;
     if(hms->data.guidanceLogLevel >= 2){ Serial.print("completion loop. segNum: "); Serial.println(gd->segNum); }
   }
-  /* if (hms->data.guidanceLogLevel >= 2) Serial.println("done updatePos"); */
   return false;
 }
 
+// get distance from robot to trajectory (eg. drift)
 float Traj::getDist(float xp, float yp){
   return segments[gd->segNum]->getDist(xp,yp);
 }
 
+// get velocity setpoint based on distance along trajectory
 float Traj::getSetpointVel(float xp, float yp){
   if(hms->data.guidanceLogLevel >= 2){ Serial.println("Traj::getSetpointVel"); }
   return segments[gd->segNum]->velSetpoint(xp, yp);

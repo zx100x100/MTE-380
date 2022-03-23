@@ -26,8 +26,6 @@ class Guidance{
 
     unsigned long lastTimestamp;
     unsigned long deltaT;
-    /* float lastTimestamp; */
-    /* float deltaT; */
 
     CmdData_RunState prevRunState;
 
