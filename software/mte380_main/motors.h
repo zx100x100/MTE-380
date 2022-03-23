@@ -10,8 +10,7 @@
 
 class Motors{
   public:
-    Motors(GuidanceData& guidanceData,
-           Hms* hms);
+    Motors(GuidanceData& guidanceData, Hms* hms);
     void update();
     void setPower(float leftPower, float rightPower);
 

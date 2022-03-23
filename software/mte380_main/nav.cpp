@@ -29,6 +29,7 @@ Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
 }
 
 void Nav::init(){
+  //set up sensor fusion lib
   fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 }
 
@@ -49,7 +50,7 @@ float Nav::sind(float deg){
 }
 
 float Nav::getTofFt(TofOrder tofNum){
-    return sensors.tof[tofNum].getData().dist * 0.00328084;
+    return sensors.tof[tofNum].getData().dist * 0.00328084; //mm -> ft
 }
 
 NavData Nav::calculateImu(){
@@ -101,28 +102,30 @@ void Nav::updateTof(heading_t heading){
         leftValid = false;
       }
 
-      if (isValid(FRONT) && isValid(BACK)){
+      if (isValid(FRONT) && isValid(BACK)){ // If both valid, use the shortest
         frontValid = true;
         if (getTofFt(FRONT) <= getTofFt(BACK))
           front = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
         else
           front = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
       }
-      else if(isValid(FRONT)){
+      else if(isValid(FRONT)){ // If not, use front if valid
         frontValid = true;
         front = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
       }
-      else if(isValid(BACK)){
+      else if(isValid(BACK)){ // If not, use back if valid
         frontValid = true;
         front = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
       }
-      else{
+      else{ // Well Fuck
         if (hms->data.navLogLevel >= 2) Serial.println("vertical tofs INVALID");
         frontValid = false;
       }
 
     if(hms->data.navLogLevel >= 1){ Serial.print("Heading: "); Serial.println(heading); }
     tofPos.yawValid = angFromWallValid;
+    
+    // Local to global coordinate conversion switch case:
     switch(heading){
       case UP:
         if (leftValid) tofPos.x = left;
@@ -154,7 +157,7 @@ void Nav::updateTof(heading_t heading){
         break;
     }
   }
-  else{
+  else{ // ToFs not updated
     if (hms->data.navLogLevel >= 2) Serial.println("tofs NOT updated");
     tofPos.xValid = false;
     tofPos.yValid = false;
@@ -190,7 +193,7 @@ void Nav::update(heading_t heading){
 //    if(hms->data.guidanceLogLevel >= 2){ Serial.println("NAV::::::::: NOT IN SIM MODE??????"); }
   }
 
-  float delT = float(sensors.timestamp - navData.timestamp) / 1000000;
+  float delT = float(sensors.timestamp - navData.timestamp) / 1000000; // navData timestamp is the same as previous sensor timestamp
   NavData pred = getPred(delT);
   if (hms->data.navLogLevel >= 1){
     Serial.print("pred: x: "); Serial.print(pred.posX); Serial.print(", y: ");  Serial.print(pred.posY); Serial.print(", yaw: ");  Serial.print(pred.angXy); Serial.print(", dt: "); Serial.println(delT);
@@ -244,7 +247,7 @@ bool Nav::isValid(TofOrder tof){
       estimateFront = navData.posY;
   }
 
-  switch (tof){
+  switch (tof){ //Global to Local
     case FRONT:
       return estimateFront - ((getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
       break;

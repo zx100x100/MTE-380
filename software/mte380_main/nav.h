@@ -42,6 +42,7 @@ class Nav{
     bool tofsUpdated();
     void updateTof(heading_t heading);
     NavData calculateImu();
+    //mTODO move to math utils
     float deg2rad(float deg);
     float rad2deg(float deg);
     float cosd(float deg);
@@ -49,7 +50,7 @@ class Nav{
     float getTofFt(TofOrder tofNum);
     void updateEstimate(const NavData pred);
 
-
+    // IMU Filter Gain
     constexpr static float imuGain = 0.1;
     imuFilter<&imuGain> fusion;
 };

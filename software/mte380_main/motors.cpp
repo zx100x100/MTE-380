@@ -7,7 +7,6 @@
 #define RIGHT_DRIVE_2 2
 
 // #define PROP_PIN 27
-
 // #define PROP_MIN 55
 // #define PROP_MAX 150
 
