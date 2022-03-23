@@ -435,9 +435,9 @@ bool Traj::updatePos(float xp, float yp){
       /* hms->logError(HmsData_Error_WTF_AHMAD, "skipped track segment!"); */
       if(hms->data.guidanceLogLevel >= 1){ Serial.println("wtf ahmad, skipped track segment???"); }
     }
-    if (gd->segNum++ >= NUM_SEGMENTS){
+    if (++gd->segNum >= NUM_SEGMENTS){
       Serial.println("Completed track!");
-      gd->segNum--; // dont wanna go overflowing arrays now do we???? DO WE?????
+      gd->segNum = 0; // dont wanna go overflowing arrays now do we???? DO WE?????
       return true;
     }
     alreadyAdvancedHowTheFuckIsThatPossible = true;
