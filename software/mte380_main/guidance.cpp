@@ -2,7 +2,7 @@
 #include "math_utils.h"
 
 #define MAX_OUTPUT_POWER 70 // must be < 255
-#define MAX_TURN_IN_PLACE_OUTPUT_POWER 70 // must be < 255
+#define MAX_TURN_IN_PLACE_OUTPUT_POWER 60 // must be < 255
 
 Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav):
   navData(_navData),
@@ -193,18 +193,23 @@ void Guidance::update(){
 void Guidance::turnInPlace(){
   float startAngle = nav->getGyroAngle();
   float curAngle = startAngle;
-  float threshhold = 5; // end loop when 5 degrees from donezo
+  // float threshhold = 5; // end loop when 5 degrees from donezo
+  float threshold = 2; // end loop when 2 degrees from donezo for thresholdTime sec
+  unsigned long thresholdTime = 500;
   float angleDelta = 0;
   float error = 90;
   float lastError = error;
-  float kp_turny = 1;
-  float kd_turny = 0.2;
+  float kp_turny = 0.9;
+  float kd_turny = 40000;
   float ki_turny = 0.0;
-  float firstTimestamp = micros();
-  float lastTimestamp = micros(); // zach I pinky promise that these two timestamps
+  unsigned long firstTimestamp = micros();
+  unsigned long lastTimestamp = micros(); // zach I pinky promise that these two timestamps
   // will not be subtracted from each other and result in divide by zero errors.
+  unsigned long successTime = 0;
 
   float curTimestamp;
+  float enterThresholdTimestamp;
+  bool withinThreshold = false;
   float deltaT;
   float errorD;
   float errorI;
@@ -212,21 +217,43 @@ void Guidance::turnInPlace(){
   float I;
   float D;
   float total;
+  float rawAngle;
   float newAngle;
 
   // theres a timeout dont worry
-  while(abs(error)>threshhold){
-    newAngle = nav->getGyroAngle();
+  Serial.println("Start turny");
+
+  while(true){
+    rawAngle = nav->getGyroAngle();
     if (curAngle - newAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360
-      newAngle += 360;
+      newAngle = 360 + rawAngle;
+    }
+    else{
+      newAngle = rawAngle;
     }
     curAngle = newAngle;
     angleDelta = curAngle - startAngle;
     error = 90 - angleDelta;
     curTimestamp = micros();
+    if (abs(error) < threshold){
+      if (withinThreshold){
+        if (curTimestamp - enterThresholdTimestamp > thresholdTime){
+          Serial.println("Donezo");
+          break;
+        }
+      }
+      else{
+        withinThreshold = true;
+        enterThresholdTimestamp = curTimestamp;
+      }
+    }
+    else{
+      withinThreshold = false;
+    }
 
     // if it takes longer than 4 seconds to turn, you fucked up
-    if (curTimestamp - firstTimestamp > 4000000){
+    /* if (curTimestamp - firstTimestamp > 2000000){ */
+    if (curTimestamp - firstTimestamp > 9999999000){
       Serial.println("turn better next time please");
       break;
     }
@@ -239,9 +266,13 @@ void Guidance::turnInPlace(){
     D = errorD * kd_turny;
 
     total = P + I + D;
+
     total = constrainVal(P + I + D, MAX_TURN_IN_PLACE_OUTPUT_POWER);
-    motors->setPower(total, -total);
+    Serial.printf("StartAngle: %.3f | rawAngle: %.3f | curAngle(adj): %.3f | P: %.3f * %.3f = %.3f D: %.3f * %.3f = %.3f | L: %.3f, R: %.3f\n", startAngle, rawAngle, curAngle, error,kp_turny,P, errorD,kd_turny,D, total, -total);
+    /* motors->setPower(total, -total); */
+
   }
+  motors->setAllToZero();
   gd.segNum++;
   return;
 }

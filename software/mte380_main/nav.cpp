@@ -63,7 +63,7 @@ float Nav::getGyroAngle(){
   fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
   float yaw = rad2deg(fusion.yaw());
-  Serial.print("yaw: "); Serial.println(yaw);
+  /* Serial.print("yaw: "); Serial.println(yaw); */
 
   return yaw;
 }
