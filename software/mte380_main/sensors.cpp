@@ -69,6 +69,9 @@ void Sensors::update(){
   for (int i=0; i<4; i++){
     digitalWrite(MUX_S1, mux_addresses[i]&0x01);
     digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);
+    if (tof[i].needsToBeInitialized){
+      tof[i].init();
+    }
     tof[i].poll();
   }
 //  if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");
