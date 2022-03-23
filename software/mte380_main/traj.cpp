@@ -3,10 +3,10 @@
 #include "traj.h"
 #include "math_utils.h"
 
-#define CURVE_RADIUS 0.5 // tiles
-#define CURVE_SPEED 0//1 // tiles/s
-#define ACC 12 // tiles/s^2
-#define VMAX 3 // tiles/s^2
+#define CURVE_RADIUS 0.5 // tiles (AKA feet, they are litterally just feet)
+#define CURVE_SPEED 0 // tiles/s
+#define ACC 12 // tiles/s^2 (So this is just ft/s^2)
+#define VMAX 3 // tiles/s
 #define TRAP_SPEED 2 // tiles/s
 
 Subline::Subline(){}
@@ -42,10 +42,10 @@ Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
   // end of whiteboard math ----------------------------------------------------------
 }
 
-// get velocity based on trapezoidal acceleration profile.
+// get velocity based on trapezoidalAcceleration acceleration profile.
 // d represents distance along the axis in which we are doing position based velocity
-float Subline::trapezoidal(float d){
-  if(hms->data.guidanceLogLevel >= 2){ Serial.println("Trapezoidal velocity"); }
+float Subline::trapezoidalAcceleration(float d){
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("trapezoidalAcceleration velocity"); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d2: "); Serial.println(d2); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d3: "); Serial.println(d3); }
@@ -76,11 +76,10 @@ float Subline::trapezoidal(float d){
   // end of whiteboard math -------------------------------------------------------
   //
   //
-  // If it doesnt make sense, look at the fucking whiteboard
+  // If it doesnt make sense, look at the fucking whiteboard (not that it actually helps)
 }
 
-
-// Check if a line in an axis contains a distance in that axis without paying attention to the orthogonal direction
+// Check if possition projected on to line is within segment
 // use endcondition = -1 to look beyond the left bound, 1 to look beyond the right
 bool Subline::isDOnLine(float d, int endCondition){
   if (endCondition == -1){
@@ -120,7 +119,7 @@ float Line::velSetpoint(float xp, float yp){
       }
     }
     if (sublines[i].isDOnLine(dp, endCondition)){
-      return sublines[i].trapezoidal(dp);
+      return sublines[i].trapezoidalAcceleration(dp);
     }
   }
   return 0;

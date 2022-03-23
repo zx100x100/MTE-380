@@ -31,6 +31,17 @@ Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
 void Nav::init(){
   //set up sensor fusion lib
   fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
+
+  unsigned long startT = micros();
+  unsigned long curT = 0;
+  unsigned long initTime = 1000000;
+  while(true){
+    getGyroAngle();
+    curT = micros();
+    if (curT - startT > initTime){
+      break;
+    }
+  }
 }
 
 float Nav::rad2deg(float rad){
@@ -63,7 +74,7 @@ float Nav::getGyroAngle(){
   fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
   float yaw = rad2deg(fusion.yaw());
-  Serial.print("yaw: "); Serial.println(yaw);
+  /* Serial.print("yaw: "); Serial.println(yaw); */
 
   return yaw;
 }

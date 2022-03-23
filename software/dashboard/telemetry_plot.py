@@ -116,6 +116,7 @@ class TelemetryPlot:
             return
         else:
             self.pb_item.plotted_latest_value = True
+        print('start erase_update_render')
         try:
             #  print(f'self.values: {self.values}')
             screen.blit(self.plot_image, self.plot_image_rect)
@@ -231,6 +232,7 @@ class TelemetryPlot:
             #  pass
             print(f"ERROR UPDATING PLOTS: {e}")
             print(f"{traceback.format_exc()}")
+        print('end erase_update_render')
 
 # (200,0,200)
         #  self.values.append()

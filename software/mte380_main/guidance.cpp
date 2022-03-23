@@ -1,21 +1,9 @@
 #include "guidance.h"
+#include "math_utils.h"
 
 #define MAX_OUTPUT_POWER 70 // must be < 255
-#define MAX_TURN_IN_PLACE_OUTPUT_POWER 70 // must be < 255
-
-// constrainVal value to within + or - maximum
-float constrainVal(float val, float maximum){
-  if (val > 0){
-    if (val > maximum){
-      return maximum;
-    }
-    return val;
-  }
-  if (val < -maximum){
-    return -maximum;
-  }
-  return val;
-}
+#define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255
+#define MAX_TURN_IN_PLACE_ERROR_I 500
 
 Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav):
   navData(_navData),
@@ -95,7 +83,7 @@ void Guidance::update(){
 
 
   // A PID while(true) loop to turn in place. delete when curves are sexy
-  if (CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE > 0 && cmdData.runState == CmdData_RunState_SIM){
+  if (CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE > 0 && cmdData.runState == CmdData_RunState_AUTO){
     if (traj.segments[gd.segNum]->getType() == CURVE){
       turnInPlace();
     }
@@ -114,7 +102,7 @@ void Guidance::update(){
   lastTimestamp = curTimestamp;
 
   // VELOCITY PID -----------------------------------------------------------------------
-  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
+  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2),0.5);
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.vel: "); Serial.println(gd.vel); }
 
   // get setpoint velocity using trajectory
@@ -122,8 +110,8 @@ void Guidance::update(){
 
   float lastErrVel = gd.errVel;
   gd.errVel = gd.setpointVel - gd.vel;
-  gd.errVelD = (gd.errVel - lastErrVel)/gd.deltaT;
-  gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!!
+  gd.errVelD = (gd.errVel - lastErrVel)*1000000/gd.deltaT;
+  gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!! or like don't....
   gd.velP = gd.errVel * gd.kP_vel;
   gd.velI = gd.errVelI * gd.kI_vel;
   gd.velD = gd.errVelD * gd.kD_vel;
@@ -137,8 +125,9 @@ void Guidance::update(){
   // DRIFT PID --------------------------------------------------------------------------
   float lastErrDrift = gd.errDrift;
   gd.errDrift = traj.getDist(navData.posX, navData.posY);
-  gd.errDriftD = (gd.errDrift - lastErrDrift)*1000*1000/gd.deltaT;
-  gd.errDriftI = 0; // ADD INTEGRAL BACK IN LATER!!!!
+  gd.errDriftD = (gd.errDrift - lastErrDrift)*1000000/gd.deltaT;
+  gd.errDriftI = 0; // ADD INTEGRAL BACK IN LATER!!!! or like don't....
+
   gd.driftP = gd.errDrift * gd.kP_drift;
   gd.driftI = gd.errDriftI * gd.kI_drift;
   gd.driftD = gd.errDriftD * gd.kD_drift;
@@ -203,57 +192,97 @@ void Guidance::update(){
 
   // A PID while(true) loop to turn in place. delete when curves are sexy
 void Guidance::turnInPlace(){
-  float startAngle = nav->getGyroAngle();
+  float startAngle = -nav->getGyroAngle();
   float curAngle = startAngle;
-  float threshhold = 5; // end loop when 5 degrees from donezo
-  float angleDelta = curAngle - startAngle;
-  float error = 90 - angleDelta;
+  // float threshhold = 5; // end loop when 5 degrees from donezo
+  float threshold = 3; // end loop when 2 degrees from donezo for thresholdTime sec
+  unsigned long thresholdTime = 50000;
+  float angleDelta = 0;
+
+
+  float error = 90;
   float lastError = error;
-  float kp_turny = 1;
-  float kd_turny = 0.2;
-  float ki_turny = 0.0;
-  float firstTimestamp = micros();
-  float lastTimestamp = micros(); // zach I pinky promise that these two timestamps
+  float kp_turny = 1.5;
+  float kd_turny = 240;
+  float ki_turny = 0.1 * (hms->data.nCells < 3 ? 1.5: 1);
+  unsigned long firstTimestamp = micros();
+  unsigned long lastTimestamp = micros(); // zach I pinky promise that these two timestamps
   // will not be subtracted from each other and result in divide by zero errors.
+  unsigned long successTime = 0;
 
   float curTimestamp;
+  float enterThresholdTimestamp;
+  bool withinThreshold = false;
   float deltaT;
   float errorD;
-  float errorI;
   float P;
+  float errorI;
   float I;
   float D;
   float total;
-  float newAngle;
+  float rawAngle;
+
+  float maxPower = MAX_TURN_IN_PLACE_OUTPUT_POWER * (5-(hms->data.batteryVoltage)/4);
 
   // theres a timeout dont worry
-  while(abs(error)>threshhold){
-    newAngle = nav->getGyroAngle();
-    if (curAngle - newAngle > 300){
-      newAngle += 360;
+  Serial.println("Start turny");
+
+  while(true){
+    rawAngle = -nav->getGyroAngle();
+    if (curAngle - rawAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360
+      curAngle = 360 + rawAngle;
     }
-    curAngle = newAngle;
+    else{
+      curAngle = rawAngle;
+    }
     angleDelta = curAngle - startAngle;
     error = 90 - angleDelta;
     curTimestamp = micros();
+    if (abs(error) < threshold){
+      if (withinThreshold){
+        if (curTimestamp - enterThresholdTimestamp > thresholdTime){
+          Serial.println("Donezo");
+          break;
+        }
+      }
+      else{
+        withinThreshold = true;
+        enterThresholdTimestamp = curTimestamp;
+      }
+    }
+    else{
+      withinThreshold = false;
+    }
 
-    // if it takes longer than 4 seconds to turn, you fucked up
-    if (curTimestamp - firstTimestamp > 4000*1000){
+    /* if it takes longer than 4 seconds to turn, you fucked up */
+    if (curTimestamp - firstTimestamp > 6000000){
       Serial.println("turn better next time please");
       break;
     }
     deltaT = curTimestamp - lastTimestamp;
     lastTimestamp = curTimestamp;
-    errorD = (error - lastError)/deltaT;
-    errorI += error * deltaT;
+    errorD = (error - lastError)*1000/deltaT;
+    errorI += error * deltaT/1000;
+    if (sign(lastError) != sign(error)){
+      errorI = 0;
+    }
+    errorI = constrainVal(errorI, MAX_TURN_IN_PLACE_ERROR_I);
     P = error * kp_turny;
     I = errorI * ki_turny;
     D = errorD * kd_turny;
 
     total = P + I + D;
-    total = constrainVal(P + I + D, MAX_TURN_IN_PLACE_OUTPUT_POWER);
+    /* total = I;// + D; */
+
+    total = constrainVal(P + I + D, maxPower);
+    Serial.printf("StartAngle: %.3f | rawAngle: %.3f | curAngle(adj): %.3f | P: %.3f * %.3f = %.3f D: %.3f * %.3f = %.3f | I: %.3f * %.3f = %.3f | L: %.3f, R: %.3f | Ts: ", startAngle, rawAngle, curAngle, error,kp_turny,P, errorD,kd_turny,D, errorI, ki_turny, I, total, -total);
+    Serial.println((curTimestamp-firstTimestamp)/1000);
     motors->setPower(total, -total);
+
+    lastError = error;
+
   }
+  motors->setAllToZero();
   gd.segNum++;
   return;
 }

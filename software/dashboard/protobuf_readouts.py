@@ -1,5 +1,6 @@
 import pygame as pg
 from collections import deque
+import math
 
 from util import (pos_inside_rect, next_enum)
 from proto.hms_and_cmd_data_pb2 import HmsData
@@ -58,12 +59,27 @@ class ReadoutItem:
         self.plotted_latest_value = False
     
     def append_value(self, value):
-        self.values.append(value)
-        self.plotted_latest_value = False
+        if self.is_numeric and not self.is_enum:
+            if not math.isnan(value):
+                self.values.append(value)
+                self.plotted_latest_value = False
+            else:
+                print(f"TRYING TO APPEND ILLEGAL NUMBER: {value}")
+        else:
+            self.values.append(value)
+            self.plotted_latest_value = False
+
 
     def update_value(self):
-        self.values.append(self.value)
-        self.plotted_latest_value = False
+        if self.is_numeric and not self.is_enum:
+            if not math.isnan(self.value):
+                self.values.append(self.value)
+                self.plotted_latest_value = False
+            else:
+                print(f"TRYING TO APPEND ILLEGAL NUMBER: {self.value}")
+        else:
+            self.values.append(self.value)
+            self.plotted_latest_value = False
     
     def replace_value(self, value):
         self.values[-1] = value

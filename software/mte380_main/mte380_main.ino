@@ -7,6 +7,8 @@
 #include "hms.h"
 #include "hms_and_cmd_data.pb.h"
 
+/* #define RUN_TURN_IN_PLACE_TEST */
+
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {
   VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
@@ -43,13 +45,19 @@ void setup() {
   hms.init();
   sensors.init();
   nav.init();
-  telemetryServer.init();
   guidance.init();
 
   guidance.motors = &motors;
-
   cmdData.runState = CmdData_RunState_E_STOP;
   
+#ifdef RUN_TURN_IN_PLACE_TEST
+  delay(1000);
+  guidance.turnInPlace();
+  while(true){}
+#endif
+#ifndef RUN_TURN_IN_PLACE_TEST
+  telemetryServer.init();
+#endif
 }
 
 void loop() {
