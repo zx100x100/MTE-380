@@ -15,6 +15,7 @@ class Guidance{
     void init();
     void update();
     GuidanceData& getData();
+    void turnInPlace();
     Motors* motors;
 
   private:

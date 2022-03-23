@@ -202,7 +202,7 @@ void Guidance::update(){
 }
 
   // A PID while(true) loop to turn in place. delete when curves are sexy
-Guidance::turnInPlace(){
+void Guidance::turnInPlace(){
   float startAngle = nav->getGyroAngle();
   float curAngle = startAngle;
   float threshhold = 5; // end loop when 5 degrees from donezo
