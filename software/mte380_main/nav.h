@@ -35,7 +35,7 @@ class Nav{
     Sensors& sensors;
     Hms* hms;
     TofPos tofPos;
-    float gain[6] = {0.2, 0.1, 0.01, 1, 0, 0};
+    float gain[6] = {1, 1, 1, 1, 0, 0};
     int lastTofsCount[4] = {-1, -1, -1, -1};
 
     bool isValid(TofOrder tof);

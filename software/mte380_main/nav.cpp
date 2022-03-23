@@ -13,11 +13,9 @@
 #define USE_IMU false
 #define USE_TOFS true
 
-#define STARTING_X 3.5
+#define STARTING_X 4.5
 #define STARTING_Y 5.5
 #define STARTING_YAW 180
-
-#define FLT_INVALID 0xFFFF
 
 Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
   sensors(sensors),
@@ -71,14 +69,14 @@ float Nav::getGyroAngle(){
 
 bool Nav::tofsUpdated(){
     bool changed = true;
-//    for (int i = 0; i < 4; ++i){
-//        changed &= sensors.tof[i].getData().count != lastTofsCount[i];
-//    }
-//    if (changed){
-//        for (int i = 0; i < 4; i++){
-//            lastTofsCount[i] = sensors.tof[i].getData().count;
-//        }
-//    }
+    for (int i = 0; i < 4; ++i){
+        changed &= sensors.tof[i].getData().count != lastTofsCount[i];
+    }
+    if (changed){
+        for (int i = 0; i < 4; i++){
+            lastTofsCount[i] = sensors.tof[i].getData().count;
+        }
+    }
     return changed;
 }
 
@@ -158,9 +156,9 @@ void Nav::updateTof(heading_t heading){
   }
   else{
     if (hms->data.navLogLevel >= 2) Serial.println("tofs NOT updated");
-    tofPos.x = false;
-    tofPos.y = false;
-    tofPos.yaw = false;
+    tofPos.xValid = false;
+    tofPos.yValid = false;
+    tofPos.yawValid = false;
   }
 }
 
