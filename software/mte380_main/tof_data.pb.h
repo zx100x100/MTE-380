@@ -14,6 +14,7 @@ typedef struct _TofData {
     uint32_t dist; 
     uint32_t numObjs; 
     uint32_t count; 
+    uint32_t timeoutCount; 
 } TofData;
 
 
@@ -22,19 +23,21 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define TofData_init_default                     {0, 0, 0}
-#define TofData_init_zero                        {0, 0, 0}
+#define TofData_init_default                     {0, 0, 0, 0}
+#define TofData_init_zero                        {0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define TofData_dist_tag                         1
 #define TofData_numObjs_tag                      2
 #define TofData_count_tag                        3
+#define TofData_timeoutCount_tag                 4
 
 /* Struct field encoding specification for nanopb */
 #define TofData_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   dist,              1) \
 X(a, STATIC,   SINGULAR, UINT32,   numObjs,           2) \
-X(a, STATIC,   SINGULAR, UINT32,   count,             3)
+X(a, STATIC,   SINGULAR, UINT32,   count,             3) \
+X(a, STATIC,   SINGULAR, UINT32,   timeoutCount,      4)
 #define TofData_CALLBACK NULL
 #define TofData_DEFAULT NULL
 
@@ -44,7 +47,7 @@ extern const pb_msgdesc_t TofData_msg;
 #define TofData_fields &TofData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define TofData_size                             18
+#define TofData_size                             24
 
 #ifdef __cplusplus
 } /* extern "C" */
