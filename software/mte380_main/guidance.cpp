@@ -2,7 +2,8 @@
 #include "math_utils.h"
 
 #define MAX_OUTPUT_POWER 70 // must be < 255
-#define MAX_TURN_IN_PLACE_OUTPUT_POWER 60 // must be < 255
+#define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255
+#define MAX_TURN_IN_PLACE_ERROR_I 500
 
 Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav):
   navData(_navData),
@@ -191,17 +192,19 @@ void Guidance::update(){
 
   // A PID while(true) loop to turn in place. delete when curves are sexy
 void Guidance::turnInPlace(){
-  float startAngle = nav->getGyroAngle();
+  float startAngle = -nav->getGyroAngle();
   float curAngle = startAngle;
   // float threshhold = 5; // end loop when 5 degrees from donezo
-  float threshold = 2; // end loop when 2 degrees from donezo for thresholdTime sec
-  unsigned long thresholdTime = 500;
+  float threshold = 3; // end loop when 2 degrees from donezo for thresholdTime sec
+  unsigned long thresholdTime = 50000;
   float angleDelta = 0;
+
+
   float error = 90;
   float lastError = error;
-  float kp_turny = 0.9;
-  float kd_turny = 40000;
-  float ki_turny = 0.0;
+  float kp_turny = 1.5;
+  float kd_turny = 240;
+  float ki_turny = 0.1 * (hms->data.nCells < 3 ? 1.5: 1);
   unsigned long firstTimestamp = micros();
   unsigned long lastTimestamp = micros(); // zach I pinky promise that these two timestamps
   // will not be subtracted from each other and result in divide by zero errors.
@@ -212,26 +215,26 @@ void Guidance::turnInPlace(){
   bool withinThreshold = false;
   float deltaT;
   float errorD;
-  float errorI;
   float P;
+  float errorI;
   float I;
   float D;
   float total;
   float rawAngle;
-  float newAngle;
+
+  float maxPower = MAX_TURN_IN_PLACE_OUTPUT_POWER * (5-(hms->data.batteryVoltage)/4);
 
   // theres a timeout dont worry
   Serial.println("Start turny");
 
   while(true){
-    rawAngle = nav->getGyroAngle();
-    if (curAngle - newAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360
-      newAngle = 360 + rawAngle;
+    rawAngle = -nav->getGyroAngle();
+    if (curAngle - rawAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360
+      curAngle = 360 + rawAngle;
     }
     else{
-      newAngle = rawAngle;
+      curAngle = rawAngle;
     }
-    curAngle = newAngle;
     angleDelta = curAngle - startAngle;
     error = 90 - angleDelta;
     curTimestamp = micros();
@@ -251,25 +254,32 @@ void Guidance::turnInPlace(){
       withinThreshold = false;
     }
 
-    // if it takes longer than 4 seconds to turn, you fucked up
-    /* if (curTimestamp - firstTimestamp > 2000000){ */
-    if (curTimestamp - firstTimestamp > 9999999000){
+    /* if it takes longer than 4 seconds to turn, you fucked up */
+    if (curTimestamp - firstTimestamp > 6000000){
       Serial.println("turn better next time please");
       break;
     }
     deltaT = curTimestamp - lastTimestamp;
     lastTimestamp = curTimestamp;
-    errorD = (error - lastError)/deltaT;
-    errorI += error * deltaT;
+    errorD = (error - lastError)*1000/deltaT;
+    errorI += error * deltaT/1000;
+    if (sign(lastError) != sign(error)){
+      errorI = 0;
+    }
+    errorI = constrainVal(errorI, MAX_TURN_IN_PLACE_ERROR_I);
     P = error * kp_turny;
     I = errorI * ki_turny;
     D = errorD * kd_turny;
 
     total = P + I + D;
+    /* total = I;// + D; */
 
-    total = constrainVal(P + I + D, MAX_TURN_IN_PLACE_OUTPUT_POWER);
-    Serial.printf("StartAngle: %.3f | rawAngle: %.3f | curAngle(adj): %.3f | P: %.3f * %.3f = %.3f D: %.3f * %.3f = %.3f | L: %.3f, R: %.3f\n", startAngle, rawAngle, curAngle, error,kp_turny,P, errorD,kd_turny,D, total, -total);
-    /* motors->setPower(total, -total); */
+    total = constrainVal(P + I + D, maxPower);
+    Serial.printf("StartAngle: %.3f | rawAngle: %.3f | curAngle(adj): %.3f | P: %.3f * %.3f = %.3f D: %.3f * %.3f = %.3f | I: %.3f * %.3f = %.3f | L: %.3f, R: %.3f | Ts: ", startAngle, rawAngle, curAngle, error,kp_turny,P, errorD,kd_turny,D, errorI, ki_turny, I, total, -total);
+    Serial.println((curTimestamp-firstTimestamp)/1000);
+    motors->setPower(total, -total);
+
+    lastError = error;
 
   }
   motors->setAllToZero();

@@ -26,8 +26,8 @@ Imu::Imu(Hms* hms):
     success = false;
   }
   //GYRO
-  gyro.enableAutoRange(true);
-  if(!gyro.begin())
+  /* gyro.enableAutoRange(true); */
+  if(!gyro.begin(GYRO_RANGE_2000DPS))
   {
     /* There was a problem detecting the L3GD20 ... check your connections */
     Serial.println("Ooops, no L3GD20 detected ... Check your wiring!");

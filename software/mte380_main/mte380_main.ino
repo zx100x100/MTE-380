@@ -7,7 +7,7 @@
 #include "hms.h"
 #include "hms_and_cmd_data.pb.h"
 
-#define RUN_TURN_IN_PLACE_TEST
+/* #define RUN_TURN_IN_PLACE_TEST */
 
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {

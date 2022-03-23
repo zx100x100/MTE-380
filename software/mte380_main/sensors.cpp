@@ -55,6 +55,7 @@ void Sensors::updateBatteryVoltage(){
   pinMode(V_SENSE_PIN, INPUT);
   float voltage = analogRead(V_SENSE_PIN)*0.0063977;
   hms->data.batteryVoltage = voltage;
+  hms->data.nCells = hms->data.batteryVoltage / 3.5;
   // if (hms->data.batteryVoltage < MIN_CELL_VOLTAGE*hms->data.nCells){
     /* hms->logError(HmsData_Error_LOW_BATTERY, "charge ur shit"); */
   // }
