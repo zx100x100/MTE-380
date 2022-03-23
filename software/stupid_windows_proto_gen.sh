@@ -15,7 +15,7 @@ NANOPB_GENERATOR_PATH=`cat ./nanopb_generator_path`
 
 for i in nav_data guidance_data tof_data imu_data hms_and_cmd_data
 do
-	cd proto; python3 $NANOPB_GENERATOR_PATH -I . $i.proto
+	cd proto; python $NANOPB_GENERATOR_PATH -I . $i.proto
 	cd ..
 	mv -v proto/$i.pb.h ./mte380_main/
 	mv -v proto/$i.pb.c ./mte380_main/
