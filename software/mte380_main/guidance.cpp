@@ -32,44 +32,52 @@ Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* moto
 
 void Guidance::init(){
   traj.init();
-  /* gd.kP_vel = 5.0; */
-  /* gd.kP_drift = 150.0; */
 }
 
 void Guidance::update(){
   if (hms->data.guidanceLogLevel >= 2) Serial.println("Guidance::update()");
-  if (cmdData.runState == CmdData_RunState_SIM && cmdData.runState != prevRunState){
-    // edge detection - switching into SIM mode
-    gd.segNum = 0;
-    prevRunState = cmdData.runState;
-    gd.errVelI = 0;
-    gd.errDriftI = 0;
-    lastTimestamp = micros();
-    return; // dont trust the position data on first tick of sim mode
-  }
-  if (cmdData.runState == CmdData_RunState_AUTO && cmdData.runState != prevRunState){
-    // edge detection - switching into AUTO mode
-    gd.segNum = 0;
-    prevRunState = cmdData.runState;
-    gd.errVelI = 0;
-    gd.errDriftI = 0;
-    lastTimestamp = micros();
-    return; // dont trust the position data on first tick of sim mode
-  }
-  prevRunState = cmdData.runState;
 
-  // if (cmdData.runState != CmdData_RunState_SIM){
-    // if (hms->data.guidanceLogLevel >= 2) Serial.println("returning");
-    // return;
-  // }
+
+  // edge detection - switching into SIM mode, reset some variables
+  if (cmdData.runState == CmdData_RunState_SIM && cmdData.runState != prevRunState){
+    gd.segNum = 0;
+    prevRunState = cmdData.runState;
+    gd.errVelI = 0;
+    gd.errDriftI = 0;
+    lastTimestamp = micros();
+    return; // dont trust the position data on first tick of sim mode
+  }
+
+  // edge detection - switching into AUTO mode, reset some variables
+  if (cmdData.runState == CmdData_RunState_AUTO && cmdData.runState != prevRunState){
+    gd.segNum = 0;
+    prevRunState = cmdData.runState;
+    gd.errVelI = 0;
+    gd.errDriftI = 0;
+    lastTimestamp = micros();
+    return; // dont trust the position data on first tick of auto mode either
+  }
+
+  // reset previous runState for edge detection
+  prevRunState = cmdData.runState;
   
-  // GET SEGMENT NUMBER TO TELL NUT MANS DUMB NUT CODE TO NUT HARDER FUCK DADDY
+  // if we are on a curve, and in teleop mode, we need to advance because its an undefined state for getting nav data
+  // bc ahmad hasnt figured out how to do GPS during curves yet or whatever
+  if (traj.segments[gd.segNum]->getType() == CURVE
+      && CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE
+      && cmdData.runState == CmdData_RunState_TELEOP){
+    gd.segNum++;
+  }
+
+
+  // The current system for getting navigation updates relies on calling Nav from guidance, and informing
+  // Nav what the current cardinal heading (UP/DOWN/LEFT/RIGHT) of the robot is so that it knows which
+  // walls to look for.
   //
+  // The system in Nav does not work for CURVE trajectory segments, so lock the Nav updates behind a check of
+  // what the current segment's getType returns, to make sure its a LINE segment.
   //
-  //  AHUFAFIOJafioaf
-  //
-  //
-  //
+  // In order to implement curve trajectories later, we will need a way of telling Nav what the fuck is happening.
   if (traj.segments[gd.segNum]->getType() == LINE){// && cmdData.runState == CmdData_RunState_AUTO){
     if(hms->data.guidanceLogLevel >= 2){ Serial.println("getting nav data from nav"); }
     Line* tempLine = static_cast<Line*>(traj.segments[gd.segNum]);
@@ -77,21 +85,18 @@ void Guidance::update(){
     nav->update(enumShit);
   }
   else if (cmdData.runState == CmdData_RunState_SIM){
-    nav->update(UP); // super temp
+    // This is pretty jank.
+    // In simulator mode, need to set all the nav variables to whatever the simulator inputs were.
+    // So, we give Nav a dummy update here and it will handle the rest by checking runState and handling SIM
+    nav->update(UP);
   }
 
-  // sleep(0.3);
-
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posX: "); Serial.println(navData.posX); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posY: "); Serial.println(navData.posY); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.velX: "); Serial.println(navData.velX); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.velY: "); Serial.println(navData.velY); }
-
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.segNum: "); Serial.println(gd.segNum); }
-
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("Current segment number: "); Serial.println(gd.segNum); }
   gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
 
-  if (BULLSHIT > 0 && cmdData.runState == CmdData_RunState_SIM){
+
+  // A random PID while(true) loop to turn in place. delete when curves are sexy
+  if (CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE > 0 && cmdData.runState == CmdData_RunState_SIM){
     if (traj.segments[gd.segNum]->getType() == CURVE){
       float startAngle = nav->getGyroAngle();
       float curAngle = startAngle;
@@ -112,7 +117,6 @@ void Guidance::update(){
       float I;
       float D;
       float total;
-      if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
       while(abs(error)>threshhold){
         float newAngle = nav->getGyroAngle();
         if (curAngle - newAngle > 300){
@@ -121,8 +125,9 @@ void Guidance::update(){
         curAngle = newAngle;
         angleDelta = curAngle - startAngle;
         error = 90 - angleDelta;
-        if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
         curTimestamp = micros();
+
+        // if it takes longer than 4 seconds to turn, you fucked up
         if (curTimestamp - firstTimestamp > 4000*1000){
           Serial.println("turn better next time please");
           break;
@@ -140,37 +145,32 @@ void Guidance::update(){
         motors->setToShit(total, -total);
       }
       gd.segNum++;
-      // Serial.println("DONEZO");
-      // motors->setAllToZero();
-      // while(true){
-      // }
       return;
     }
   }
 
-  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.vel: "); Serial.println(gd.vel); }
-
-  gd.leftPower = 0;
-  gd.rightPower = 0;
-  gd.propPower = 0;
-
+  // update trajectory if the trap layout has changed
   if(hms->data.guidanceLogLevel >= 2){ Serial.println("checking traps"); }
   if (traj.trapsChanged()){
     if (hms->data.guidanceLogLevel >= 2) Serial.println("updating traps");
     traj.updateTraps();
   }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.println("returning"); }
-
-  gd.setpointVel = traj.getSetpointVel(navData.posX, navData.posY);
-  float lastErrVel = gd.errVel;
-  gd.errVel = gd.setpointVel - gd.vel;
-  // float curTimestamp = micros()*1.0///1000000.0;
+  
+  // timestamp stuff for dt for PID calculations
   float curTimestamp = micros();
   gd.deltaT = curTimestamp - lastTimestamp;
   lastTimestamp = curTimestamp;
+
+  // VELOCITY PID -----------------------------------------------------------------------
+  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
+  if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.vel: "); Serial.println(gd.vel); }
+
+  // get setpoint velocity using trajectory
+  gd.setpointVel = traj.getSetpointVel(navData.posX, navData.posY);
+
+  float lastErrVel = gd.errVel;
+  gd.errVel = gd.setpointVel - gd.vel;
   gd.errVelD = (gd.errVel - lastErrVel)/gd.deltaT;
-  // gd.errVelI += gd.errVel * gd.deltaT;
   gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!!
   gd.velP = gd.errVel * gd.kP_vel;
   gd.velI = gd.errVelI * gd.kI_vel;
@@ -182,11 +182,10 @@ void Guidance::update(){
   gd.leftOutputVel = constrainVal(gd.leftOutputVel, MAX_OUTPUT_POWER);
   gd.rightOutputVel = constrainVal(gd.rightOutputVel, MAX_OUTPUT_POWER);
 
-
+  // DRIFT PID --------------------------------------------------------------------------
   float lastErrDrift = gd.errDrift;
   gd.errDrift = traj.getDist(navData.posX, navData.posY);
   gd.errDriftD = (gd.errDrift - lastErrDrift)*1000*1000/gd.deltaT;
-  // gd.errDriftI += gd.errDrift * gd.deltaT;
   gd.errDriftI = 0; // ADD INTEGRAL BACK IN LATER!!!!
   gd.driftP = gd.errDrift * gd.kP_drift;
   gd.driftI = gd.errDriftI * gd.kI_drift;
@@ -200,6 +199,8 @@ void Guidance::update(){
   if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.leftOutputDrift: "); Serial.println(gd.leftOutputDrift); }
   if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.rightOutputDrift: "); Serial.println(gd.rightOutputDrift); }
 
+
+  // ADD THE PIDs TOGETHER AND DO SOME CONSTRAINING ------------------------------------------
   gd.leftTotalPID = gd.leftOutputVel + gd.leftOutputDrift;
   gd.rightTotalPID = gd.rightOutputVel + gd.rightOutputDrift;
 
@@ -217,7 +218,6 @@ void Guidance::update(){
     gd.leftTotalPID /= spillover;
   }
   else if (gd.leftTotalPID > MAX_OUTPUT_POWER){
-    // float spillover = gd.leftTotalPID-MAX_OUTPUT_POWER;
     float spillover = gd.leftTotalPID/MAX_OUTPUT_POWER;
     gd.rightTotalPID /= spillover;
     gd.leftTotalPID /= spillover;
@@ -227,19 +227,18 @@ void Guidance::update(){
     gd.rightTotalPID /= spillover;
     gd.leftTotalPID /= spillover;
   }
-  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.leftTotalPID after shit but before constraining: "); Serial.println(gd.leftTotalPID); }
-  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.rightTotalPID after shit but before constraining: "); Serial.println(gd.rightTotalPID); }
   gd.leftTotalPID = constrainVal(gd.leftTotalPID, MAX_OUTPUT_POWER);
   gd.rightTotalPID = constrainVal(gd.rightTotalPID, MAX_OUTPUT_POWER);
 
   if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.leftTotalPID after constraining: "); Serial.println(gd.leftTotalPID); }
   if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.rightTotalPID after constraining: "); Serial.println(gd.rightTotalPID); }
-  if (hms->data.guidanceLogLevel >= 2) Serial.println("done guidance::update");
 
+  // if in teleop mode, just send the motor values that the dashboard gives us
   if (cmdData.runState == CmdData_RunState_TELEOP){
     gd.leftPower = cmdData.leftPower;
     gd.rightPower = cmdData.rightPower;
   }
+  // otherwise, use PID outputs
   else if (cmdData.runState == CmdData_RunState_AUTO){
     gd.leftPower = gd.leftTotalPID;
     gd.rightPower = gd.rightTotalPID;
