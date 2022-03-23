@@ -40,7 +40,7 @@ void setup() {
   /* cmdData.telemetryMode = CmdData_TelemetryMode_NONE; */
   /* cmdData.telemetryMode = CmdData_TelemetryMode_FULL; */
   cmdData.runState = CmdData_RunState_E_STOP;
-  /* sensors.init(); */
+  sensors.init();
   nav.init();
   telemetryServer.init();
   guidance.init();
@@ -48,14 +48,23 @@ void setup() {
 
 void loop() {
   unsigned long startT = micros();
-  Serial.println("main->sensors");
-  /* sensors.update(); */
+  if (hms.data.mainLogLevel >= 1){
+    Serial.println("main->sensors");
+  }
+  delay(8);
+  sensors.update();
   unsigned long afterSensorT = micros();
-  Serial.println("main->guidance");
+  if (hms.data.mainLogLevel >= 1){
+    Serial.println("main->guidance");
+  }
   guidance.update();
-  Serial.println("main->motors");
+  if (hms.data.mainLogLevel >= 1){
+    Serial.println("main->motors");
+  }
   motors.update();
-  Serial.println("main->telemetry");
+  if (hms.data.mainLogLevel >= 1){
+    Serial.println("main->telemetry");
+  }
   unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();
   unsigned long afterNetworkT = micros();
@@ -68,6 +77,4 @@ void loop() {
     hms.data.longestCombinedTick = longest;
   }
   hms.update();
-
-  /* delay(500); */
 }

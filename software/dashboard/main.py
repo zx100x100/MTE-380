@@ -230,7 +230,7 @@ class App:
                 # no: it's high how are you!
                 self.data.guidance.pb.segNum = 0
                 self.arena.set_active_segment(0)
-                self.data.cmd.pb.simPosX = 3.5
+                self.data.cmd.pb.simPosX = 4.45
                 self.data.cmd.pb.simPosY = 5.5
                 self.data.cmd.pb.simVelY = 0
                 self.data.cmd.pb.simVelX = 0

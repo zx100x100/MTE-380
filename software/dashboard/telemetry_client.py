@@ -9,6 +9,7 @@ from constants import (BETWEEN_MESSAGE_SETS_SEP, BETWEEN_MESSAGES_SEP, MESSAGE_S
 
 COMMS_TIMEOUT = 4
 PING_SILENT = True
+MIN_CMD_DT = 0.001
 
 class PullDataTimedOutException(Exception):
     pass
@@ -26,6 +27,7 @@ class TelemetryClient(threading.Thread):
         self.disconnectme = False
         self.last_pinged_robot = None
         self.already_cleared_data = False
+        self.last_pushed = time.time()
 
     def kill_thread(self):
         self.killme = True
@@ -65,10 +67,17 @@ class TelemetryClient(threading.Thread):
                 self.disconnect()
                 self.disconnectme = False
             if self.connected:
-                encoded_out = self.push()
+                t = time.time()
+                dt = t - self.last_pushed
+                if dt > MIN_CMD_DT:
+                    encoded_out = self.push()
+                else:
+                    encoded_out = None
                 encoded_in = self.pull()
                 
                 if self.data.recording_to_dirname is not None:
+                    # FIX THE SYNTAX HERE !!!!!!!!!! NEED TO PARSE THE LIST RECEIVED (encoded_in) or somethign IDK use seps
+                    raise Exception
                     print('writing data')
                     if encoded_in is None:
                         encoded_in = b'None'
@@ -77,7 +86,7 @@ class TelemetryClient(threading.Thread):
                     self.data.append_pb_data_to_file(data_received=encoded_in, data_sent=encoded_out)
 
             else:
-                self.append_pb_vals()
+                #  self.append_pb_vals()
                 time.sleep(0.1)
 
     def connect(self):
@@ -121,7 +130,7 @@ class TelemetryClient(threading.Thread):
     def push(self):
         try:
             #  print('push')
-            encoded = self.data.encode_outgoing()
+            encoded = self.data.encode_outgoing() + BETWEEN_MESSAGES_SEP
             self.socket.sendall(encoded)
             return encoded
         except Exception as e:

@@ -1,8 +1,8 @@
 #include "guidance.h"
 
 // #define MAX_OUTPUT_POWER 255.0 // must be < 255
-#define MAX_OUTPUT_POWER 40 //255.0 // must be < 255
-#define MAX_TURNING_BULLSHIT_OUTPUT_POWER 90// 100 //255.0 // must be < 255
+#define MAX_OUTPUT_POWER 70 //255.0 // must be < 255
+#define MAX_TURNING_BULLSHIT_OUTPUT_POWER 70//50// 100 //255.0 // must be < 255
 
 // constrainVal value to within + or - maximum
 float constrainVal(float val, float maximum){
@@ -48,7 +48,7 @@ void Guidance::update(){
     return; // dont trust the position data on first tick of sim mode
   }
   if (cmdData.runState == CmdData_RunState_AUTO && cmdData.runState != prevRunState){
-    // edge detection - switching into SIM mode
+    // edge detection - switching into AUTO mode
     gd.segNum = 0;
     prevRunState = cmdData.runState;
     gd.errVelI = 0;
@@ -70,11 +70,17 @@ void Guidance::update(){
   //
   //
   //
-  if (traj.segments[gd.segNum]->getType() == LINE){
+  if (traj.segments[gd.segNum]->getType() == LINE){// && cmdData.runState == CmdData_RunState_AUTO){
+    if(hms->data.guidanceLogLevel >= 2){ Serial.println("getting nav data from nav"); }
     Line* tempLine = static_cast<Line*>(traj.segments[gd.segNum]);
     heading_t enumShit = tempLine->horizontal?(tempLine->orientation==1?RIGHT:LEFT):(tempLine->orientation==1?DOWN:UP);
     nav->update(enumShit);
   }
+  else if (cmdData.runState == CmdData_RunState_SIM){
+    nav->update(UP); // super temp
+  }
+
+  // sleep(0.3);
 
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posX: "); Serial.println(navData.posX); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("navData.posY: "); Serial.println(navData.posY); }
@@ -85,62 +91,62 @@ void Guidance::update(){
 
   gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
 
-  // if (BULLSHIT > 0){
-    // if (traj.segments[gd.segNum]->getType() == CURVE || true){
-      // float startAngle = nav->getGyroAngle();
-      // float curAngle = startAngle;
-      // float threshhold = 5; // end loop when 5 degrees from donezo
-      // float angleDelta = curAngle - startAngle;
-      // float error = 90 - angleDelta;
-      // float lastError = error;
-      // float kp_turny = 1;
-      // float kd_turny = 0.2;
-      // float ki_turny = 0.0;
-      // float lastTimestamp = micros();
-      // float curTimestamp = micros();
-      // float firstTimestamp = micros();
-      // float deltaT = curTimestamp - lastTimestamp;
-      // float errorD;
-      // float errorI;
-      // float P;
-      // float I;
-      // float D;
-      // float total;
-      // if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
-      // while(abs(error)>threshhold){
-        // float newAngle = nav->getGyroAngle();
-        // if (curAngle - newAngle > 300){
-          // newAngle += 360;
-        // }
-        // curAngle = newAngle;
-        // angleDelta = curAngle - startAngle;
-        // error = 90 - angleDelta;
-        // if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
-        // curTimestamp = micros();
-        // if (curTimestamp - firstTimestamp > 3000){
-          // Serial.println("turn better next time please");
-          // break;
-        // }
-        // deltaT = curTimestamp - lastTimestamp;
-        // lastTimestamp = curTimestamp;
-        // errorD = (error - lastError)/deltaT;
-        // errorI += error * deltaT;
-        // P = error * kp_turny;
-        // I = errorI * ki_turny;
-        // D = errorD * kd_turny;
+  if (BULLSHIT > 0 && cmdData.runState == CmdData_RunState_SIM){
+    if (traj.segments[gd.segNum]->getType() == CURVE){
+      float startAngle = nav->getGyroAngle();
+      float curAngle = startAngle;
+      float threshhold = 5; // end loop when 5 degrees from donezo
+      float angleDelta = curAngle - startAngle;
+      float error = 90 - angleDelta;
+      float lastError = error;
+      float kp_turny = 1;
+      float kd_turny = 0.2;
+      float ki_turny = 0.0;
+      float lastTimestamp = micros();
+      float curTimestamp = micros();
+      float firstTimestamp = micros();
+      float deltaT = curTimestamp - lastTimestamp;
+      float errorD;
+      float errorI;
+      float P;
+      float I;
+      float D;
+      float total;
+      if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
+      while(abs(error)>threshhold){
+        float newAngle = nav->getGyroAngle();
+        if (curAngle - newAngle > 300){
+          newAngle += 360;
+        }
+        curAngle = newAngle;
+        angleDelta = curAngle - startAngle;
+        error = 90 - angleDelta;
+        if(hms->data.guidanceLogLevel >= 2){ Serial.print("error: "); Serial.println(error); }
+        curTimestamp = micros();
+        if (curTimestamp - firstTimestamp > 4000*1000){
+          Serial.println("turn better next time please");
+          break;
+        }
+        deltaT = curTimestamp - lastTimestamp;
+        lastTimestamp = curTimestamp;
+        errorD = (error - lastError)/deltaT;
+        errorI += error * deltaT;
+        P = error * kp_turny;
+        I = errorI * ki_turny;
+        D = errorD * kd_turny;
 
-        // total = P + I + D;
-        // total = constrainVal(P + I + D, MAX_TURNING_BULLSHIT_OUTPUT_POWER);
-        // motors->setToShit(-total, total);
-      // }
-      // gd.segNum++;
+        total = P + I + D;
+        total = constrainVal(P + I + D, MAX_TURNING_BULLSHIT_OUTPUT_POWER);
+        motors->setToShit(total, -total);
+      }
+      gd.segNum++;
       // Serial.println("DONEZO");
       // motors->setAllToZero();
       // while(true){
       // }
-      // return;
-    // }
-  // }
+      return;
+    }
+  }
 
   gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.vel: "); Serial.println(gd.vel); }
@@ -190,31 +196,44 @@ void Guidance::update(){
   gd.rightOutputDrift = -driftOutput;
   gd.leftOutputDrift = driftOutput;
 
+
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.leftOutputDrift: "); Serial.println(gd.leftOutputDrift); }
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.rightOutputDrift: "); Serial.println(gd.rightOutputDrift); }
+
   gd.leftTotalPID = gd.leftOutputVel + gd.leftOutputDrift;
   gd.rightTotalPID = gd.rightOutputVel + gd.rightOutputDrift;
 
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.leftTotalPID before constraining: "); Serial.println(gd.leftTotalPID); }
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.rightTotalPID before constraining: "); Serial.println(gd.rightTotalPID); }
+
   if (gd.rightTotalPID > MAX_OUTPUT_POWER){
-    float spillover = gd.rightTotalPID-MAX_OUTPUT_POWER;
-    gd.rightTotalPID -= spillover;
-    gd.leftTotalPID += spillover;
+    float spillover = gd.rightTotalPID/MAX_OUTPUT_POWER;
+    gd.rightTotalPID /= spillover;
+    gd.leftTotalPID /= spillover;
   }
   else if (gd.rightTotalPID < -MAX_OUTPUT_POWER){
-    float spillover = -gd.rightTotalPID-MAX_OUTPUT_POWER;
-    gd.rightTotalPID += spillover;
-    gd.leftTotalPID -= spillover;
+    float spillover = -gd.rightTotalPID/MAX_OUTPUT_POWER;
+    gd.rightTotalPID /= spillover;
+    gd.leftTotalPID /= spillover;
   }
   else if (gd.leftTotalPID > MAX_OUTPUT_POWER){
-    float spillover = gd.leftTotalPID-MAX_OUTPUT_POWER;
-    gd.rightTotalPID += spillover;
-    gd.leftTotalPID -= spillover;
+    // float spillover = gd.leftTotalPID-MAX_OUTPUT_POWER;
+    float spillover = gd.leftTotalPID/MAX_OUTPUT_POWER;
+    gd.rightTotalPID /= spillover;
+    gd.leftTotalPID /= spillover;
   }
   else if (gd.leftTotalPID < -MAX_OUTPUT_POWER){
-    float spillover = -gd.leftTotalPID-MAX_OUTPUT_POWER;
-    gd.rightTotalPID -= spillover;
-    gd.leftTotalPID += spillover;
+    float spillover = -gd.leftTotalPID/MAX_OUTPUT_POWER;
+    gd.rightTotalPID /= spillover;
+    gd.leftTotalPID /= spillover;
   }
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.leftTotalPID after shit but before constraining: "); Serial.println(gd.leftTotalPID); }
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.rightTotalPID after shit but before constraining: "); Serial.println(gd.rightTotalPID); }
   gd.leftTotalPID = constrainVal(gd.leftTotalPID, MAX_OUTPUT_POWER);
   gd.rightTotalPID = constrainVal(gd.rightTotalPID, MAX_OUTPUT_POWER);
+
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.leftTotalPID after constraining: "); Serial.println(gd.leftTotalPID); }
+  if(hms->data.guidanceLogLevel >= 1){ Serial.print("gd.rightTotalPID after constraining: "); Serial.println(gd.rightTotalPID); }
   if (hms->data.guidanceLogLevel >= 2) Serial.println("done guidance::update");
 
   if (cmdData.runState == CmdData_RunState_TELEOP){

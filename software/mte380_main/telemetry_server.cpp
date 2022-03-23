@@ -10,7 +10,7 @@
 #include "hms_and_cmd_data.pb.h"
 
 #define DEAD_MAN_TIMEOUT_MS 2000
-#define CMD_BUF_SIZE 30
+#define CMD_BUF_SIZE 400
 #define OUTPUT_BUF_SIZE 1000
 #define INFREQUENT_TELEMETRY_INTERVAL 100 // every 100 ticks, send back telem
 // Size of the buffer that contains literally just the number of bytes written
@@ -118,13 +118,13 @@ void TelemetryServer::serializeData(pb_ostream_t& stream){
 
 bool TelemetryServer::update(){
   if (hms->data.mainLogLevel >= 2) Serial.println("TelemetryServer::update()");
-  if (millis() - lastCommandTime/1000 > DEAD_MAN_TIMEOUT_MS){
+  // if (millis() - lastCommandTime/1000 > DEAD_MAN_TIMEOUT_MS){
     /* Serial.println("TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"); */
-    cmdData.runState = CmdData_RunState_E_STOP;
-    cmdData.leftPower = 0;
-    cmdData.rightPower = 0;
-    cmdData.propPower = 0;
-  }
+    // cmdData.runState = CmdData_RunState_E_STOP;
+    // cmdData.leftPower = 0;
+    // cmdData.rightPower = 0;
+    // cmdData.propPower = 0;
+  // }
   if (!client){
     client = server.available();
   }
@@ -151,9 +151,20 @@ bool TelemetryServer::update(){
         // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
         int i = 0;
+        int seps = 0;
         while (client.available() > 0) {
           // read the bytes incoming from the client:
           uint8_t thisChar = uint8_t(client.read());
+          if (thisChar == delimit[0]){
+            seps++;
+          }
+          else{
+            seps = 0;
+          }
+          if (seps == 3){
+            i -= 2;
+            break;
+          }
           inputBuffer[i++] = thisChar;
         }
         pb_istream_t instream = pb_istream_from_buffer(inputBuffer, i);
@@ -181,6 +192,7 @@ bool TelemetryServer::update(){
         client.flush();
       }
       if (!cmdData.disableTelemetry){
+        if(hms->data.mainLogLevel >= 2){ Serial.println("Sending telemetry"); }
           // (cmdData.telemetryMode == CmdData_TelemetryMode_INFREQUENT && hms->data.nTicks % INFREQUENT_TELEMETRY_INTERVAL == 0)){
         // SEND DATA --------------------------------------
         pb_ostream_t stream;

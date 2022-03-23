@@ -102,7 +102,7 @@ class Arena():
 
     def generate_segments(self):
         segments = [
-            Line(start=(3.5,5.5), end=(1,5.5), active=True),
+            Line(start=(4.5,5.5), end=(1,5.5), active=True),
             CornerCircle(center=(1,5),corner=Diagonal.BL),
             Line(start=(0.5,5), end=(0.5,1)),
             CornerCircle(center=(1,1),corner=Diagonal.TL),

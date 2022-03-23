@@ -7,11 +7,10 @@
 
 #define NUM_SEGMENTS 20
 #define MAX_N_TRAPS 8
-#define BULLSHIT 0.2
-//0.5
+#define BULLSHIT 0.5
 
 
-enum CornerType { TL, TR, BL, BR_ }; // BR was taken by something built in lol
+enum CornerType { TL, TR, BL, BR_ };
 enum SegmentType { CURVE, LINE };
 
 
@@ -20,15 +19,16 @@ class Subline{
     Subline();
     Subline(float,float,float,float,Hms*);
     float trapezoidal(float);
-    bool isDOnLine(float d, int endCondition=0);
+    bool isDOnLine(float);
     float d1;
     float d2;
     float d3;
     float d4;
+    float dt;
     float v1;
+    float v2;
+    float v3;
     float v4;
-    float vm;
-    float a;
 
   private:
     Hms* hms;
@@ -78,10 +78,10 @@ class Line: public Segment {
     int nSublines; // temp, make private again
     int orientation;
     bool horizontal;
-    void updateTraps(float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS]);
-    Subline sublines[MAX_N_TRAPS];
 
   private:
+    int nTraps;
+    Subline sublines[MAX_N_TRAPS];
     float trapD[MAX_N_TRAPS];
 };
 

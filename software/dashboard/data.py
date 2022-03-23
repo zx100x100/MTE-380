@@ -44,7 +44,7 @@ class Data:
         self.cmd.pb.kP_drift = constants.KP_DRIFT
         self.cmd.pb.kI_drift = constants.KI_DRIFT
         self.cmd.pb.kD_drift = constants.KD_DRIFT
-        self.cmd.pb.guidanceLogLevel = HmsData.LogLevel.OVERKILL
+        self.cmd.pb.guidanceLogLevel = HmsData.LogLevel.NORMAL
         self.cmd.pb.disableTelemetry = False
         self.nav = PbData(NavData())
         self.guidance = PbData(GuidanceData())

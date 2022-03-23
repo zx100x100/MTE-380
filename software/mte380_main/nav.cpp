@@ -63,7 +63,7 @@ float Nav::getGyroAngle(){
 
   fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
-  float yaw = fusion.yaw();
+  float yaw = rad2deg(fusion.yaw());
   Serial.print("yaw: "); Serial.println(yaw);
 
   return yaw;
@@ -123,26 +123,36 @@ void Nav::updateTof(heading_t heading){
         frontValid = false;
       }
 
+    if(hms->data.navLogLevel >= 1){ Serial.print("Heading: "); Serial.println(heading); }
+    tofPos.yawValid = angFromWallValid;
     switch(heading){
       case UP:
         if (leftValid) tofPos.x = left;
         if (frontValid) tofPos.y = front;
+        tofPos.xValid = leftValid;
+        tofPos.yValid = frontValid;
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
         break;
       case RIGHT:
         if (frontValid) tofPos.x = TRACK_DIM - front;
         if (leftValid) tofPos.y = left;
         if (angFromWallValid) tofPos.yaw = angFromWall;
+        tofPos.xValid = frontValid;
+        tofPos.yValid = leftValid;
         break;
       case DOWN:
         if (leftValid) tofPos.x = TRACK_DIM - left;
         if (frontValid) tofPos.y = TRACK_DIM - front;
+        tofPos.xValid = leftValid;
+        tofPos.yValid = frontValid;
         if (angFromWallValid) tofPos.yaw = angFromWall + 90;
         break;
       case LEFT:
         if (frontValid) tofPos.x = front;
         if (leftValid) tofPos.y = TRACK_DIM - left;
         if (angFromWallValid) tofPos.yaw = angFromWall + 180;
+        tofPos.xValid = frontValid;
+        tofPos.yValid = leftValid;
         break;
     }
   }
@@ -205,7 +215,7 @@ NavData& Nav::getData(){
 }
 
 bool Nav::isValid(TofOrder tof){
-  if (getTofFt(tof) > TRACK_DIM)
+  if (getTofFt(tof) > TRACK_DIM <0)
     return false;
   return true;  // TODO: make more checks
 
@@ -282,22 +292,26 @@ NavData Nav::getPred(float delT){  // delT in seconds
 void Nav::updateEstimate(const NavData pred){
   float delT = float(pred.timestamp - navData.timestamp) / 1000000;
   if (USE_TOFS && tofPos.xValid){
+    if(hms->data.navLogLevel >= 1){ Serial.print("xValid, setting pos X: "); Serial.println(navData.posX); }
     navData.posX = pred.posX + gain[0] * (tofPos.x - pred.posX);
     navData.velX = pred.velX + gain[1] * (tofPos.x - pred.posX) / delT;
     navData.accX = pred.accX + gain[2] * (tofPos.x - pred.posX) / (0.5 * delT * delT);
   }
   else{
+    if(hms->data.navLogLevel >= 1){ Serial.println("using pred for x"); }
     navData.posX = pred.posX;
     navData.velX = pred.velX;
     navData.accX = pred.accX;
   }
 
   if (USE_TOFS && tofPos.yValid){
+    if(hms->data.navLogLevel >= 1){ Serial.print("yValid, setting pos Y: "); Serial.println(navData.posY); }
     navData.posY = pred.posY + gain[0] * (tofPos.y - pred.posY);
     navData.velX = pred.velY + gain[1] * (tofPos.y - pred.posY) / delT;
     navData.accY = pred.accY + gain[2] * (tofPos.y - pred.posY) / (0.5 * delT * delT);
   }
   else{
+    if(hms->data.navLogLevel >= 1){ Serial.println("using pred for y"); }
     navData.posY = pred.posY;
     navData.velY = pred.velY;
     navData.accY = pred.accY;

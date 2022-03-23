@@ -3,6 +3,7 @@ from collections import deque
 from itertools import islice
 import math
 import traceback
+import time
 
 from constants import *
 
@@ -22,6 +23,7 @@ TICK_SIZE = (Y_LABEL_WIDTH,15)
 DISPLAY_MIN_N_TICKS = 3
 DISPLAY_MAX_N_TICKS = 5
 MIN_TICKS_BETW_RESCALES = 300 # prevent twitchy rescales
+MAX_S_BETWEEN_RESCALES = 0.5
 
 PLOT_MARGIN = (GLOBAL_MARGIN, 0, 0, GLOBAL_MARGIN)
 
@@ -67,6 +69,7 @@ class TelemetryPlot:
         self.new_value = None
         self.ticks = {}
         self.ticks_since_last_rescale = 0 # prevent twitchy rescaling
+        self.last_rescale_t = time.time()
 
         new_min = min(self.values)
         new_max = max(self.values)
@@ -109,8 +112,8 @@ class TelemetryPlot:
         #  print('eur.',end='')
         self.ticks_since_last_rescale += 1
         if self.pb_item.plotted_latest_value:
-            pass
-            #  return
+            #  pass
+            return
         else:
             self.pb_item.plotted_latest_value = True
         try:
@@ -159,7 +162,10 @@ class TelemetryPlot:
                 first_tick = (math.ceil(new_min_for_ticks/self.tick_increment))*self.tick_increment
 
                 last_tick = (math.floor(new_max_for_ticks / self.tick_increment))*self.tick_increment
-                if self.ticks_since_last_rescale > MIN_TICKS_BETW_RESCALES and iterate_ticks:
+                new_time = time.time()
+                dt = new_time - self.last_rescale_t
+                if (self.ticks_since_last_rescale > MIN_TICKS_BETW_RESCALES or dt > MAX_S_BETWEEN_RESCALES) and iterate_ticks:
+                    self.last_rescale_t = new_time
                     n=0
                     while (last_tick-first_tick)/self.tick_increment < DISPLAY_MIN_N_TICKS:
                         if n>30:
