@@ -7,7 +7,7 @@ import subprocess  # For executing a shell command
 from util import is_windows
 from constants import (BETWEEN_MESSAGE_SETS_SEP, BETWEEN_MESSAGES_SEP, MESSAGE_SET_START)
 
-COMMS_TIMEOUT = 4
+COMMS_TIMEOUT = 6
 PING_SILENT = True
 MIN_CMD_DT = 0.001
 
@@ -74,6 +74,9 @@ class TelemetryClient(threading.Thread):
                 else:
                     encoded_out = None
                 encoded_in = self.pull()
+
+                if encoded_in is None:
+                    print('Received "None" for data, probably just timed out above? Did we make it to this statement?')
                 
                 if self.data.recording_to_dirname is not None:
                     # FIX THE SYNTAX HERE !!!!!!!!!! NEED TO PARSE THE LIST RECEIVED (encoded_in) or somethign IDK use seps
