@@ -28,7 +28,7 @@ void Motors::setAllToZero(){
   // propServo.write(PROP_MIN);
 }
 
-void Motors::setToShit(float leftPower, float rightPower){
+void Motors::setPower(float leftPower, float rightPower){
   if (leftPower >= 0){
     analogWrite(LEFT_DRIVE_1, leftPower);
     analogWrite(LEFT_DRIVE_2, 0);

@@ -1,8 +1,7 @@
 #include "guidance.h"
 
-// #define MAX_OUTPUT_POWER 255.0 // must be < 255
-#define MAX_OUTPUT_POWER 70 //255.0 // must be < 255
-#define MAX_TURNING_BULLSHIT_OUTPUT_POWER 70//50// 100 //255.0 // must be < 255
+#define MAX_OUTPUT_POWER 70 // must be < 255
+#define MAX_TURN_IN_PLACE_OUTPUT_POWER 70 // must be < 255
 
 // constrainVal value to within + or - maximum
 float constrainVal(float val, float maximum){
@@ -40,22 +39,22 @@ void Guidance::update(){
 
   // edge detection - switching into SIM mode, reset some variables
   if (cmdData.runState == CmdData_RunState_SIM && cmdData.runState != prevRunState){
-    gd.segNum = 0;
+    gd.segNum = 0; // reset segment number to 0, restart course
     prevRunState = cmdData.runState;
     gd.errVelI = 0;
     gd.errDriftI = 0;
     lastTimestamp = micros();
-    return; // dont trust the position data on first tick of sim mode
+    return; // dont trust the position data on first tick of sim mode; just return
   }
 
   // edge detection - switching into AUTO mode, reset some variables
   if (cmdData.runState == CmdData_RunState_AUTO && cmdData.runState != prevRunState){
-    gd.segNum = 0;
+    gd.segNum = 0; // reset segment number to 0, restart course
     prevRunState = cmdData.runState;
     gd.errVelI = 0;
     gd.errDriftI = 0;
     lastTimestamp = micros();
-    return; // dont trust the position data on first tick of auto mode either
+    return; // dont trust the position data on first tick of auto mode either so just return
   }
 
   // reset previous runState for edge detection
@@ -95,57 +94,10 @@ void Guidance::update(){
   gd.completedTrack = traj.updatePos(navData.posX, navData.posY);
 
 
-  // A random PID while(true) loop to turn in place. delete when curves are sexy
+  // A PID while(true) loop to turn in place. delete when curves are sexy
   if (CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE > 0 && cmdData.runState == CmdData_RunState_SIM){
     if (traj.segments[gd.segNum]->getType() == CURVE){
-      float startAngle = nav->getGyroAngle();
-      float curAngle = startAngle;
-      float threshhold = 5; // end loop when 5 degrees from donezo
-      float angleDelta = curAngle - startAngle;
-      float error = 90 - angleDelta;
-      float lastError = error;
-      float kp_turny = 1;
-      float kd_turny = 0.2;
-      float ki_turny = 0.0;
-      float lastTimestamp = micros();
-      float curTimestamp = micros();
-      float firstTimestamp = micros();
-      float deltaT = curTimestamp - lastTimestamp;
-      float errorD;
-      float errorI;
-      float P;
-      float I;
-      float D;
-      float total;
-      while(abs(error)>threshhold){
-        float newAngle = nav->getGyroAngle();
-        if (curAngle - newAngle > 300){
-          newAngle += 360;
-        }
-        curAngle = newAngle;
-        angleDelta = curAngle - startAngle;
-        error = 90 - angleDelta;
-        curTimestamp = micros();
-
-        // if it takes longer than 4 seconds to turn, you fucked up
-        if (curTimestamp - firstTimestamp > 4000*1000){
-          Serial.println("turn better next time please");
-          break;
-        }
-        deltaT = curTimestamp - lastTimestamp;
-        lastTimestamp = curTimestamp;
-        errorD = (error - lastError)/deltaT;
-        errorI += error * deltaT;
-        P = error * kp_turny;
-        I = errorI * ki_turny;
-        D = errorD * kd_turny;
-
-        total = P + I + D;
-        total = constrainVal(P + I + D, MAX_TURNING_BULLSHIT_OUTPUT_POWER);
-        motors->setToShit(total, -total);
-      }
-      gd.segNum++;
-      return;
+      turnInPlace();
     }
   }
 
@@ -247,6 +199,63 @@ void Guidance::update(){
     gd.leftPower = 0;
     gd.rightPower = 0;
   }
+}
+
+  // A PID while(true) loop to turn in place. delete when curves are sexy
+Guidance::turnInPlace(){
+  float startAngle = nav->getGyroAngle();
+  float curAngle = startAngle;
+  float threshhold = 5; // end loop when 5 degrees from donezo
+  float angleDelta = curAngle - startAngle;
+  float error = 90 - angleDelta;
+  float lastError = error;
+  float kp_turny = 1;
+  float kd_turny = 0.2;
+  float ki_turny = 0.0;
+  float firstTimestamp = micros();
+  float lastTimestamp = micros(); // zach I pinky promise that these two timestamps
+  // will not be subtracted from each other and result in divide by zero errors.
+
+  float curTimestamp;
+  float deltaT;
+  float errorD;
+  float errorI;
+  float P;
+  float I;
+  float D;
+  float total;
+  float newAngle;
+
+  // theres a timeout dont worry
+  while(abs(error)>threshhold){
+    newAngle = nav->getGyroAngle();
+    if (curAngle - newAngle > 300){
+      newAngle += 360;
+    }
+    curAngle = newAngle;
+    angleDelta = curAngle - startAngle;
+    error = 90 - angleDelta;
+    curTimestamp = micros();
+
+    // if it takes longer than 4 seconds to turn, you fucked up
+    if (curTimestamp - firstTimestamp > 4000*1000){
+      Serial.println("turn better next time please");
+      break;
+    }
+    deltaT = curTimestamp - lastTimestamp;
+    lastTimestamp = curTimestamp;
+    errorD = (error - lastError)/deltaT;
+    errorI += error * deltaT;
+    P = error * kp_turny;
+    I = errorI * ki_turny;
+    D = errorD * kd_turny;
+
+    total = P + I + D;
+    total = constrainVal(P + I + D, MAX_TURN_IN_PLACE_OUTPUT_POWER);
+    motors->setPower(total, -total);
+  }
+  gd.segNum++;
+  return;
 }
 
 GuidanceData& Guidance::getData(){
