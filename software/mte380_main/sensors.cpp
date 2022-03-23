@@ -39,8 +39,6 @@ bool Sensors::init(){
   digitalWrite(TOF_SHUTDOWN_PIN, HIGH);
   delay(10);
 
-  delay(3000);
-
   for (int i=0; i<4; i++){
     //    Serial.println("Starting mux shit");
     digitalWrite(MUX_S1, mux_addresses[i]&0x01);
