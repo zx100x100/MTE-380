@@ -38,6 +38,10 @@ Motors motors = Motors(guidance.getData(), &hms);
 
 void setup() {
   Serial.begin(115200);
+
+  // this delay is to be able to put the robot on the ground before it starts measuring. SPEED!!!!
+  delay(3000);
+
   hms.init();
   sensors.init();
   nav.init();
