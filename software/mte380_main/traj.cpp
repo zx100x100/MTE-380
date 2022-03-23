@@ -53,14 +53,20 @@ float Subline::trapezoidal(float d){
   
 
   float v;
-  if (float_le(d*sign(vm), d2*sign(vm))){
+  if(float_le(d*sign(vm), d1*sign(vm))){
+    v = v1;
+  }
+  else if (float_le(d*sign(vm), d2*sign(vm))){
     v = pow(pow(v1,2)-2*a*(d-d1),0.5)*sign(vm);
   }
   else if (float_le(d*sign(vm), d3*sign(vm))){
     v = vm;
   }
-  else{
+  else if (float_le(d*sign(vm), d4*sign(vm))){
     v = pow(pow(v4,2)-2*a*(d4-d),0.5)*sign(vm);
+  }
+  else{
+    v = v4;
   }
 
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("v: "); Serial.println(v); }
@@ -93,7 +99,24 @@ float Line::velSetpoint(float xp, float yp){
     // if(hms->data.guidanceLogLevel >= 2){ Serial.println("loop?"); }
     /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("dp: "); Serial.println(dp); } */
     /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("sublines[i].isDOnLine(dp): "); Serial.println(sublines[i].isDOnLine(dp)); } */
-    if (sublines[i].isDOnLine(dp)){
+    int endCondition = 0;
+    if (i == 0){
+      if (orientation == 1){
+        endCondition = -1;
+      }
+      else{
+        endCondition = 1;
+      }
+    }
+    else if (i == nSublines - 1){
+      if (orientation == 1){
+        endCondition = 1;
+      }
+      else{
+        endCondition = -1;
+      }
+    }
+    if (sublines[i].isDOnLine(dp, endCondition)){
       return sublines[i].trapezoidal(dp);
     }
   }
