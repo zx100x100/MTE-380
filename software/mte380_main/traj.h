@@ -19,7 +19,7 @@ class Subline{
   public:
     Subline();
     Subline(float,float,float,float,Hms*);
-    float trapezoidal(float);
+    float trapezoidalAcceleration(float);
     bool isDOnLine(float d, int endCondition=0);
     float d1;
     float d2;
@@ -36,8 +36,8 @@ class Subline{
 
 class Segment {
   public:
-    virtual float getDist(float, float);
-    virtual bool completed(float, float);
+    virtual float getDist(float xp, float yp);
+    virtual bool completed(float xp, float yp);
     virtual float velSetpoint(float, float);
     virtual SegmentType getType();
   // protected:
@@ -84,8 +84,6 @@ class Line: public Segment {
   private:
     float trapD[MAX_N_TRAPS];
 };
-
-Line copyAndRecalculateTraps(Line* line, float trapX[MAX_N_TRAPS], float trapY[MAX_N_TRAPS], Hms* hms);
 
 class Traj{
   public:

@@ -4,7 +4,7 @@
 #include "math_utils.h"
 
 #define CURVE_RADIUS 0.5 // tiles
-#define CURVE_SPEED 0//1 // tiles/s
+#define CURVE_SPEED 0 // tiles/s
 #define ACC 12 // tiles/s^2
 #define VMAX 3 // tiles/s^2
 #define TRAP_SPEED 2 // tiles/s
@@ -42,10 +42,10 @@ Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
   // end of whiteboard math ----------------------------------------------------------
 }
 
-// get velocity based on trapezoidal acceleration profile.
+// get velocity based on trapezoidalAcceleration acceleration profile.
 // d represents distance along the axis in which we are doing position based velocity
-float Subline::trapezoidal(float d){
-  if(hms->data.guidanceLogLevel >= 2){ Serial.println("Trapezoidal velocity"); }
+float Subline::trapezoidalAcceleration(float d){
+  if(hms->data.guidanceLogLevel >= 2){ Serial.println("trapezoidalAcceleration velocity"); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d2: "); Serial.println(d2); }
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("d3: "); Serial.println(d3); }
@@ -120,7 +120,7 @@ float Line::velSetpoint(float xp, float yp){
       }
     }
     if (sublines[i].isDOnLine(dp, endCondition)){
-      return sublines[i].trapezoidal(dp);
+      return sublines[i].trapezoidalAcceleration(dp);
     }
   }
   return 0;

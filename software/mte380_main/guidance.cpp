@@ -1,21 +1,8 @@
 #include "guidance.h"
+#include "math_utils.h"
 
 #define MAX_OUTPUT_POWER 70 // must be < 255
 #define MAX_TURN_IN_PLACE_OUTPUT_POWER 70 // must be < 255
-
-// constrainVal value to within + or - maximum
-float constrainVal(float val, float maximum){
-  if (val > 0){
-    if (val > maximum){
-      return maximum;
-    }
-    return val;
-  }
-  if (val < -maximum){
-    return -maximum;
-  }
-  return val;
-}
 
 Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav):
   navData(_navData),
@@ -95,7 +82,7 @@ void Guidance::update(){
 
 
   // A PID while(true) loop to turn in place. delete when curves are sexy
-  if (CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE > 0 && cmdData.runState == CmdData_RunState_SIM){
+  if (CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE > 0 && cmdData.runState == CmdData_RunState_AUTO){
     if (traj.segments[gd.segNum]->getType() == CURVE){
       turnInPlace();
     }
@@ -114,7 +101,7 @@ void Guidance::update(){
   lastTimestamp = curTimestamp;
 
   // VELOCITY PID -----------------------------------------------------------------------
-  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2)+pow(navData.velZ,2),0.5);
+  gd.vel = pow(pow(navData.velX,2) + pow(navData.velY,2),0.5);
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("gd.vel: "); Serial.println(gd.vel); }
 
   // get setpoint velocity using trajectory
@@ -122,7 +109,7 @@ void Guidance::update(){
 
   float lastErrVel = gd.errVel;
   gd.errVel = gd.setpointVel - gd.vel;
-  gd.errVelD = (gd.errVel - lastErrVel)/gd.deltaT;
+  gd.errVelD = (gd.errVel - lastErrVel) * 1000000/gd.deltaT;
   gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!!
   gd.velP = gd.errVel * gd.kP_vel;
   gd.velI = gd.errVelI * gd.kI_vel;
@@ -137,7 +124,7 @@ void Guidance::update(){
   // DRIFT PID --------------------------------------------------------------------------
   float lastErrDrift = gd.errDrift;
   gd.errDrift = traj.getDist(navData.posX, navData.posY);
-  gd.errDriftD = (gd.errDrift - lastErrDrift)*1000*1000/gd.deltaT;
+  gd.errDriftD = (gd.errDrift - lastErrDrift)*1000000/gd.deltaT;
   gd.errDriftI = 0; // ADD INTEGRAL BACK IN LATER!!!!
   gd.driftP = gd.errDrift * gd.kP_drift;
   gd.driftI = gd.errDriftI * gd.kI_drift;
@@ -238,7 +225,7 @@ void Guidance::turnInPlace(){
     curTimestamp = micros();
 
     // if it takes longer than 4 seconds to turn, you fucked up
-    if (curTimestamp - firstTimestamp > 4000*1000){
+    if (curTimestamp - firstTimestamp > 4000000){
       Serial.println("turn better next time please");
       break;
     }
