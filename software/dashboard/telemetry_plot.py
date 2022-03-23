@@ -110,13 +110,13 @@ class TelemetryPlot:
 
     def erase_update_render(self, screen):
         #  print('eur.',end='')
-        print('start erase_update_render')
         self.ticks_since_last_rescale += 1
         if self.pb_item.plotted_latest_value:
             #  pass
             return
         else:
             self.pb_item.plotted_latest_value = True
+        print('start erase_update_render')
         try:
             #  print(f'self.values: {self.values}')
             screen.blit(self.plot_image, self.plot_image_rect)
