@@ -52,6 +52,34 @@ void Hms::updateLEDs(){
       greenLedLastOn = !greenLedLastOn;
     }
   }
+  if (redLedState == LED_ON){
+    if (!redLedLastOn){
+      digitalWrite(LED_PIN_RED, 1);
+    }
+    redLedLastOn = true;
+  }
+  else if (redLedState == LED_SLOW_FLASH){
+    if (data.nTicks % LED_SLOW_FLASH_TICKS_INTERVAL == 0){
+      if (redLedLastOn){
+        digitalWrite(LED_PIN_RED, 0);
+      }
+      else{
+        digitalWrite(LED_PIN_RED, 1);
+      }
+      redLedLastOn = !redLedLastOn;
+    }
+  }
+  else{
+    if (data.nTicks % LED_FAST_FLASH_TICKS_INTERVAL == 0){
+      if (redLedLastOn){
+        digitalWrite(LED_PIN_RED, 0);
+      }
+      else{
+        digitalWrite(LED_PIN_RED, 1);
+      }
+      redLedLastOn = !redLedLastOn;
+    }
+  }
 }
 
 void Hms::init(){
