@@ -59,19 +59,27 @@ class ReadoutItem:
         self.plotted_latest_value = False
     
     def append_value(self, value):
-        if self.is_numeric and not math.isnan(value):
+        if self.is_numeric and not self.is_enum:
+            if not math.isnan(value):
+                self.values.append(value)
+                self.plotted_latest_value = False
+            else:
+                print(f"TRYING TO APPEND ILLEGAL NUMBER: {value}")
+        else:
             self.values.append(value)
             self.plotted_latest_value = False
-        else:
-            print(f"TRYING TO APPEND ILLEGAL NUMBER: {value}")
 
 
     def update_value(self):
-        if self.is_numeric and not math.isnan(self.value):
+        if self.is_numeric and not self.is_enum:
+            if not math.isnan(self.value):
+                self.values.append(self.value)
+                self.plotted_latest_value = False
+            else:
+                print(f"TRYING TO APPEND ILLEGAL NUMBER: {self.value}")
+        else:
             self.values.append(self.value)
             self.plotted_latest_value = False
-        else:
-            print(f"TRYING TO APPEND ILLEGAL NUMBER: {self.value}")
     
     def replace_value(self, value):
         self.values[-1] = value
