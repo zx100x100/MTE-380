@@ -26,7 +26,6 @@ class Guidance{
     Nav* nav;
 
     unsigned long lastTimestamp;
-    unsigned long deltaT;
 
     CmdData_RunState prevRunState;
 

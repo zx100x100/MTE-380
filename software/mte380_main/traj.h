@@ -7,10 +7,9 @@
 
 #define NUM_SEGMENTS 20
 #define MAX_N_TRAPS 8
-#define CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE 0.2
-//0.5
+#define CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE 0.2 // ft
 
-
+// TL = Top Left, etc.
 enum CornerType { TL, TR, BL, BR_ }; // BR was taken by something built in lol
 enum SegmentType { CURVE, LINE };
 
