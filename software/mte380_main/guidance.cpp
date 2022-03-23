@@ -109,7 +109,7 @@ void Guidance::update(){
 
   float lastErrVel = gd.errVel;
   gd.errVel = gd.setpointVel - gd.vel;
-  gd.errVelD = (gd.errVel - lastErrVel) * 1000000/gd.deltaT;
+  gd.errVelD = (gd.errVel - lastErrVel)*1000000/gd.deltaT;
   gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!!
   gd.velP = gd.errVel * gd.kP_vel;
   gd.velI = gd.errVelI * gd.kI_vel;
