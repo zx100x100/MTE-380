@@ -14,20 +14,30 @@
 #define TOF_SHUTDOWN_PIN 18
 #define PLACEHOLDER_PIN 19 // placeholder pin for the tof to power cycle. Never used. make sure this is empty
 
+#define OH_SHIT_COUNT_BAD 10000
 
-VL53LX sensor(&Wire, PLACEHOLDER_PIN); //2nd arg is shutdown pin (use placeholder)
-Tof tof;
 
-#define NUM_TO_READ 1000
+VL53LX sensor[4] = {
+    VL53LX(&Wire, PLACEHOLDER_PIN), //2nd arg is shutdown pin (use placeholder)
+    VL53LX(&Wire, PLACEHOLDER_PIN), //2nd arg is shutdown pin (use placeholder)
+    VL53LX(&Wire, PLACEHOLDER_PIN), //2nd arg is shutdown pin (use placeholder)
+    VL53LX(&Wire, PLACEHOLDER_PIN) //2nd arg is shutdown pin (use placeholder)
+};
+Tof tof[4];
 
-TofData data[NUM_TO_READ];
-uint32_t delT[NUM_TO_READ];
-int readingsTillNew[NUM_TO_READ];
+#define NUM_TO_READ 500
 
-int currNum = 0;
-int currReadingsTillNew = 0;
-uint32_t prevTime;
-int prevCount = -1;
+TofData data[4][NUM_TO_READ] = {};
+uint32_t delT[4][NUM_TO_READ] = {};
+int readingsTillNew[4][NUM_TO_READ] = {};
+
+int currNum[4] = {0, 0, 0, 0};
+int currReadingsTillNew[4] = {0, 0, 0, 0};
+uint32_t prevTime[4];
+int prevCount[4] = {-1, -1, -1, -1};
+
+
+uint8_t mux_addresses[4] = {2, 1, 0, 3};
 
 void setup()
 {
@@ -48,43 +58,66 @@ void setup()
     digitalWrite(TOF_SHUTDOWN_PIN, HIGH);
     delay(10);
 
-    tof = Tof(&sensor);
+  for (int i=0; i<4; i++){
+      //    Serial.println("Starting mux shit");
+      digitalWrite(MUX_S1, mux_addresses[i]&0x01);  //  mux the first
+      digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);  /// mux the second
+      delay(100);
+      tof[i] = Tof(&sensor[i]);  // initialize tof object (driver) with a pointer to sensor (physical device)
+  }
 
+    Serial.println("Initialized well");
     delay(3000);
 
-    prevTime = micros();
-
+    for (int i  = 0; i < 4; ++i){
+        prevTime[i] = micros();
+    }
 }
 
 void loop()
 {
-    if (currNum < NUM_TO_READ){
-        tof.poll();
-        currReadingsTillNew++;
-        if(tof.getData().count != prevCount){
-            uint32_t currTime = micros();
-            delT[currNum] = currTime - prevTime;
-            prevTime = currTime;
-            data[currNum] = tof.getData();
-            readingsTillNew[currNum] = currReadingsTillNew;
-            currNum++;
-            prevCount = tof.getData().count;
+//     Serial.print(".");
+    for (int i = 0; i < 4; ++i)
+    {
+        if (currNum[i] < NUM_TO_READ){
+            digitalWrite(MUX_S1, mux_addresses[i]&0x01);  //  mux the first
+            digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);  /// mux the second
+            tof[i].poll();
+
+            currReadingsTillNew[i]++;
+            if(tof[i].getData().count != prevCount[i]){   // do data logging if count changed
+                uint32_t currTime = micros();
+                delT[i][currNum[i]] = currTime - prevTime[i];
+                prevTime[i] = currTime;
+                data[i][currNum[i]] = tof[i].getData();
+                readingsTillNew[i][currNum[i]] = currReadingsTillNew[i];
+                currNum[i]++;
+                prevCount[i] = tof[i].getData().count;
+            }
         }
     }
-    else{
-        for (int i = 0; i < NUM_TO_READ; ++i){
-            Serial.print(delT[i]);
-            Serial.print(";");
-            Serial.print(data[i].dist);
-            Serial.print(";");
-            Serial.print(data[i].numObjs);
-            Serial.print(";");
-            Serial.print(data[i].count);
-            Serial.print(";");
-            Serial.print(data[i].timeoutCount);
-            Serial.print(";");
-            Serial.print(readingsTillNew[i]);
-            Serial.println();
+    bool notFinished = true;
+    for (int i = 0; i < 4; i++){
+        notFinished &= currNum[i] < NUM_TO_READ && currReadingsTillNew[i] <= OH_SHIT_COUNT_BAD;
+    }
+    if (!notFinished){
+        Serial.print(currReadingsTillNew[0]);Serial.print(currReadingsTillNew[1]);Serial.print(currReadingsTillNew[2]);Serial.println(currReadingsTillNew[3]);
+        for (int i = 0; i < 4; i++){
+            Serial.print("### tof: "); Serial.println(i);
+            for (int j = 0; j < NUM_TO_READ; ++j){
+                Serial.print(delT[i][j]);
+                Serial.print(";");
+                Serial.print(data[i][j].dist);
+                Serial.print(";");
+                Serial.print(data[i][j].numObjs);
+                Serial.print(";");
+                Serial.print(data[i][j].count);
+                Serial.print(";");
+                Serial.print(data[i][j].timeoutCount);
+                Serial.print(";");
+                Serial.print(readingsTillNew[i][j]);
+                Serial.println();
+            }
         }
         while(1);
     }

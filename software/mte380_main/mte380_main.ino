@@ -48,6 +48,7 @@ void setup() {
   
 #ifdef RUN_TURN_IN_PLACE_TEST
   guidance.turnInPlace();
+#endif
 #ifndef RUN_TURN_IN_PLACE_TEST
   telemetryServer.init();
 #endif

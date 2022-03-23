@@ -110,7 +110,7 @@ void Guidance::update(){
   float lastErrVel = gd.errVel;
   gd.errVel = gd.setpointVel - gd.vel;
   gd.errVelD = (gd.errVel - lastErrVel)*1000000/gd.deltaT;
-  gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!!
+  gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!! or like don't....
   gd.velP = gd.errVel * gd.kP_vel;
   gd.velI = gd.errVelI * gd.kI_vel;
   gd.velD = gd.errVelD * gd.kD_vel;
@@ -125,7 +125,8 @@ void Guidance::update(){
   float lastErrDrift = gd.errDrift;
   gd.errDrift = traj.getDist(navData.posX, navData.posY);
   gd.errDriftD = (gd.errDrift - lastErrDrift)*1000000/gd.deltaT;
-  gd.errDriftI = 0; // ADD INTEGRAL BACK IN LATER!!!!
+  gd.errDriftI = 0; // ADD INTEGRAL BACK IN LATER!!!! or like don't....
+
   gd.driftP = gd.errDrift * gd.kP_drift;
   gd.driftI = gd.errDriftI * gd.kI_drift;
   gd.driftD = gd.errDriftD * gd.kD_drift;
@@ -193,8 +194,8 @@ void Guidance::turnInPlace(){
   float startAngle = nav->getGyroAngle();
   float curAngle = startAngle;
   float threshhold = 5; // end loop when 5 degrees from donezo
-  float angleDelta = curAngle - startAngle;
-  float error = 90 - angleDelta;
+  float angleDelta = 0;
+  float error = 90;
   float lastError = error;
   float kp_turny = 1;
   float kd_turny = 0.2;
@@ -216,7 +217,7 @@ void Guidance::turnInPlace(){
   // theres a timeout dont worry
   while(abs(error)>threshhold){
     newAngle = nav->getGyroAngle();
-    if (curAngle - newAngle > 300){
+    if (curAngle - newAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360
       newAngle += 360;
     }
     curAngle = newAngle;
