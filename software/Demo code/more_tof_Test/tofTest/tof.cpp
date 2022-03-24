@@ -8,7 +8,7 @@ Tof::Tof()
 {
 }
 
-Tof::Tof(VL53LX* tof_sensor):
+Tof::Tof(VL53LX* tof_sensor, uint8_t address):
   sensor_vl53lx_sat(tof_sensor)
 {
   tofData = {0, 0, 0, 0};
@@ -16,18 +16,15 @@ Tof::Tof(VL53LX* tof_sensor):
   if (print) Serial.println("begin");
 
   // Configure VL53LX satellite component.
-  // This will set TOF_PLACEHOLDER_PIN as output
-  sensor_vl53lx_sat->begin();
+  Serial.println(sensor_vl53lx_sat->begin());
 
   if (print) Serial.println("init sensor");
-  //Initialize VL53LX satellite component.
-  // This will turn TOF_PLACEHOLDER_PIN LOW then HIGH, then continue initializing the sensor
-  sensor_vl53lx_sat->InitSensor(0x12);
+  Serial.println(sensor_vl53lx_sat->InitSensor(address));
 
 
   if (print) Serial.println("start measurement");
   // Start Measurements
-  sensor_vl53lx_sat->VL53LX_StartMeasurement();
+  Serial.println(sensor_vl53lx_sat->VL53LX_StartMeasurement());
 }
 
 TofData& Tof::getData(){
