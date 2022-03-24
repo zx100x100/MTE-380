@@ -45,7 +45,8 @@ void Sensors::update(){
   imu.poll();
   for (int i=0; i<4; i++){
     if (tof[i].needsToBeInitialized){
-      tof[i].init();
+      Serial.println("WOULD REBOOT TOF BUT THAT CAUSES A CRASH");
+      //tof[i].init();
     }
     tof[i].poll();
   }

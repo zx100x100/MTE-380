@@ -30,7 +30,7 @@ def get_ssid():
                 try:
                     print(f'Changing to anavacadothanks')
                     out = os.popen("nmcli dev wifi connect anavacadothanks")
-                    time.sleep(3)
+                    time.sleep(5)
                     ssid = os.popen("sudo iwgetid -r").read()[:-1]
                     if ssid not in ALLOWED_SSIDS:
                         time.sleep(2)

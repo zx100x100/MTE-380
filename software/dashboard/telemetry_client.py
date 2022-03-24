@@ -7,7 +7,7 @@ import subprocess  # For executing a shell command
 from util import is_windows
 from constants import (BETWEEN_MESSAGE_SETS_SEP, BETWEEN_MESSAGES_SEP, MESSAGE_SET_START)
 
-COMMS_TIMEOUT = 6
+COMMS_TIMEOUT = 8
 PING_SILENT = True
 MIN_CMD_DT = 0.001
 

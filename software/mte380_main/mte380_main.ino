@@ -42,9 +42,13 @@ void setup() {
   // this delay is to be able to put the robot on the ground before it starts measuring. SPEED!!!!
   delay(3000);
 
+  Serial.println("Initializing Health Monitoring System");
   hms.init();
+  Serial.println("Initializing Sensors");
   sensors.init();
+  Serial.println("Initializing Navigation");
   nav.init();
+  Serial.println("Initializing Guidence");
   guidance.init();
 
   guidance.motors = &motors;
@@ -63,8 +67,6 @@ void setup() {
 void loop() {
   unsigned long startT = micros();
 
-  delay(8); // Confirm uneeded for sensors and delete!
-  
   // Sensors
   if (hms.data.mainLogLevel >= 1){
     Serial.println("main->sensors");
