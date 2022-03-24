@@ -11,10 +11,10 @@
 
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN)
+  VL53LX(&Wire, tofPins[0]),
+  VL53LX(&Wire, tofPins[1]),
+  VL53LX(&Wire, tofPins[2]),
+  VL53LX(&Wire, tofPins[3])
 };
 
 //create subsystem objects

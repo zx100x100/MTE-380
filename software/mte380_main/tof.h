@@ -1,7 +1,7 @@
 #ifndef TOF_H
 #define TOF_H
 
-#define TOF_PLACEHOLDER_PIN 19 // placeholder pin for the tof to power cycle. Never used. make sure this is empty
+const static int tofPins[4] = {1, 2, 3, 4};  // TODO: update these correctly after asking zach
 
 #include "hms.h"
 #include "tof_data.pb.h"
