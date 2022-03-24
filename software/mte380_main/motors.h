@@ -8,6 +8,8 @@
 #include "hms.h"
 #include "guidance_data.pb.h"
 
+#define PWM_FREQ 2000
+
 class Motors{
   public:
     Motors(GuidanceData& guidanceData, Hms* hms);
