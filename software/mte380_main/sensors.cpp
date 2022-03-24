@@ -70,7 +70,8 @@ void Sensors::update(){
     digitalWrite(MUX_S1, mux_addresses[i]&0x01);
     digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);
     if (tof[i].needsToBeInitialized){
-      tof[i].init();
+      Serial.println("WOULD REBOOT TOF BUT THAT CAUSES A CRASH");
+      //tof[i].init();
     }
     tof[i].poll();
   }
