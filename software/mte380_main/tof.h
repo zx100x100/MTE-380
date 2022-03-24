@@ -1,7 +1,7 @@
 #ifndef TOF_H
 #define TOF_H
 
-const static int tofPins[4] = {1, 2, 3, 4};  // TODO: update these correctly after asking zach
+const static int tofPins[4] = {26, 25, 18, 19};
 
 #include "hms.h"
 #include "tof_data.pb.h"
@@ -18,10 +18,10 @@ const static int tofPins[4] = {1, 2, 3, 4};  // TODO: update these correctly aft
 class Tof{
   public:
     Tof();
-    Tof(Hms* hms, VL53LX* tof_sensor);
+    Tof(Hms* hms, VL53LX* tof_sensor, uint8_t tof_addr);
     void poll();
     TofData& getData();
-    bool init();
+    bool init(uint8_t tof_addr);
     /* void displayDetails(); */
     bool needsToBeInitialized = true;
 

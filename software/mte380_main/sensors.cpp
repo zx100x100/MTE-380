@@ -8,6 +8,10 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
   hms(hms)
 {
   for (int i = 0; i < 4; ++i){
+    pinMode(tofPins[i], OUTPUT);
+    digitalWrite(tofPins[i], LOW);
+  }
+  for (int i = 0; i < 4; ++i){
     sensor_vl53lx_sat[i] = &tof_objects[i];
   }
   updateBatteryVoltage();
@@ -21,7 +25,7 @@ bool Sensors::init(){
   Wire.setClock(400000);
 
   for (int i=0; i<4; i++){
-    tof[i] = Tof(hms, sensor_vl53lx_sat[i]);
+    tof[i] = Tof(hms, sensor_vl53lx_sat[i], i);
   }
   timestamp = 0;
 }

@@ -8,7 +8,7 @@ Tof::Tof()
 {
 }
 
-bool Tof::init(){
+bool Tof::init(uint8_t tof_addr){
 
   bool initializedProperly = true;
   if (hms->data.sensorsLogLevel >= 1) Serial.println("begin");
@@ -20,7 +20,7 @@ bool Tof::init(){
   if (hms->data.sensorsLogLevel >= 1) Serial.println("init tof sensor");
   //Initialize VL53LX satellite component.
   // This will turn TOF_PLACEHOLDER_PIN LOW then HIGH, then continue initializing the sensor
-  initializedProperly &= sensor_vl53lx_sat->InitSensor(0x12) == 0;  // ensure sensor initialized properly
+  initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + tof_addr) == 0;  // ensure sensor initialized properly
 
 
   if (hms->data.sensorsLogLevel >= 1) Serial.println("start measurement");
@@ -32,12 +32,12 @@ bool Tof::init(){
   return initializedProperly;
 }
 
-Tof::Tof(Hms* hms, VL53LX* tof_sensor):
+Tof::Tof(Hms* hms, VL53LX* tof_sensor, uint8_t tof_addr):
   hms(hms),
   sensor_vl53lx_sat(tof_sensor)
 {
   tofData = TofData_init_zero;
-  init();
+  init(tof_addr);
 }
 
 TofData& Tof::getData(){
@@ -93,7 +93,7 @@ void Tof::poll(){
         NewDataReady = 0;
         tofData.timeoutCount++;
 
-        if (tofData.timeoutCount % 3 == 0){
+        if (tofData.timeoutCount % 50 == 0){
           needsToBeInitialized = true;
         }
       }
