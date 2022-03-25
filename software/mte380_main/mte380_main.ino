@@ -45,26 +45,17 @@ void setup() {
   delay(3000);
 
 <<<<<<< HEAD
-  Serial.println("main->hms.init()");
+  Serial.println("Initializing Health Monitoring System");
   hms.init();
 #ifndef NO_SENSORS
-  Serial.println("main->sensors.init()");
+  Serial.println("Initializing Sensors");
   sensors.init();
 #endif
-  Serial.println("main->nav.init()");
+  Serial.println("Initializing Navigation");
 #ifndef NO_NAV
   nav.init();
 #endif
-  Serial.println("main->guidance.init()");
-=======
-  Serial.println("Initializing Health Monitoring System");
-  hms.init();
-  Serial.println("Initializing Sensors");
-  sensors.init();
-  Serial.println("Initializing Navigation");
-  nav.init();
-  Serial.println("Initializing Guidence");
->>>>>>> dfc9f859f5982e96283c0d596ef29fbd4b0715d2
+  Serial.println("Initializing Guidance");
   guidance.init();
 
   guidance.motors = &motors;
@@ -76,7 +67,7 @@ void setup() {
   while(true){}
 #endif
 #ifndef RUN_TURN_IN_PLACE_TEST
-  Serial.println("main->telemetryServer.init()");
+  Serial.println("Initializing Telemetry");
   telemetryServer.init();
 #endif
 }
