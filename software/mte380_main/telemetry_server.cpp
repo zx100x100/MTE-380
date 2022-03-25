@@ -168,7 +168,7 @@ bool TelemetryServer::update(){
           inputBuffer[i++] = thisChar;
           if (i >= CMD_BUF_SIZE){
             Serial.println("Received too much data!!!!!");
-            // client.flush();
+            client.flush();
             return false;
           }
         }
@@ -182,7 +182,7 @@ bool TelemetryServer::update(){
             Serial.print(char(inputBuffer[i]));
           }
           Serial.println();
-          delay(2000);
+          // delay(2000);
           // TODO
           //
           // ADD THIS TO HSM ERROR LOGGER!!!!!!!!!!!
