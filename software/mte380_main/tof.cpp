@@ -73,7 +73,7 @@ void Tof::poll(){
                         if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
                             needsToBeInitialized = true;
                             Serial.println("REBOOTING TOF due to bad readings");
-                            //init();
+                            init();
                             return;
                         }
                     } // TODO: if no objects found, we don't increment consecutiveBadReadings
@@ -114,7 +114,7 @@ void Tof::poll(){
         if (tofData.timeoutCount % MAX_TIMEOUTS == 0){
           needsToBeInitialized = true;
           Serial.println("REBOOTING TOF due to timeouts");
-          //init();
+          init();
           return;
         }
       }
