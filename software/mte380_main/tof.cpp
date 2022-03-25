@@ -1,7 +1,7 @@
 #include "tof.h"
 
 #define TIMEOUT 50000
-#define MAX_TIMEOUTS 3
+#define MAX_TIMEOUTS 5
 #define MAX_BAD_READINGS 5
 
 /* Tof::Tof(){ */
@@ -64,19 +64,18 @@ void Tof::poll(){
 
                 snprintf(report, sizeof(report), " TOF %d: Count=%d, #Objs=%1d ", index, tofData.count, tofData.numObjs);
                 if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
-
+                lastReading = micros();
                 if (tofData.numObjs){ // if at least 1 object found
                     if (pMultiRangingData->RangeData[0].RangeStatus == 0){
                         consecutiveBadReadings = 0;
                         tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
                         tofData.count = pMultiRangingData->StreamCount;
-                        lastReading = micros();
                     } else{
                         consecutiveBadReadings++;
                         if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
                             needsToBeInitialized = true;
-                            Serial.println("REBOOTING TOF");
-                            init();
+                            Serial.println("REBOOTING TOF due to bad readings");
+                            //init();
                             return;
                         }
                     } // TODO: if no objects found, we don't increment consecutiveBadReadings
@@ -109,7 +108,6 @@ void Tof::poll(){
       /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
       if (micros() - lastReading > TIMEOUT){
         if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
-        if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
         status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
         NewDataReady = 0;
         tofData.timeoutCount++;
@@ -117,8 +115,8 @@ void Tof::poll(){
 
         if (tofData.timeoutCount % MAX_TIMEOUTS == 0){
           needsToBeInitialized = true;
-          Serial.println("REBOOTING TOF");
-          init();
+          Serial.println("REBOOTING TOF due to timeouts");
+          //init();
           return;
         }
       }
