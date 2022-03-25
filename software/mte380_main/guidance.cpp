@@ -1,7 +1,7 @@
 #include "guidance.h"
 #include "math_utils.h"
 
-#define MAX_OUTPUT_POWER 70 // must be < 255
+#define MAX_OUTPUT_POWER 130 // must be < 255
 #define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255
 #define MAX_TURN_IN_PLACE_ERROR_I 500
 

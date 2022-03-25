@@ -86,7 +86,6 @@ void Hms::init(){
   data.mainLogLevel = MAIN_LOG_LEVEL_DEFAULT;
   data.sensorsLogLevel = SENSORS_LOG_LEVEL_DEFAULT;
   data.guidanceLogLevel = GUIDANCE_LOG_LEVEL_DEFAULT;
-  data.guidanceLogLevel = HmsData_LogLevel_OVERKILL;
   data.navLogLevel = NAV_LOG_LEVEL_DEFAULT;
 }
 

@@ -28,6 +28,8 @@ void Motors::setAllToZero(){
 }
 
 void Motors::setPower(float leftPower, float rightPower){
+  if(hms->data.mainLogLevel >= 2){ Serial.print("leftPower: "); Serial.println(leftPower); }
+  if(hms->data.mainLogLevel >= 2){ Serial.print("rightPower: "); Serial.println(rightPower); }
   if (leftPower >= 0){
     analogWrite(LEFT_DRIVE_1, leftPower, PWM_FREQ);
     analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);
@@ -48,6 +50,8 @@ void Motors::setPower(float leftPower, float rightPower){
 
 void Motors::update(){
   if (hms->data.mainLogLevel >= 2) Serial.println("motors");
+  if(hms->data.mainLogLevel >= 2){ Serial.print("leftPower: "); Serial.println(guidanceData.leftPower); }
+  if(hms->data.mainLogLevel >= 2){ Serial.print("rightPower: "); Serial.println(guidanceData.rightPower); }
   if (guidanceData.leftPower >= 0){
     // Serial.println("MOTORS::::::::::::::;");
     // if(hms->data.guidanceLogLevel >= 2){ Serial.print("guidanceData.leftPower: "); Serial.println(guidanceData.leftPower); }
