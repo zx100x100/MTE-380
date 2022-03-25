@@ -1,7 +1,7 @@
 #ifndef TOF_H
 #define TOF_H
 
-#define TOF_PLACEHOLDER_PIN 19 // placeholder pin for the tof to power cycle. Never used. make sure this is empty
+const static int tofPins[4] = {26, 25, 18, 19};
 
 #include "hms.h"
 #include "tof_data.pb.h"
@@ -18,7 +18,7 @@
 class Tof{
   public:
     Tof();
-    Tof(Hms* hms, VL53LX* tof_sensor);
+    Tof(Hms* hms, VL53LX* tof_sensor, uint8_t tof_index);
     void poll();
     TofData& getData();
     bool init();
@@ -31,6 +31,7 @@ class Tof{
     VL53LX* sensor_vl53lx_sat;
     uint8_t NewDataReady = 0;
     unsigned long lastReading = 0;
+    uint8_t index;
     char report[64];
     int status;
 

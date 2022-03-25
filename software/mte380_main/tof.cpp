@@ -14,13 +14,13 @@ bool Tof::init(){
   if (hms->data.sensorsLogLevel >= 1) Serial.println("begin");
 
   // Configure VL53LX satellite component.
-  // This will set TOF_PLACEHOLDER_PIN as output
   sensor_vl53lx_sat->begin();
 
-  if (hms->data.sensorsLogLevel >= 1) Serial.println("init sensor");
+  if (hms->data.sensorsLogLevel >= 1) Serial.println("init tof sensor");
+  //the dumb library doesn't understand that if you reboot the device, it goes back to the default address, so we need to remind it.
+  sensor_vl53lx_sat->VL53LX_SetDeviceAddress(VL53LX_DEFAULT_DEVICE_ADDRESS);
   //Initialize VL53LX satellite component.
-  // This will turn TOF_PLACEHOLDER_PIN LOW then HIGH, then continue initializing the sensor
-  initializedProperly &= sensor_vl53lx_sat->InitSensor(0x12) == 0;  // ensure sensor initialized properly
+  initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
 
   if (hms->data.sensorsLogLevel >= 1) Serial.println("start measurement");
@@ -32,11 +32,12 @@ bool Tof::init(){
   return initializedProperly;
 }
 
-Tof::Tof(Hms* hms, VL53LX* tof_sensor):
+Tof::Tof(Hms* hms, VL53LX* tof_sensor, uint8_t tof_index):
   hms(hms),
   sensor_vl53lx_sat(tof_sensor)
 {
   tofData = TofData_init_zero;
+  index = tof_index;
   init();
 }
 
@@ -57,11 +58,11 @@ void Tof::poll(){
         {
             status = sensor_vl53lx_sat->VL53LX_GetMultiRangingData(pMultiRangingData);
             if (status == 0){
-                lastReading = micros();
                 tofData.numObjs = pMultiRangingData->NumberOfObjectsFound;
                 tofData.count = pMultiRangingData->StreamCount;
+                if(tofData.count != 0) lastReading = micros();
 
-                snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", tofData.count, tofData.numObjs);
+                snprintf(report, sizeof(report), " TOF %d: Count=%d, #Objs=%1d ", index, tofData.count, tofData.numObjs);
                 if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
 
                 if (tofData.numObjs){ // if at least 1 object found
@@ -77,7 +78,7 @@ void Tof::poll(){
                         Serial.print((float)pMultiRangingData->RangeData[0].SignalRateRtnMegaCps / 65536.0);
                         Serial.print(" Mcps, Ambient=");
                         Serial.print((float)pMultiRangingData->RangeData[0].AmbientRateRtnMegaCps / 65536.0);
-                        Serial.print(" Mcps");
+                        Serial.print(" Mcps \n");
                     }
                 }
 
@@ -91,7 +92,7 @@ void Tof::poll(){
           Serial.println("unique_fuck1");
         }
     }
-    else{
+    //else{
       /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
       if (micros() - lastReading > TIMEOUT){
         if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
@@ -99,9 +100,9 @@ void Tof::poll(){
         NewDataReady = 0;
         tofData.timeoutCount++;
 
-        if (tofData.timeoutCount % 3 == 0){
+        if (tofData.timeoutCount % 50 == 0){
           needsToBeInitialized = true;
         }
       }
-    }
+    //}
 }

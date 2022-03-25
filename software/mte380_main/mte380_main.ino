@@ -13,10 +13,10 @@
 
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN),
-  VL53LX(&Wire, TOF_PLACEHOLDER_PIN)
+  VL53LX(&Wire, tofPins[0]),
+  VL53LX(&Wire, tofPins[1]),
+  VL53LX(&Wire, tofPins[2]),
+  VL53LX(&Wire, tofPins[3])
 };
 
 //create subsystem objects
@@ -44,6 +44,7 @@ void setup() {
   // this delay is to be able to put the robot on the ground before it starts measuring. SPEED!!!!
   delay(3000);
 
+<<<<<<< HEAD
   Serial.println("main->hms.init()");
   hms.init();
 #ifndef NO_SENSORS
@@ -55,6 +56,15 @@ void setup() {
   nav.init();
 #endif
   Serial.println("main->guidance.init()");
+=======
+  Serial.println("Initializing Health Monitoring System");
+  hms.init();
+  Serial.println("Initializing Sensors");
+  sensors.init();
+  Serial.println("Initializing Navigation");
+  nav.init();
+  Serial.println("Initializing Guidence");
+>>>>>>> dfc9f859f5982e96283c0d596ef29fbd4b0715d2
   guidance.init();
 
   guidance.motors = &motors;
@@ -74,8 +84,6 @@ void setup() {
 void loop() {
   unsigned long startT = micros();
 
-  /* delay(8); // Confirm uneeded for sensors and delete! */
-  
   // Sensors
   if (hms.data.mainLogLevel >= 1){
     Serial.println("main->sensors");

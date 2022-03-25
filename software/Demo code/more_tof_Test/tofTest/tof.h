@@ -21,7 +21,7 @@ struct TofData {
 class Tof{
   public:
     Tof();
-    Tof(VL53LX* tof_sensor);
+    Tof(VL53LX* tof_sensor, uint8_t address);
     void poll();
     TofData& getData();
 //    bool init();

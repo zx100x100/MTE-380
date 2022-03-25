@@ -26,7 +26,6 @@ class Sensors{
     // TODO update IMU and TOFs
     void updateBatteryVoltage();
     VL53LX* sensor_vl53lx_sat[4];
-    uint8_t mux_addresses[4];
 };
 
 #endif
