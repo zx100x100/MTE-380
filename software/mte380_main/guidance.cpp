@@ -69,6 +69,8 @@ void Guidance::update(){
   if (traj.segments[gd.segNum]->getType() == LINE){// && cmdData.runState == CmdData_RunState_AUTO){
     if(hms->data.guidanceLogLevel >= 2){ Serial.println("getting nav data from nav"); }
     Line* tempLine = static_cast<Line*>(traj.segments[gd.segNum]);
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("tempLine->horizontal: "); Serial.println(tempLine->horizontal); }
+    if(hms->data.guidanceLogLevel >= 2){ Serial.print("tempLine->orientation: "); Serial.println(tempLine->orientation); }
     GuidanceData_Heading enumShit = tempLine->horizontal?(tempLine->orientation==1?GuidanceData_Heading_RIGHT:GuidanceData_Heading_LEFT):(tempLine->orientation==1?GuidanceData_Heading_DOWN:GuidanceData_Heading_UP);
     gd.heading = enumShit;
     nav->update(enumShit);

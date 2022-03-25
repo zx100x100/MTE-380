@@ -11,9 +11,8 @@
 
 #define DEAD_MAN_TIMEOUT_MS 2000
 #define CMD_BUF_SIZE 400
-#define OUTPUT_BUF_SIZE 1000
+#define OUTPUT_BUF_SIZE 1200
 #define INFREQUENT_TELEMETRY_INTERVAL 100 // every 100 ticks, send back telem
-// Size of the buffer that contains literally just the number of bytes written
 
 const uint8_t delimit[3] = {uint8_t(':'),uint8_t(':'),uint8_t(':')};
 const uint8_t delimitEnd[3] = {uint8_t(';'),uint8_t(';'),uint8_t(';')};

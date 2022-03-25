@@ -380,7 +380,7 @@ void Traj::init(){
 
   /* heap_caps_check_integrity(MALLOC_CAP_8BIT, true); */
 
-  segments[0] = new Line(4.5,5.5,1,4.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[0] = new Line(4.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
   segments[1] = new Curve(1,5,BL,hms); // BL = bottom left, etc.
   segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY,hms);
   segments[3] = new Curve(1,1,TL,hms);

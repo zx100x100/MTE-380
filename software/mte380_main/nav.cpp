@@ -147,7 +147,6 @@ void Nav::updateTof(GuidanceData_Heading heading){
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
         break;
       case GuidanceData_Heading_RIGHT:
-      case RIGHT:
         tofPos.xValid = frontValid && fabs(tofPos.x - (TRACK_DIM - front)) < MAX_DEVIATION;
         tofPos.yValid = leftValid && fabs(tofPos.y - left) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = TRACK_DIM - front;
