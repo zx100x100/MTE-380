@@ -1,7 +1,7 @@
 #include "tof.h"
 
 #define TIMEOUT 50000
-#define MAX_TIMEOUTS 3
+#define MAX_TIMEOUTS 5
 #define MAX_BAD_READINGS 5
 
 /* Tof::Tof(){ */
@@ -19,8 +19,6 @@ bool Tof::init(){
   sensor_vl53lx_sat->begin();
 
   if (hms->data.sensorsLogLevel >= 1) Serial.println("init tof sensor");
-  //the dumb library doesn't understand that if you reboot the device, it goes back to the default address, so we need to remind it.
-  sensor_vl53lx_sat->VL53LX_SetDeviceAddress(VL53LX_DEFAULT_DEVICE_ADDRESS);
   //Initialize VL53LX satellite component.
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
@@ -64,19 +62,18 @@ void Tof::poll(){
 
                 snprintf(report, sizeof(report), " TOF %d: Count=%d, #Objs=%1d ", index, tofData.count, tofData.numObjs);
                 if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
-
+                lastReading = micros();
                 if (tofData.numObjs){ // if at least 1 object found
                     if (pMultiRangingData->RangeData[0].RangeStatus == 0){
                         consecutiveBadReadings = 0;
                         tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
                         tofData.count = pMultiRangingData->StreamCount;
-                        lastReading = micros();
                     } else{
                         consecutiveBadReadings++;
                         if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
                             needsToBeInitialized = true;
-                            Serial.println("REBOOTING TOF cause consecutiveBadReadings");
-                            init();
+                            Serial.println("REBOOTING TOF due to bad readings");
+                            //init();
                             return;
                         }
                     } // TODO: if no objects found, we don't increment consecutiveBadReadings
@@ -116,8 +113,8 @@ void Tof::poll(){
 
         if (tofData.timeoutCount % MAX_TIMEOUTS == 0){
           needsToBeInitialized = true;
-          Serial.println("REBOOTING TOF cause timeout");
-          Serial.println(init());
+          Serial.println("REBOOTING TOF due to timeouts");
+          //init();
           return;
         }
       }

@@ -6,7 +6,7 @@
 #include "imu.h"
 
 
-#include "vl53lx_class.h"
+#include "src/VL53L3CX_lib/vl53lx_class.h"
 
 enum TofOrder {FRONT, L_FRONT, L_BACK, BACK};
 

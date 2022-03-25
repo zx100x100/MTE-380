@@ -8,7 +8,7 @@ const static int tofPins[4] = {26, 25, 18, 19};
 
 #include <Arduino.h>
 #include <Wire.h>
-#include "vl53lx_class.h"
+#include "src/VL53L3CX_lib/vl53lx_class.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
