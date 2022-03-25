@@ -44,7 +44,6 @@ void setup() {
   // this delay is to be able to put the robot on the ground before it starts measuring. SPEED!!!!
   delay(3000);
 
-<<<<<<< HEAD
   Serial.println("Initializing Health Monitoring System");
   hms.init();
 #ifndef NO_SENSORS
