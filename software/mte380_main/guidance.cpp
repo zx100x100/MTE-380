@@ -240,7 +240,7 @@ void Guidance::turnInPlace(){
     angleDelta = curAngle - startAngle;
     error = 90 - angleDelta;
     curTimestamp = micros();
-    if (abs(error) < threshold){
+    if (fabs(error) < threshold){
       if (withinThreshold){
         if (curTimestamp - enterThresholdTimestamp > thresholdTime){
           Serial.println("Donezo");

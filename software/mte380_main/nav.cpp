@@ -140,29 +140,30 @@ void Nav::updateTof(GuidanceData_Heading heading){
     // Local to global coordinate conversion switch case:
     switch(heading){
       case GuidanceData_Heading_UP:
-        tofPos.xValid = leftValid && abs(tofPos.x - left) < MAX_DEVIATION;
-        tofPos.yValid = frontValid && abs(tofPos.y - front) < MAX_DEVIATION;
+        tofPos.xValid = leftValid && fabs(tofPos.x - left) < MAX_DEVIATION;
+        tofPos.yValid = frontValid && fabs(tofPos.y - front) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = left;
         if (tofPos.yValid) tofPos.y = front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
         break;
       case GuidanceData_Heading_RIGHT:
-        tofPos.xValid = frontValid && abs(tofPos.x - (TRACK_DIM - front)) < MAX_DEVIATION;
-        tofPos.yValid = leftValid && abs(tofPos.y - left) < MAX_DEVIATION;
+      case RIGHT:
+        tofPos.xValid = frontValid && fabs(tofPos.x - (TRACK_DIM - front)) < MAX_DEVIATION;
+        tofPos.yValid = leftValid && fabs(tofPos.y - left) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = TRACK_DIM - front;
         if (tofPos.yValid) tofPos.y = left;
         if (angFromWallValid) tofPos.yaw = angFromWall;
         break;
       case GuidanceData_Heading_DOWN:
-        tofPos.xValid = leftValid && abs(tofPos.x - (TRACK_DIM - left)) < MAX_DEVIATION;
-        tofPos.yValid = frontValid && abs(tofPos.y - (TRACK_DIM - front)) < MAX_DEVIATION;
+        tofPos.xValid = leftValid && fabs(tofPos.x - (TRACK_DIM - left)) < MAX_DEVIATION;
+        tofPos.yValid = frontValid && fabs(tofPos.y - (TRACK_DIM - front)) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = TRACK_DIM - left;
         if (tofPos.yValid) tofPos.y = TRACK_DIM - front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 90;
         break;
       case GuidanceData_Heading_LEFT:
-        tofPos.xValid = frontValid && abs(tofPos.x - front) < MAX_DEVIATION;
-        tofPos.yValid = leftValid && abs(tofPos.y - (TRACK_DIM - left)) < MAX_DEVIATION;
+        tofPos.xValid = frontValid && fabs(tofPos.x - front) < MAX_DEVIATION;
+        tofPos.yValid = leftValid && fabs(tofPos.y - (TRACK_DIM - left)) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = front;
         if (tofPos.yValid) tofPos.y = TRACK_DIM - left;
         if (angFromWallValid) tofPos.yaw = angFromWall + 180;
@@ -294,9 +295,9 @@ NavData Nav::getPred(float delT){  // delT in seconds
   pred.velX = navData.velX + navData.accX * delT;
   pred.velY = navData.velY + navData.accY * delT;
   pred.velZ = navData.velZ + navData.accZ * delT;
-  pred.posX = navData.posX + navData.velX * delT + navData.accX * delT * delT / 2;
-  pred.posY = navData.posY + navData.velY * delT + navData.accY * delT * delT / 2;
-  pred.posZ = navData.posZ + navData.velZ * delT + navData.accZ * delT * delT / 2;
+  pred.posX = navData.posX + navData.velX * delT; // + navData.accX * delT * delT / 2;
+  pred.posY = navData.posY + navData.velY * delT; // + navData.accY * delT * delT / 2;
+  pred.posZ = navData.posZ + navData.velZ * delT; // + navData.accZ * delT * delT / 2;
 
   pred.timestamp = navData.timestamp + delT * 1000000;
 
