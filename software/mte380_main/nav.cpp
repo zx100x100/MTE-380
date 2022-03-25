@@ -93,7 +93,7 @@ bool Nav::tofsUpdated(){
     return changed;
 }
 
-void Nav::updateTof(heading_t heading){
+void Nav::updateTof(GuidanceData_Heading heading){
   if (tofsUpdated()){
       float angFromWall, front, left;
       bool angFromWallValid, frontValid, leftValid;
@@ -142,13 +142,14 @@ void Nav::updateTof(heading_t heading){
     tofPos.front = front;
     tofPos.angFromWall = angFromWall;
     switch(heading){
-      case UP:
+      case GuidanceData_Heading_UP:
         tofPos.xValid = leftValid && fabs(tofPos.x - left) < MAX_DEVIATION;
         tofPos.yValid = frontValid && fabs(tofPos.y - front) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = left;
         if (tofPos.yValid) tofPos.y = front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
         break;
+      case GuidanceData_Heading_RIGHT:
       case RIGHT:
         tofPos.xValid = frontValid && fabs(tofPos.x - (TRACK_DIM - front)) < MAX_DEVIATION;
         tofPos.yValid = leftValid && fabs(tofPos.y - left) < MAX_DEVIATION;
@@ -156,14 +157,14 @@ void Nav::updateTof(heading_t heading){
         if (tofPos.yValid) tofPos.y = left;
         if (angFromWallValid) tofPos.yaw = angFromWall;
         break;
-      case DOWN:
+      case GuidanceData_Heading_DOWN:
         tofPos.xValid = leftValid && fabs(tofPos.x - (TRACK_DIM - left)) < MAX_DEVIATION;
         tofPos.yValid = frontValid && fabs(tofPos.y - (TRACK_DIM - front)) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = TRACK_DIM - left;
         if (tofPos.yValid) tofPos.y = TRACK_DIM - front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 90;
         break;
-      case LEFT:
+      case GuidanceData_Heading_LEFT:
         tofPos.xValid = frontValid && fabs(tofPos.x - front) < MAX_DEVIATION;
         tofPos.yValid = leftValid && fabs(tofPos.y - (TRACK_DIM - left)) < MAX_DEVIATION;
         if (tofPos.xValid) tofPos.x = front;
@@ -180,7 +181,7 @@ void Nav::updateTof(heading_t heading){
   }
 }
 
-void Nav::update(heading_t heading){
+void Nav::update(GuidanceData_Heading heading){
 //  if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav update"); } // temp
   if (cmdData -> runState == CmdData_RunState_SIM){
 //    if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav in SIM mode"); }

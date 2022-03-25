@@ -28,14 +28,14 @@ Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
     v1 = -v1;
     v4 = -v4;
   }
-  float aReq = abs((pow(v4,2)-pow(v1,2))/(2*(d4-d1)))*(-sign(vm));
-  if (abs(aReq)>abs(a)){
+  float aReq = fabs((pow(v4,2)-pow(v1,2))/(2*(d4-d1)))*(-sign(vm));
+  if (fabs(aReq)>fabs(a)){
     a = aReq;
   }
   d2 = d1 + (pow(v1,2)-pow(VMAX,2))/(2*a);
   d3 = d4 + (pow(VMAX,2)-pow(v4,2))/(2*a);
 
-  if (!(abs(d1-d2)<abs(d1-d3))){
+  if (!(fabs(d1-d2)<fabs(d1-d3))){
     d3 = (pow(d1,2)-pow(d4,2))/(4*a)+(d1+d4)/2;
     d2 = d3;
   }
