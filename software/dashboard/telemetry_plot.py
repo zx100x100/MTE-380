@@ -16,7 +16,7 @@ PAD = (TITLE_RECT_HEIGHT, 0, 0, Y_LABEL_WIDTH)
 BACKGROUND_COLOUR = (100,100,120) # only shows up for TITLE!
 TITLE_COLOUR = (0,0,0)
 AXIS_LABEL_COLOUR = (25,25,25)
-AXIS_LABEL_FONTSIZE = 16
+AXIS_LABEL_FONTSIZE = 12
 DATA_POINT_SIZE = 1 # pixels of diameter/width per data point square/circle
 DATA_POINT_SIZE = 1
 TICK_SIZE = (Y_LABEL_WIDTH,15)
@@ -116,7 +116,7 @@ class TelemetryPlot:
             return
         else:
             self.pb_item.plotted_latest_value = True
-        print('start erase_update_render')
+        #  print('start erase_update_render')
         try:
             #  print(f'self.values: {self.values}')
             screen.blit(self.plot_image, self.plot_image_rect)

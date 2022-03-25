@@ -83,6 +83,12 @@ void Tof::poll(){
 
                 status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
             }
+            else{
+              Serial.println("unique_fuck2");
+            }
+        }
+        else{
+          Serial.println("unique_fuck1");
         }
     }
     else{

@@ -22,7 +22,7 @@ Tof::Tof(VL53LX* tof_sensor):
   if (print) Serial.println("init sensor");
   //Initialize VL53LX satellite component.
   // This will turn TOF_PLACEHOLDER_PIN LOW then HIGH, then continue initializing the sensor
-  sensor_vl53lx_sat->InitSensor(0x12);
+  sensor_vl53lx_sat->InitSensor(0x52);
 
 
   if (print) Serial.println("start measurement");

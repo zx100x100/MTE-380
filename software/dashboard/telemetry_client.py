@@ -3,6 +3,7 @@ import socket
 import time
 import os
 import subprocess  # For executing a shell command
+import datetime
 
 from util import is_windows
 from constants import (BETWEEN_MESSAGE_SETS_SEP, BETWEEN_MESSAGES_SEP, MESSAGE_SET_START)
@@ -28,6 +29,13 @@ class TelemetryClient(threading.Thread):
         self.last_pinged_robot = None
         self.already_cleared_data = False
         self.last_pushed = time.time()
+
+        #  self.playback_dir = '/home/k/robot_data/20220324142841954'
+        #  self.playback_dir = '/home/k/robot_data/20220324185127868'
+        self.playback_dir = None
+        self.playback_started = False  
+        self.playback_filenames = None
+        self.playback_cur_file = None
 
     def kill_thread(self):
         self.killme = True
@@ -56,6 +64,9 @@ class TelemetryClient(threading.Thread):
             print(f'failed to ping robot, {e}')
             return False
 
+    def regenerate_playback_filenames(self):
+        self.playback_filenames = [os.path.join(self.playback_dir,f[:-3]) for f in os.listdir(self.playback_dir)]
+
     def run(self):
         longest_pull = 0
         longest_push = 0
@@ -69,28 +80,70 @@ class TelemetryClient(threading.Thread):
             if self.connected:
                 t = time.time()
                 dt = t - self.last_pushed
+                tx_raw = None
                 if dt > MIN_CMD_DT:
-                    encoded_out = self.push()
-                else:
-                    encoded_out = None
-                encoded_in = self.pull()
+                    tx_raw = self.push()
+                    self.last_pushed = t
+                received = self.pull()
 
-                if encoded_in is None:
-                    print('Received "None" for data, probably just timed out above? Did we make it to this statement?')
-                
-                if self.data.recording_to_dirname is not None:
-                    # FIX THE SYNTAX HERE !!!!!!!!!! NEED TO PARSE THE LIST RECEIVED (encoded_in) or somethign IDK use seps
-                    raise Exception
-                    print('writing data')
-                    if encoded_in is None:
-                        encoded_in = b'None'
-                    elif encoded_out is None:
-                        encoded_out = b'None'
-                    self.data.append_pb_data_to_file(data_received=encoded_in, data_sent=encoded_out)
+                # convert to string / copy existing string for extremely weak thread safety
+                dirname = f'{self.data.recording_to_dirname}'
+                if dirname != 'None':
+                    if not os.path.exists(dirname):
+                        os.makedirs(dirname)
+                    print(f'recording to: {dirname}')
+                    (dt, micro) = datetime.datetime.now().strftime('%Y%m%d%H%M%S.%f').split('.')
+                    dt = "%s%03d" % (dt, int(micro) / 1000)
+                    title = f'{dt}_rx'
+                    if received is not None:
+                        pb_filename = os.path.join(dirname,title)
+                        print(f'pb_filename: {pb_filename}')
+                        print(f'exists: {os.path.exists(dirname)}')
+                        with open(pb_filename, 'wb') as f:
+                            f.write(received)
+                    if tx_raw is not None:
+                        title = f'{dt}_tx'
+                        print(f'dirname: {dirname}')
+                        print(f'title: {title}')
+                        pb_filename = os.path.join(dirname,title)
+                        with open(pb_filename, 'wb') as f:
+                            f.write(tx_raw)
 
+                #  if encoded_in is None:
+                    #  print('Received "None" for data, probably just timed out above? Did we make it to this statement?')
             else:
                 #  self.append_pb_vals()
-                time.sleep(0.1)
+                if self.playback_started:
+                    print('hi')
+                    if self.playback_filenames is None:
+                        self.regenerate_playback_filenames()
+                        self.playback_cur_file = 0
+
+                    increment = 0
+                    tx_file = self.playback_filenames[self.playback_cur_file]+'_tx'
+                    print(tx_file)
+                    if os.path.exists(tx_file):
+                        print('found tx file')
+                        f = open(tx_file, "rb")
+                        tx_raw = f.read()
+                        print(f'tx_raw: {tx_raw}')
+                        self.data.cmd.pb.ParseFromString(tx_raw)
+
+                        # TODO (for krishn????) DONT INCREMENT BEYOND HOW MANY TICKS WE ACTUALLY RECORDED
+                        increment += 1
+                        #  /home/k/robot_data/20220324142841954/
+                    rx_file = self.playback_filenames[self.playback_cur_file]+'_rx'
+                    if os.path.exists(rx_file):
+                        f = open(rx_file, "rb")
+                        rx_raw = f.read()
+                        msg_sets = self.raw_to_msg_sets(rx_raw)
+                        self.decode_message_sets(msg_sets)
+                        increment += 1
+                    self.playback_cur_file += increment
+                    time.sleep(0.5)
+                else:
+                    self.playback_filenames = None
+                    self.playback_cur_file = 0
 
     def connect(self):
         try:
@@ -133,9 +186,10 @@ class TelemetryClient(threading.Thread):
     def push(self):
         try:
             #  print('push')
-            encoded = self.data.encode_outgoing() + BETWEEN_MESSAGES_SEP
+            raw_outgoing = self.data.encode_outgoing()
+            encoded = raw_outgoing + BETWEEN_MESSAGES_SEP
             self.socket.sendall(encoded)
-            return encoded
+            return raw_outgoing
         except Exception as e:
             print(f"Failed to push data: {e}")
             print(f"Attempting to reconnect.")
@@ -185,16 +239,17 @@ class TelemetryClient(threading.Thread):
         try:
             rx_raw = self.pull_raw()
             if rx_raw is None:
-                return None
+                return
             msg_sets = self.raw_to_msg_sets(rx_raw)
             self.decode_message_sets(msg_sets)
-            return msg_sets
-        except PullDataTimedOutException:
-            return None
+            return rx_raw
+        except Exception as e:
+            print(f'error while pulling data: {e}')
 
 
     def raw_to_msg_sets(self, rx_raw):
         message_sets = rx_raw.split(BETWEEN_MESSAGE_SETS_SEP)[:-1]
+
         if len(message_sets) == 1:
             if BETWEEN_MESSAGE_SETS_SEP not in rx_raw:
                 print('partial message data!')

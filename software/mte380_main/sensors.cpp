@@ -24,8 +24,13 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
 }
 
 bool Sensors::init(){
-  imu = Imu(hms);
-  imu.poll();
+  // imu = Imu(hms);
+  /* imu.poll(); */
+
+  // " this is the last thing ill try "
+  // - ahmad
+  //
+  // he was talking about eng right?
 
   Wire.begin();
   Wire.setClock(400000);
@@ -65,12 +70,20 @@ void Sensors::updateBatteryVoltage(){
 
 void Sensors::update(){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
-  imu.poll();
+  /* imu.poll(); */
   for (int i=0; i<4; i++){
     digitalWrite(MUX_S1, mux_addresses[i]&0x01);
     digitalWrite(MUX_S2, (mux_addresses[i]&0x02)>>1);
     if (tof[i].needsToBeInitialized){
-      tof[i].init();
+      digitalWrite(TOF_SHUTDOWN_PIN, LOW);
+      delay(10);
+      digitalWrite(TOF_SHUTDOWN_PIN, HIGH);
+      delay(10);
+      for (int j=0; j<4; j++){
+        digitalWrite(MUX_S1, mux_addresses[j]&0x01);
+        digitalWrite(MUX_S2, (mux_addresses[j]&0x02)>>1);
+        tof[j].init();
+      }
     }
     tof[i].poll();
   }

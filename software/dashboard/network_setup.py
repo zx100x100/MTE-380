@@ -8,7 +8,12 @@ import time
 from util import is_windows
 
 SERVER_PORT = 23
+
 SERVER_HOST_BYTE = 111
+if os.path.exists(os.path.join(os.getcwd(),'.use_alt_ip')):
+    print('using alt ip')
+    SERVER_HOST_BYTE = 222
+
 PASSWORDS = {'EMU': '11111111', 'anavacadothanks': '42069666'}
 ALLOWED_SSIDS = list(PASSWORDS.keys())
 SKIP_SSIDS = ('eduroam',)
@@ -25,11 +30,11 @@ def get_ssid():
             ssid = os.popen("sudo iwgetid -r").read()[:-1]
             if not ssid:
                 # ethernet
-                ssid = 'anavacadothanks'
+                ssid = 'EMU'
             elif ssid not in ALLOWED_SSIDS:
                 try:
-                    print(f'Changing to anavacadothanks')
-                    out = os.popen("nmcli dev wifi connect anavacadothanks")
+                    print(f'Changing to EMU')
+                    out = os.popen("nmcli dev wifi connect EMU")
                     time.sleep(5)
                     ssid = os.popen("sudo iwgetid -r").read()[:-1]
                     if ssid not in ALLOWED_SSIDS:
@@ -62,7 +67,7 @@ def get_firmware_network_info_path():
     network_info_path = firmware_path / 'network_info.h'
     return network_info_path
 
-def copy_constants_into_firmware(bytes, ssid):
+def copy_constants_into_firmware(ip_bytes, ssid):
     if ssid in SKIP_SSIDS:
         return
     path = get_firmware_network_info_path()
@@ -70,7 +75,7 @@ def copy_constants_into_firmware(bytes, ssid):
              '#define NETWORK_INFO_H',
              '']
     for i in range(4):
-        lines.append(f'#define SERVER_BYTE{i} {bytes[i]}')
+        lines.append(f'#define SERVER_BYTE{i} {ip_bytes[i]}')
 
     try:
         lines += [f'#define SERVER_PORT {SERVER_PORT}',

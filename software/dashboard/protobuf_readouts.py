@@ -64,7 +64,8 @@ class ReadoutItem:
                 self.values.append(value)
                 self.plotted_latest_value = False
             else:
-                print(f"TRYING TO APPEND ILLEGAL NUMBER: {value}")
+                pass
+                #  print(f"TRYING TO APPEND ILLEGAL NUMBER: {value}")
         else:
             self.values.append(value)
             self.plotted_latest_value = False
@@ -76,7 +77,8 @@ class ReadoutItem:
                 self.values.append(self.value)
                 self.plotted_latest_value = False
             else:
-                print(f"TRYING TO APPEND ILLEGAL NUMBER: {self.value}")
+                pass
+                #  print(f"TRYING TO APPEND ILLEGAL NUMBER: {self.value}")
         else:
             self.values.append(self.value)
             self.plotted_latest_value = False

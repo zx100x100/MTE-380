@@ -10,6 +10,7 @@ Imu::Imu(Hms* hms):
   hms(hms)
 {
   imuData = ImuData_init_zero;
+  // return;
   bool success = true;
   //ACCELL
   if(!accel.begin())

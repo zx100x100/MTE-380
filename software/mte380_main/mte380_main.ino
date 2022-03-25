@@ -8,6 +8,8 @@
 #include "hms_and_cmd_data.pb.h"
 
 /* #define RUN_TURN_IN_PLACE_TEST */
+#define NO_SENSORS
+#define NO_NAV
 
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {
@@ -42,9 +44,17 @@ void setup() {
   // this delay is to be able to put the robot on the ground before it starts measuring. SPEED!!!!
   delay(3000);
 
+  Serial.println("main->hms.init()");
   hms.init();
+#ifndef NO_SENSORS
+  Serial.println("main->sensors.init()");
   sensors.init();
+#endif
+  Serial.println("main->nav.init()");
+#ifndef NO_NAV
   nav.init();
+#endif
+  Serial.println("main->guidance.init()");
   guidance.init();
 
   guidance.motors = &motors;
@@ -56,6 +66,7 @@ void setup() {
   while(true){}
 #endif
 #ifndef RUN_TURN_IN_PLACE_TEST
+  Serial.println("main->telemetryServer.init()");
   telemetryServer.init();
 #endif
 }
@@ -63,13 +74,15 @@ void setup() {
 void loop() {
   unsigned long startT = micros();
 
-  delay(8); // Confirm uneeded for sensors and delete!
+  /* delay(8); // Confirm uneeded for sensors and delete! */
   
   // Sensors
   if (hms.data.mainLogLevel >= 1){
     Serial.println("main->sensors");
   }
+#ifndef NO_SENSORS
   sensors.update();
+#endif
   unsigned long afterSensorT = micros();
   
   // Guidence

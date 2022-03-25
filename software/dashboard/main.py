@@ -67,6 +67,8 @@ class App:
         self.recording_to_dirname = None
         self.recording = Recording(self)
 
+        #  self.playback_dirname = 
+
     def update_robot_data(self):
         if self.data.cmd.pb.runState is CmdData.RunState.SIM and not self.telemetry_client.connected:
             # Display using the dashboard predicted data if we are in SIM mode and not connected to robot
@@ -84,9 +86,9 @@ class App:
                 self.robot.rect.centery = y
                 #  print(f'set robot to nav data. x: {x} | {self.data.nav.pb.posX}, y: {y}, robot.rect.center: {self.robot.rect.center}')
             except:
-                print("error setting posX/posY from nav data:")
-                print(f'self.data.nav.pb.posX: {self.data.nav.pb.posX}')
-                print(f'self.data.nav.pb.posY: {self.data.nav.pb.posY}')
+                #  print("error setting posX/posY from nav data:")
+                #  print(f'self.data.nav.pb.posX: {self.data.nav.pb.posX}')
+                #  print(f'self.data.nav.pb.posY: {self.data.nav.pb.posY}')
                 self.robot.rect.centerx = 0
                 self.robot.rect.centery = 0
         self.robot.update_sprite_angle() 
@@ -173,17 +175,15 @@ class App:
         if self.keys[pg.K_r]:
             # start recording shit
             if self.keys[pg.K_LSHIFT]:
-                self.data.recording_to_dirname = None
+                if self.data.recording_to_dirname is not None:
+                    self.data.recording_to_dirname = None
+                
             else:
                 if self.data.recording_to_dirname is None:
                     basedir = os.path.join(os.path.expanduser('~'), 'robot_data')
                     if not os.path.exists(basedir):
                         os.makedirs(basedir)
-                    self.data.recording_to_dirname = os.path.join(basedir,self.data.generate_recording_filename())
-                    if not os.path.exists(self.data.recording_to_dirname):
-                        os.makedirs(self.data.recording_to_dirname)
-                print(f'self.data.recording_to_dirname: {self.data.recording_to_dirname}')
-                print(f'path exists: {os.path.exists(self.data.recording_to_dirname)}')
+                    self.data.recording_to_dirname = os.path.join(basedir,self.data.generate_recording_dirname())
         if self.keys[pg.K_SPACE]:
             # ESTOP:
             self.data.cmd.pb.propPower = 0
