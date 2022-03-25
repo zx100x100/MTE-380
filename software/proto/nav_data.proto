@@ -19,5 +19,8 @@ message NavData {
   float angAccXy = 16; // angular acceleration
   float angAccXz = 17;
   float angAccYz = 18;
-  uint32 timestamp = 19;
+  float left = 19;
+  float front = 20;
+  float angFromWall = 21;
+  uint32 timestamp = 22;
 }
