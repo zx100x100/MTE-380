@@ -10,7 +10,8 @@ from constants import (BETWEEN_MESSAGE_SETS_SEP, BETWEEN_MESSAGES_SEP, MESSAGE_S
 
 COMMS_TIMEOUT = 8
 PING_SILENT = True
-MIN_CMD_DT = 0.001
+MIN_CMD_DT = 0.1 #01
+#  MIN_CMD_DT = 0.0000000001
 
 class PullDataTimedOutException(Exception):
     pass
