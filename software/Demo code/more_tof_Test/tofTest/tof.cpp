@@ -48,7 +48,7 @@ void Tof::poll(){
                 tofData.numObjs = pMultiRangingData->NumberOfObjectsFound;
                 tofData.count = pMultiRangingData->StreamCount;
 
-                snprintf(report, sizeof(report), " VL53LX Satellite: Count=%d, #Objs=%1d ", tofData.count, tofData.numObjs);
+                snprintf(report, sizeof(report), "\n VL53LX Satellite: Count=%d, #Objs=%1d ", tofData.count, tofData.numObjs);
                 if (print) Serial.print(report);
 
                 if (tofData.numObjs){ // if at least 1 object found

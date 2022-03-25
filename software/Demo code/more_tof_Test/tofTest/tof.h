@@ -35,7 +35,7 @@ class Tof{
     char report[64];
     int status;
 
-    bool print = true;
+    bool print = false;
 };
 
 #endif

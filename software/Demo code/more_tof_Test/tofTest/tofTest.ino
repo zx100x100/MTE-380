@@ -14,7 +14,7 @@
 #define TOF_1_PIN 19
 #define TOF_2_PIN 18
 
-uint8_t tofAddresses[2] = {0x12, 0x13};
+uint8_t tofAddresses[2] = {0x12, 0x23};
 
 
 VL53LX sensor[2] = {
@@ -41,11 +41,11 @@ void setup()
 
   for (int i=0; i<2; i++){
       tof[i] = Tof(&sensor[i], tofAddresses[i]);  // initialize tof object (driver) with a pointer to sensor (physical device)
-      delay(30);
+      delay(1000);
   }
 
     Serial.println("Initialized well");
-    delay(3000);
+    delay(1000);
 }
 
 void loop()
@@ -54,6 +54,7 @@ void loop()
     for (int i = 0; i < 2; ++i)
     {
         tof[i].poll();
+        Serial.print("Sensor: ");
         Serial.print(i);
         Serial.print("; ");
         Serial.print(tof[i].getData().dist);

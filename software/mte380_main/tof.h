@@ -18,10 +18,10 @@ const static int tofPins[4] = {26, 25, 18, 19};
 class Tof{
   public:
     Tof();
-    Tof(Hms* hms, VL53LX* tof_sensor, uint8_t tof_addr);
+    Tof(Hms* hms, VL53LX* tof_sensor, uint8_t tof_index);
     void poll();
     TofData& getData();
-    bool init(uint8_t tof_addr);
+    bool init();
     /* void displayDetails(); */
     bool needsToBeInitialized = true;
 
@@ -31,6 +31,7 @@ class Tof{
     VL53LX* sensor_vl53lx_sat;
     uint8_t NewDataReady = 0;
     unsigned long lastReading = 0;
+    uint8_t index;
     char report[64];
     int status;
 
