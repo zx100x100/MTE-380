@@ -53,10 +53,6 @@ void Sensors::update(){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   /* imu.poll(); */
   for (int i=0; i<4; i++){
-    if (tof[i].needsToBeInitialized){
-      Serial.println("REBOOTING TOF");
-      tof[i].init();
-    }
     tof[i].poll();
   }
 //  if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");

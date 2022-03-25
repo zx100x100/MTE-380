@@ -34,6 +34,7 @@ class Tof{
     uint8_t index;
     char report[64];
     int status;
+    int consecutiveBadReadings = 0;
 
 };
 
