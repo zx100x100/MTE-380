@@ -138,6 +138,9 @@ void Nav::updateTof(GuidanceData_Heading heading){
     tofPos.yawValid = angFromWallValid;  // TODO: validate angle change
     
     // Local to global coordinate conversion switch case:
+    tofPos.left = left;
+    tofPos.front = front;
+    tofPos.angFromWall = angFromWall;
     switch(heading){
       case GuidanceData_Heading_UP:
         tofPos.xValid = leftValid && fabs(tofPos.x - left) < MAX_DEVIATION;
