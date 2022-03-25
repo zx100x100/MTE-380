@@ -19,10 +19,50 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19proto/guidance_data.proto\"\xdb\x04\n\x0cGuidanceData\x12\x0e\n\x06\x64\x65ltaT\x18\x01 \x01(\x02\x12\x13\n\x0bsetpointVel\x18\x02 \x01(\x02\x12\x0b\n\x03vel\x18\x03 \x01(\x02\x12\x0e\n\x06\x65rrVel\x18\x04 \x01(\x02\x12\x0f\n\x07\x65rrVelI\x18\x05 \x01(\x02\x12\x0f\n\x07\x65rrVelD\x18\x06 \x01(\x02\x12\x0e\n\x06kP_vel\x18\x07 \x01(\x02\x12\x0e\n\x06kI_vel\x18\x08 \x01(\x02\x12\x0e\n\x06kD_vel\x18\t \x01(\x02\x12\x0c\n\x04velP\x18\n \x01(\x02\x12\x0c\n\x04velI\x18\x0b \x01(\x02\x12\x0c\n\x04velD\x18\x0c \x01(\x02\x12\x15\n\rleftOutputVel\x18\r \x01(\x02\x12\x16\n\x0erightOutputVel\x18\x0e \x01(\x02\x12\x10\n\x08\x65rrDrift\x18\x0f \x01(\x02\x12\x11\n\terrDriftI\x18\x10 \x01(\x02\x12\x11\n\terrDriftD\x18\x11 \x01(\x02\x12\x10\n\x08kP_drift\x18\x12 \x01(\x02\x12\x10\n\x08kI_drift\x18\x13 \x01(\x02\x12\x10\n\x08kD_drift\x18\x14 \x01(\x02\x12\x0e\n\x06\x64riftP\x18\x15 \x01(\x02\x12\x0e\n\x06\x64riftI\x18\x16 \x01(\x02\x12\x0e\n\x06\x64riftD\x18\x17 \x01(\x02\x12\x17\n\x0fleftOutputDrift\x18\x18 \x01(\x02\x12\x18\n\x10rightOutputDrift\x18\x19 \x01(\x02\x12\x14\n\x0cleftTotalPID\x18\x1a \x01(\x02\x12\x15\n\rrightTotalPID\x18\x1b \x01(\x02\x12\x11\n\tleftPower\x18\x1c \x01(\x02\x12\x12\n\nrightPower\x18\x1d \x01(\x02\x12\x11\n\tpropPower\x18\x1e \x01(\x02\x12\x0e\n\x06segNum\x18\x1f \x01(\r\x12\x16\n\x0e\x63ompletedTrack\x18  \x01(\x08\x62\x06proto3'
+  serialized_pb=b'\n\x19proto/guidance_data.proto\"\xc2\x05\n\x0cGuidanceData\x12\x0e\n\x06\x64\x65ltaT\x18\x01 \x01(\x02\x12\x13\n\x0bsetpointVel\x18\x02 \x01(\x02\x12\x0b\n\x03vel\x18\x03 \x01(\x02\x12\x0e\n\x06\x65rrVel\x18\x04 \x01(\x02\x12\x0f\n\x07\x65rrVelI\x18\x05 \x01(\x02\x12\x0f\n\x07\x65rrVelD\x18\x06 \x01(\x02\x12\x0e\n\x06kP_vel\x18\x07 \x01(\x02\x12\x0e\n\x06kI_vel\x18\x08 \x01(\x02\x12\x0e\n\x06kD_vel\x18\t \x01(\x02\x12\x0c\n\x04velP\x18\n \x01(\x02\x12\x0c\n\x04velI\x18\x0b \x01(\x02\x12\x0c\n\x04velD\x18\x0c \x01(\x02\x12\x15\n\rleftOutputVel\x18\r \x01(\x02\x12\x16\n\x0erightOutputVel\x18\x0e \x01(\x02\x12\x10\n\x08\x65rrDrift\x18\x0f \x01(\x02\x12\x11\n\terrDriftI\x18\x10 \x01(\x02\x12\x11\n\terrDriftD\x18\x11 \x01(\x02\x12\x10\n\x08kP_drift\x18\x12 \x01(\x02\x12\x10\n\x08kI_drift\x18\x13 \x01(\x02\x12\x10\n\x08kD_drift\x18\x14 \x01(\x02\x12\x0e\n\x06\x64riftP\x18\x15 \x01(\x02\x12\x0e\n\x06\x64riftI\x18\x16 \x01(\x02\x12\x0e\n\x06\x64riftD\x18\x17 \x01(\x02\x12\x17\n\x0fleftOutputDrift\x18\x18 \x01(\x02\x12\x18\n\x10rightOutputDrift\x18\x19 \x01(\x02\x12\x14\n\x0cleftTotalPID\x18\x1a \x01(\x02\x12\x15\n\rrightTotalPID\x18\x1b \x01(\x02\x12\x11\n\tleftPower\x18\x1c \x01(\x02\x12\x12\n\nrightPower\x18\x1d \x01(\x02\x12\x11\n\tpropPower\x18\x1e \x01(\x02\x12\x0e\n\x06segNum\x18\x1f \x01(\r\x12\x16\n\x0e\x63ompletedTrack\x18  \x01(\x08\x12&\n\x07heading\x18! \x01(\x0e\x32\x15.GuidanceData.Heading\"=\n\x07Heading\x12\x06\n\x02UP\x10\x00\x12\t\n\x05RIGHT\x10\x01\x12\x08\n\x04\x44OWN\x10\x02\x12\x08\n\x04LEFT\x10\x03\x12\x0b\n\x07UNKNOWN\x10\x04\x62\x06proto3'
 )
 
 
+
+_GUIDANCEDATA_HEADING = _descriptor.EnumDescriptor(
+  name='Heading',
+  full_name='GuidanceData.Heading',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='UP', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='RIGHT', index=1, number=1,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='DOWN', index=2, number=2,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='LEFT', index=3, number=3,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='UNKNOWN', index=4, number=4,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=675,
+  serialized_end=736,
+)
+_sym_db.RegisterEnumDescriptor(_GUIDANCEDATA_HEADING)
 
 
 _GUIDANCEDATA = _descriptor.Descriptor(
@@ -257,11 +297,19 @@ _GUIDANCEDATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='heading', full_name='GuidanceData.heading', index=32,
+      number=33, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
+    _GUIDANCEDATA_HEADING,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -270,9 +318,11 @@ _GUIDANCEDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=30,
-  serialized_end=633,
+  serialized_end=736,
 )
 
+_GUIDANCEDATA.fields_by_name['heading'].enum_type = _GUIDANCEDATA_HEADING
+_GUIDANCEDATA_HEADING.containing_type = _GUIDANCEDATA
 DESCRIPTOR.message_types_by_name['GuidanceData'] = _GUIDANCEDATA
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 

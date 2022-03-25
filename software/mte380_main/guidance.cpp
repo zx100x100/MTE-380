@@ -65,17 +65,19 @@ void Guidance::update(){
   // what the current segment's getType returns, to make sure its a LINE segment.
   //
   // In order to implement curve trajectories later, we will need a way of telling Nav what the fuck is happening.
+  gd.heading = GuidanceData_Heading_UNKNOWN;
   if (traj.segments[gd.segNum]->getType() == LINE){// && cmdData.runState == CmdData_RunState_AUTO){
     if(hms->data.guidanceLogLevel >= 2){ Serial.println("getting nav data from nav"); }
     Line* tempLine = static_cast<Line*>(traj.segments[gd.segNum]);
-    heading_t enumShit = tempLine->horizontal?(tempLine->orientation==1?RIGHT:LEFT):(tempLine->orientation==1?DOWN:UP);
+    GuidanceData_Heading enumShit = tempLine->horizontal?(tempLine->orientation==1?GuidanceData_Heading_RIGHT:GuidanceData_Heading_LEFT):(tempLine->orientation==1?GuidanceData_Heading_DOWN:GuidanceData_Heading_UP);
+    gd.heading = enumShit;
     nav->update(enumShit);
   }
   else if (cmdData.runState == CmdData_RunState_SIM){
     // This is pretty jank.
     // In simulator mode, need to set all the nav variables to whatever the simulator inputs were.
     // So, we give Nav a dummy update here and it will handle the rest by checking runState and handling SIM
-    nav->update(UP);
+    nav->update(GuidanceData_Heading_UNKNOWN);
   }
 
   if(hms->data.guidanceLogLevel >= 2){ Serial.print("Current segment number: "); Serial.println(gd.segNum); }

@@ -5,6 +5,7 @@
 #include "nav_data.pb.h"
 #include "sensors.h"
 #include "hms_and_cmd_data.pb.h"
+#include "guidance_data.pb.h"
 #include <imuFilter.h>
 
 struct TofPos {
@@ -13,17 +14,10 @@ struct TofPos {
   float y; bool xValid;
 };
 
-enum heading_t {
-  UP,
-  RIGHT,
-  DOWN,
-  LEFT
-};
-
 class Nav{
   public:
     Nav(Sensors &sensors, CmdData* cmdData, Hms* hms);
-    void update(heading_t heading);
+    void update(GuidanceData_Heading heading);
     void init();
     NavData& getData();
     NavData getPred(float delT);
@@ -40,7 +34,7 @@ class Nav{
 
     bool isValid(TofOrder tof);
     bool tofsUpdated();
-    void updateTof(heading_t heading);
+    void updateTof(GuidanceData_Heading heading);
     NavData calculateImu();
     //mTODO move to math utils
     float deg2rad(float deg);

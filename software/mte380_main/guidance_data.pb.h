@@ -9,6 +9,15 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+/* Enum definitions */
+typedef enum _GuidanceData_Heading { 
+    GuidanceData_Heading_UP = 0, 
+    GuidanceData_Heading_RIGHT = 1, 
+    GuidanceData_Heading_DOWN = 2, 
+    GuidanceData_Heading_LEFT = 3, 
+    GuidanceData_Heading_UNKNOWN = 4 
+} GuidanceData_Heading;
+
 /* Struct definitions */
 typedef struct _GuidanceData { 
     float deltaT; 
@@ -45,7 +54,14 @@ typedef struct _GuidanceData {
     float propPower; 
     uint32_t segNum; /* current arena segment number */
     bool completedTrack; 
+    GuidanceData_Heading heading; 
 } GuidanceData;
+
+
+/* Helper constants for enums */
+#define _GuidanceData_Heading_MIN GuidanceData_Heading_UP
+#define _GuidanceData_Heading_MAX GuidanceData_Heading_UNKNOWN
+#define _GuidanceData_Heading_ARRAYSIZE ((GuidanceData_Heading)(GuidanceData_Heading_UNKNOWN+1))
 
 
 #ifdef __cplusplus
@@ -53,8 +69,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _GuidanceData_Heading_MIN}
+#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _GuidanceData_Heading_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define GuidanceData_deltaT_tag                  1
@@ -89,6 +105,7 @@ extern "C" {
 #define GuidanceData_propPower_tag               30
 #define GuidanceData_segNum_tag                  31
 #define GuidanceData_completedTrack_tag          32
+#define GuidanceData_heading_tag                 33
 
 /* Struct field encoding specification for nanopb */
 #define GuidanceData_FIELDLIST(X, a) \
@@ -123,7 +140,8 @@ X(a, STATIC,   SINGULAR, FLOAT,    leftPower,        28) \
 X(a, STATIC,   SINGULAR, FLOAT,    rightPower,       29) \
 X(a, STATIC,   SINGULAR, FLOAT,    propPower,        30) \
 X(a, STATIC,   SINGULAR, UINT32,   segNum,           31) \
-X(a, STATIC,   SINGULAR, BOOL,     completedTrack,   32)
+X(a, STATIC,   SINGULAR, BOOL,     completedTrack,   32) \
+X(a, STATIC,   SINGULAR, UENUM,    heading,          33)
 #define GuidanceData_CALLBACK NULL
 #define GuidanceData_DEFAULT NULL
 
@@ -133,7 +151,7 @@ extern const pb_msgdesc_t GuidanceData_msg;
 #define GuidanceData_fields &GuidanceData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define GuidanceData_size                        175
+#define GuidanceData_size                        178
 
 #ifdef __cplusplus
 } /* extern "C" */

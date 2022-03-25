@@ -1,6 +1,13 @@
 syntax = "proto3";
 
 message GuidanceData {
+  enum Heading {
+    UP = 0;
+    RIGHT = 1;
+    DOWN = 2;
+    LEFT = 3;
+    UNKNOWN = 4;
+  }
   float deltaT = 1;
 
   float setpointVel = 2;
@@ -47,4 +54,5 @@ message GuidanceData {
   uint32 segNum = 31; // current arena segment number
 
   bool completedTrack = 32;
+  Heading heading = 33;
 }
