@@ -8,8 +8,8 @@
 #include "hms_and_cmd_data.pb.h"
 
 /* #define RUN_TURN_IN_PLACE_TEST */
-#define NO_SENSORS
-#define NO_NAV
+/* #define NO_SENSORS */
+/* #define NO_NAV */
 
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {

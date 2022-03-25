@@ -232,7 +232,7 @@ class TelemetryPlot:
             #  pass
             print(f"ERROR UPDATING PLOTS: {e}")
             print(f"{traceback.format_exc()}")
-        print('end erase_update_render')
+        #  print('end erase_update_render')
 
 # (200,0,200)
         #  self.values.append()

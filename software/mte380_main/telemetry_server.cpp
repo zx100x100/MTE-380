@@ -166,11 +166,23 @@ bool TelemetryServer::update(){
             break;
           }
           inputBuffer[i++] = thisChar;
+          if (i >= CMD_BUF_SIZE){
+            Serial.println("Received too much data!!!!!");
+            // client.flush();
+            return false;
+          }
         }
+        // client.flush();
         pb_istream_t instream = pb_istream_from_buffer(inputBuffer, i);
         bool decodeStatus = pb_decode(&instream, CmdData_fields, &cmdData);
         if (!decodeStatus){
           Serial.printf("Decoding Cmd fail: %s\n", PB_GET_ERROR(&instream));
+
+          for (int i=0; i<CMD_BUF_SIZE; i++){
+            Serial.print(char(inputBuffer[i]));
+          }
+          Serial.println();
+          delay(2000);
           // TODO
           //
           // ADD THIS TO HSM ERROR LOGGER!!!!!!!!!!!
@@ -189,7 +201,7 @@ bool TelemetryServer::update(){
         guidanceData.kP_drift = cmdData.kP_drift;
         guidanceData.kD_drift = cmdData.kD_drift;
         guidanceData.kI_drift = cmdData.kI_drift;
-        client.flush();
+        // client.flush();
       }
       if (!cmdData.disableTelemetry){
         if(hms->data.mainLogLevel >= 2){ Serial.println("Sending telemetry"); }
@@ -204,7 +216,7 @@ bool TelemetryServer::update(){
         serializeData(stream);
         unsigned long beforeSendT = micros();
         client.write(buffer, stream.bytes_written); // takes 0-2 ms
-        client.flush();
+        // client.flush();
       }
       unsigned long newTimestamp = micros();
       lastCommandTime = newTimestamp;

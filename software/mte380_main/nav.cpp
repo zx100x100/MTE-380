@@ -203,6 +203,7 @@ void Nav::update(heading_t heading){
   }
   else{
 //    if(hms->data.guidanceLogLevel >= 2){ Serial.println("NAV::::::::: NOT IN SIM MODE??????"); }
+    return;
   }
 
   float delT = float(sensors.timestamp - navData.timestamp) / 1000000; // navData timestamp is the same as previous sensor timestamp
