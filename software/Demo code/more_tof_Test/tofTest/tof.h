@@ -21,19 +21,22 @@ struct TofData {
 class Tof{
   public:
     Tof();
-    Tof(VL53LX* tof_sensor, uint8_t address);
+    Tof(VL53LX* tof_sensor, uint8_t tof_index);
     void poll();
     TofData& getData();
-//    bool init();
+    bool init();
     /* void displayDetails(); */
+    bool needsToBeInitialized = true;
 
   private:
     TofData tofData;
     VL53LX* sensor_vl53lx_sat;
     uint8_t NewDataReady = 0;
     unsigned long lastReading = 0;
+    uint8_t index;
     char report[64];
     int status;
+    int consecutiveBadReadings = 0;
 
     bool print = false;
 };

@@ -75,7 +75,7 @@ void Tof::poll(){
                         consecutiveBadReadings++;
                         if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
                             needsToBeInitialized = true;
-                            Serial.println("REBOOTING TOF");
+                            Serial.println("REBOOTING TOF cause consecutiveBadReadings");
                             init();
                             return;
                         }
@@ -109,7 +109,6 @@ void Tof::poll(){
       /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
       if (micros() - lastReading > TIMEOUT){
         if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
-        if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
         status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
         NewDataReady = 0;
         tofData.timeoutCount++;
@@ -117,8 +116,8 @@ void Tof::poll(){
 
         if (tofData.timeoutCount % MAX_TIMEOUTS == 0){
           needsToBeInitialized = true;
-          Serial.println("REBOOTING TOF");
-          init();
+          Serial.println("REBOOTING TOF cause timeout");
+          Serial.println(init());
           return;
         }
       }

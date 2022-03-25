@@ -39,7 +39,7 @@ void setup()
     digitalWrite(TOF_2_PIN, LOW);
     delay(1000);
 
-  for (int i=0; i<2; i++){
+  for (int i=0; i<1; i++){
       tof[i] = Tof(&sensor[i], tofAddresses[i]);  // initialize tof object (driver) with a pointer to sensor (physical device)
       delay(1000);
   }
@@ -51,7 +51,7 @@ void setup()
 void loop()
 {
 //     Serial.print(".");
-    for (int i = 0; i < 2; ++i)
+    for (int i = 0; i < 1; ++i)
     {
         tof[i].poll();
         Serial.print("Sensor: ");

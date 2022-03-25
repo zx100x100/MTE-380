@@ -135,37 +135,37 @@ void Nav::updateTof(heading_t heading){
       }
 
     if(hms->data.navLogLevel >= 1){ Serial.print("Heading: "); Serial.println(heading); }
-    tofPos.yawValid = angFromWallValid;
+    tofPos.yawValid = angFromWallValid;  // TODO: validate angle change
     
     // Local to global coordinate conversion switch case:
     switch(heading){
       case UP:
-        if (leftValid) tofPos.x = left;
-        if (frontValid) tofPos.y = front;
-        tofPos.xValid = leftValid;
-        tofPos.yValid = frontValid;
+        tofPos.xValid = leftValid && abs(tofPos.x - left) < MAX_DEVIATION;
+        tofPos.yValid = frontValid && abs(tofPos.y - front) < MAX_DEVIATION;
+        if (tofPos.xValid) tofPos.x = left;
+        if (tofPos.yValid) tofPos.y = front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
         break;
       case RIGHT:
-        if (frontValid) tofPos.x = TRACK_DIM - front;
-        if (leftValid) tofPos.y = left;
+        tofPos.xValid = frontValid && abs(tofPos.x - (TRACK_DIM - front)) < MAX_DEVIATION;
+        tofPos.yValid = leftValid && abs(tofPos.y - left) < MAX_DEVIATION;
+        if (tofPos.xValid) tofPos.x = TRACK_DIM - front;
+        if (tofPos.yValid) tofPos.y = left;
         if (angFromWallValid) tofPos.yaw = angFromWall;
-        tofPos.xValid = frontValid;
-        tofPos.yValid = leftValid;
         break;
       case DOWN:
-        if (leftValid) tofPos.x = TRACK_DIM - left;
-        if (frontValid) tofPos.y = TRACK_DIM - front;
-        tofPos.xValid = leftValid;
-        tofPos.yValid = frontValid;
+        tofPos.xValid = leftValid && abs(tofPos.x - (TRACK_DIM - left)) < MAX_DEVIATION;
+        tofPos.yValid = frontValid && abs(tofPos.y - (TRACK_DIM - front)) < MAX_DEVIATION;
+        if (tofPos.xValid) tofPos.x = TRACK_DIM - left;
+        if (tofPos.yValid) tofPos.y = TRACK_DIM - front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 90;
         break;
       case LEFT:
-        if (frontValid) tofPos.x = front;
-        if (leftValid) tofPos.y = TRACK_DIM - left;
+        tofPos.xValid = frontValid && abs(tofPos.x - front) < MAX_DEVIATION;
+        tofPos.yValid = leftValid && abs(tofPos.y - (TRACK_DIM - left)) < MAX_DEVIATION;
+        if (tofPos.xValid) tofPos.x = front;
+        if (tofPos.yValid) tofPos.y = TRACK_DIM - left;
         if (angFromWallValid) tofPos.yaw = angFromWall + 180;
-        tofPos.xValid = frontValid;
-        tofPos.yValid = leftValid;
         break;
     }
   }
@@ -229,50 +229,50 @@ NavData& Nav::getData(){
 }
 
 bool Nav::isValid(TofOrder tof){
-  if (getTofFt(tof) > TRACK_DIM <0)
+  if (getTofFt(tof) > TRACK_DIM  || getTofFt(tof) <= 0)
     return false;
-  return true;  // TODO: make more checks
-
-  float angFromWall;
-  if (fmod(navData.angXy, 90) < 45){ // angFromWall should be > 0
-    angFromWall = fmod(navData.angXy, 90);
-  }
-  else{  // angFromWall should be < 0
-    angFromWall = fmod(navData.angXy, 90) - 90;
-  }
-
-  float estimateLeft, estimateFront;
-  switch(int(round(navData.angXy / 90)) % 4){
-    case 0:
-      estimateLeft = navData.posY;
-      estimateFront = TRACK_DIM - navData.posX;
-      break;
-    case 1:
-      estimateLeft = TRACK_DIM - navData.posX;
-      estimateFront = TRACK_DIM - navData.posY;
-      break;
-    case 2:
-      estimateLeft = TRACK_DIM - navData.posY;
-      estimateFront = navData.posX;
-      break;
-    case 3:
-      estimateLeft = navData.posX;
-      estimateFront = navData.posY;
-  }
-
-  switch (tof){ //Global to Local
-    case FRONT:
-      return estimateFront - ((getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
-      break;
-    case L_FRONT:
-      return estimateLeft - ((getTofFt(L_FRONT) + L_X_OFFSET) * cosd(angFromWall) - L_Y_DELTA / 2 * sin(angFromWall)) <= MAX_DEVIATION;
-      break;
-    case L_BACK:
-      return estimateLeft - ((getTofFt(L_BACK) + L_X_OFFSET) * cosd(angFromWall) + L_Y_DELTA / 2 * sind(angFromWall)) <= MAX_DEVIATION;
-      break;
-    case BACK:
-      return estimateFront - (TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
-  }
+  return true;
+//
+//  float angFromWall;
+//  if (fmod(navData.angXy, 90) < 45){ // angFromWall should be > 0
+//    angFromWall = fmod(navData.angXy, 90);
+//  }
+//  else{  // angFromWall should be < 0
+//    angFromWall = fmod(navData.angXy, 90) - 90;
+//  }
+//
+//  float estimateLeft, estimateFront;
+//  switch(int(round(navData.angXy / 90)) % 4){   //Global to Local
+//    case 0:
+//      estimateLeft = navData.posY;
+//      estimateFront = TRACK_DIM - navData.posX;
+//      break;
+//    case 1:
+//      estimateLeft = TRACK_DIM - navData.posX;
+//      estimateFront = TRACK_DIM - navData.posY;
+//      break;
+//    case 2:
+//      estimateLeft = TRACK_DIM - navData.posY;
+//      estimateFront = navData.posX;
+//      break;
+//    case 3:
+//      estimateLeft = navData.posX;
+//      estimateFront = navData.posY;
+//  }
+//
+//  switch (tof){
+//    case FRONT:
+//      return estimateFront - ((getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
+//      break;
+//    case L_FRONT:
+//      return estimateLeft - ((getTofFt(L_FRONT) + L_X_OFFSET) * cosd(angFromWall) - L_Y_DELTA / 2 * sin(angFromWall)) <= MAX_DEVIATION;
+//      break;
+//    case L_BACK:
+//      return estimateLeft - ((getTofFt(L_BACK) + L_X_OFFSET) * cosd(angFromWall) + L_Y_DELTA / 2 * sind(angFromWall)) <= MAX_DEVIATION;
+//      break;
+//    case BACK:
+//      return estimateFront - (TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall)) <= MAX_DEVIATION;
+//  }
 }
 
 NavData Nav::getPred(float delT){  // delT in seconds
