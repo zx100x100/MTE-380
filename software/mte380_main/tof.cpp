@@ -19,8 +19,6 @@ bool Tof::init(){
   sensor_vl53lx_sat->begin();
 
   if (hms->data.sensorsLogLevel >= 1) Serial.println("init tof sensor");
-  //the dumb library doesn't understand that if you reboot the device, it goes back to the default address, so we need to remind it.
-  sensor_vl53lx_sat->VL53LX_SetDeviceAddress(VL53LX_DEFAULT_DEVICE_ADDRESS);
   //Initialize VL53LX satellite component.
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
