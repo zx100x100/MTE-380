@@ -8,7 +8,7 @@
 #define B_X_OFFSET 0.156  // ft
 
 #define TRACK_DIM 6  // ft
-#define MAX_DEVIATION 0.328084  // ft
+#define MAX_DEVIATION 1  // ft
 
 #define USE_IMU false
 #define USE_TOFS true
