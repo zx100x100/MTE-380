@@ -16,6 +16,7 @@ from proto.nav_data_pb2 import NavData
 import network_setup
 from sim import Sim
 from recording import Recording
+from playback import Playback
 
 from constants import *
 
@@ -66,6 +67,8 @@ class App:
         self.telemetry_client.start()
         self.recording_to_dirname = None
         self.recording = Recording(self)
+        self.playback = Playback(self)
+        self.playback.render_init()
 
         #  self.playback_dirname = 
 
@@ -114,6 +117,7 @@ class App:
         self.protobuf_readouts.render()
         self.robot.render(self.screen)
         self.recording.render()
+        self.playback.render()
         pg.display.update()
 
     def event_loop(self):

@@ -33,10 +33,17 @@ class TelemetryClient(threading.Thread):
 
         #  self.playback_dir = '/home/k/robot_data/20220324142841954'
         #  self.playback_dir = '/home/k/robot_data/20220324185127868'
-        self.playback_dir = None
+        self.playback_base_dir = os.path.join(os.path.expanduser('~'), 'robot_data')
+        self.playback_dirnames = None
+        self.playback_dir_num = None
         self.playback_started = False  
         self.playback_filenames = None
-        self.playback_cur_file = None
+        self.playback_file_num = 0
+        self.regenerate_playback_filenames()
+
+    @property
+    def playback_dir(self):
+        return self.playback_dirnames[self.playback_dir_num]
 
     def kill_thread(self):
         self.killme = True
@@ -65,8 +72,16 @@ class TelemetryClient(threading.Thread):
             print(f'failed to ping robot, {e}')
             return False
 
+    def get_playback_filenames(self):
+        print(f'self.playback_filenames: {self.playback_filenames}')
+        return self.playback_filenames
+
     def regenerate_playback_filenames(self):
+        if self.playback_dirnames is None:
+            self.playback_dirnames = [os.path.join(self.playback_base_dir,f) for f in os.listdir(self.playback_base_dir)]
+            self.playback_dir_num = len(self.playback_dirnames)-1
         self.playback_filenames = [os.path.join(self.playback_dir,f[:-3]) for f in os.listdir(self.playback_dir)]
+        print(f'generated playback_filenames: {self.playback_filenames}')
 
     def run(self):
         longest_pull = 0
@@ -118,10 +133,10 @@ class TelemetryClient(threading.Thread):
                     print('hi')
                     if self.playback_filenames is None:
                         self.regenerate_playback_filenames()
-                        self.playback_cur_file = 0
+                        self.playback_file_num = 0
 
                     increment = 0
-                    tx_file = self.playback_filenames[self.playback_cur_file]+'_tx'
+                    tx_file = self.playback_filenames[self.playback_file_num]+'_tx'
                     print(tx_file)
                     if os.path.exists(tx_file):
                         print('found tx file')
@@ -133,18 +148,19 @@ class TelemetryClient(threading.Thread):
                         # TODO (for krishn????) DONT INCREMENT BEYOND HOW MANY TICKS WE ACTUALLY RECORDED
                         increment += 1
                         #  /home/k/robot_data/20220324142841954/
-                    rx_file = self.playback_filenames[self.playback_cur_file]+'_rx'
+                    rx_file = self.playback_filenames[self.playback_file_num]+'_rx'
                     if os.path.exists(rx_file):
                         f = open(rx_file, "rb")
                         rx_raw = f.read()
                         msg_sets = self.raw_to_msg_sets(rx_raw)
                         self.decode_message_sets(msg_sets)
                         increment += 1
-                    self.playback_cur_file += increment
+                    self.playback_file_num += increment
                     time.sleep(0.5)
                 else:
-                    self.playback_filenames = None
-                    self.playback_cur_file = 0
+                    pass
+                    #  self.playback_filenames = None
+                    #  self.playback_file_num = 0
 
     def connect(self):
         try:
