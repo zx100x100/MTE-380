@@ -26,6 +26,9 @@ Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
   navData.posX = STARTING_X;
   navData.posY = STARTING_Y;
   navData.angXy = STARTING_YAW;
+  tofPos.x = navData.posX;
+  tofPos.y = navData.posY;
+  tofPos.yaw = navData.angXy;
 }
 
 void Nav::init(){
@@ -138,13 +141,15 @@ void Nav::updateTof(GuidanceData_Heading heading){
     tofPos.yawValid = angFromWallValid;  // TODO: validate angle change
     
     // Local to global coordinate conversion switch case:
-    tofPos.left = left;
-    tofPos.front = front;
-    tofPos.angFromWall = angFromWall;
+    navData.left = left;
+    navData.front = front;
+    navData.angFromWall = angFromWall;
     switch(heading){
       case GuidanceData_Heading_UP:
         tofPos.xValid = leftValid && fabs(tofPos.x - left) < MAX_DEVIATION;
         tofPos.yValid = frontValid && fabs(tofPos.y - front) < MAX_DEVIATION;
+        navData.xValid = tofPos.xValid;
+        navData.yValid = tofPos.yValid;
         if (tofPos.xValid) tofPos.x = left;
         if (tofPos.yValid) tofPos.y = front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
@@ -152,6 +157,8 @@ void Nav::updateTof(GuidanceData_Heading heading){
       case GuidanceData_Heading_RIGHT:
         tofPos.xValid = frontValid && fabs(tofPos.x - (TRACK_DIM - front)) < MAX_DEVIATION;
         tofPos.yValid = leftValid && fabs(tofPos.y - left) < MAX_DEVIATION;
+        navData.xValid = tofPos.xValid;
+        navData.yValid = tofPos.yValid;
         if (tofPos.xValid) tofPos.x = TRACK_DIM - front;
         if (tofPos.yValid) tofPos.y = left;
         if (angFromWallValid) tofPos.yaw = angFromWall;
@@ -159,6 +166,8 @@ void Nav::updateTof(GuidanceData_Heading heading){
       case GuidanceData_Heading_DOWN:
         tofPos.xValid = leftValid && fabs(tofPos.x - (TRACK_DIM - left)) < MAX_DEVIATION;
         tofPos.yValid = frontValid && fabs(tofPos.y - (TRACK_DIM - front)) < MAX_DEVIATION;
+        navData.xValid = tofPos.xValid;
+        navData.yValid = tofPos.yValid;
         if (tofPos.xValid) tofPos.x = TRACK_DIM - left;
         if (tofPos.yValid) tofPos.y = TRACK_DIM - front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 90;
@@ -166,6 +175,8 @@ void Nav::updateTof(GuidanceData_Heading heading){
       case GuidanceData_Heading_LEFT:
         tofPos.xValid = frontValid && fabs(tofPos.x - front) < MAX_DEVIATION;
         tofPos.yValid = leftValid && fabs(tofPos.y - (TRACK_DIM - left)) < MAX_DEVIATION;
+        navData.xValid = tofPos.xValid;
+        navData.yValid = tofPos.yValid;
         if (tofPos.xValid) tofPos.x = front;
         if (tofPos.yValid) tofPos.y = TRACK_DIM - left;
         if (angFromWallValid) tofPos.yaw = angFromWall + 180;
@@ -176,6 +187,8 @@ void Nav::updateTof(GuidanceData_Heading heading){
     if (hms->data.navLogLevel >= 2) Serial.println("tofs NOT updated");
     tofPos.xValid = false;
     tofPos.yValid = false;
+    navData.xValid = tofPos.xValid;
+    navData.yValid = tofPos.yValid;
     tofPos.yawValid = false;
   }
 }
@@ -294,11 +307,15 @@ NavData Nav::getPred(float delT){  // delT in seconds
   pred.accX = navData.accX;
   pred.accY = navData.accY;
   pred.accZ = navData.accZ;
-  pred.velX = navData.velX + navData.accX * delT;
-  pred.velY = navData.velY + navData.accY * delT;
-  pred.velZ = navData.velZ + navData.accZ * delT;
-  pred.posX = navData.posX + navData.velX * delT; // + navData.accX * delT * delT / 2;
-  pred.posY = navData.posY + navData.velY * delT; // + navData.accY * delT * delT / 2;
+  /* pred.velX = navData.velX + navData.accX * delT; */
+  /* pred.velY = navData.velY + navData.accY * delT; */
+  pred.velX = navData.velX;
+  pred.velY = navData.velY;
+  pred.velZ = navData.velZ;
+  /* pred.posX = navData.posX + navData.velX * delT; // + navData.accX * delT * delT / 2; */
+  pred.posX = navData.posX;
+  /* pred.posY = navData.posY + navData.velY * delT; // + navData.accY * delT * delT / 2; */
+  pred.posY = navData.posY;
   pred.posZ = navData.posZ + navData.velZ * delT; // + navData.accZ * delT * delT / 2;
 
   pred.timestamp = navData.timestamp + delT * 1000000;

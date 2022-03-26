@@ -29,7 +29,12 @@ typedef struct _NavData {
     float angAccXy; /* angular acceleration */
     float angAccXz; 
     float angAccYz; 
+    float left; 
+    float front; 
+    float angFromWall; 
     uint32_t timestamp; 
+    bool xValid; 
+    bool yValid; 
 } NavData;
 
 
@@ -38,8 +43,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define NavData_init_default                     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define NavData_init_zero                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define NavData_init_default                     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define NavData_init_zero                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define NavData_posX_tag                         1
@@ -60,7 +65,12 @@ extern "C" {
 #define NavData_angAccXy_tag                     16
 #define NavData_angAccXz_tag                     17
 #define NavData_angAccYz_tag                     18
-#define NavData_timestamp_tag                    19
+#define NavData_left_tag                         19
+#define NavData_front_tag                        20
+#define NavData_angFromWall_tag                  21
+#define NavData_timestamp_tag                    22
+#define NavData_xValid_tag                       23
+#define NavData_yValid_tag                       24
 
 /* Struct field encoding specification for nanopb */
 #define NavData_FIELDLIST(X, a) \
@@ -82,7 +92,12 @@ X(a, STATIC,   SINGULAR, FLOAT,    angVelYz,         15) \
 X(a, STATIC,   SINGULAR, FLOAT,    angAccXy,         16) \
 X(a, STATIC,   SINGULAR, FLOAT,    angAccXz,         17) \
 X(a, STATIC,   SINGULAR, FLOAT,    angAccYz,         18) \
-X(a, STATIC,   SINGULAR, UINT32,   timestamp,        19)
+X(a, STATIC,   SINGULAR, FLOAT,    left,             19) \
+X(a, STATIC,   SINGULAR, FLOAT,    front,            20) \
+X(a, STATIC,   SINGULAR, FLOAT,    angFromWall,      21) \
+X(a, STATIC,   SINGULAR, UINT32,   timestamp,        22) \
+X(a, STATIC,   SINGULAR, BOOL,     xValid,           23) \
+X(a, STATIC,   SINGULAR, BOOL,     yValid,           24)
 #define NavData_CALLBACK NULL
 #define NavData_DEFAULT NULL
 
@@ -92,7 +107,7 @@ extern const pb_msgdesc_t NavData_msg;
 #define NavData_fields &NavData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define NavData_size                             100
+#define NavData_size                             124
 
 #ifdef __cplusplus
 } /* extern "C" */

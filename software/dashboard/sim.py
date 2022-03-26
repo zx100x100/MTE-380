@@ -3,7 +3,7 @@ import pygame as pg
 import time
 import numpy
 
-TELEOP_SLOW = 10
+TELEOP_SLOW = 100
 TELEOP_MEDIUM = 130
 TELEOP_FAST = 255
 MAX_TELEOP_POWER = 255

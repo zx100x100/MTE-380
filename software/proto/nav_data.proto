@@ -23,4 +23,6 @@ message NavData {
   float front = 20;
   float angFromWall = 21;
   uint32 timestamp = 22;
+  bool xValid = 23;
+  bool yValid = 24;
 }

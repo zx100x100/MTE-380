@@ -4,7 +4,7 @@
 #include "math_utils.h"
 
 #define CURVE_RADIUS 0.5 // tiles (AKA feet, they are litterally just feet)
-#define CURVE_SPEED 0 // tiles/s
+#define CURVE_SPEED 0.1 // tiles/s
 #define ACC 12 // tiles/s^2 (So this is just ft/s^2)
 #define VMAX 3 // tiles/s
 #define TRAP_SPEED 2 // tiles/s

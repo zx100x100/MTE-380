@@ -4,6 +4,7 @@
 #define MAX_OUTPUT_POWER 130 // must be < 255
 #define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255
 #define MAX_TURN_IN_PLACE_ERROR_I 500
+#define MAX_VELOCITY_ERROR_I 500
 
 Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav):
   navData(_navData),
@@ -114,8 +115,10 @@ void Guidance::update(){
 
   float lastErrVel = gd.errVel;
   gd.errVel = gd.setpointVel - gd.vel;
-  gd.errVelD = (gd.errVel - lastErrVel)*1000000/gd.deltaT;
-  gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!! or like don't....
+  gd.errVelD = (gd.errVel - lastErrVel)*1000/gd.deltaT;
+  // gd.errVelI = 0; // ADD INTEGRAL BACK IN LATER!!!! or like don't....
+  gd.errVelI += gd.errVel * gd.deltaT/1000;
+  gd.errVelI = constrainVal(gd.errVelI, MAX_VELOCITY_ERROR_I);
   gd.velP = gd.errVel * gd.kP_vel;
   gd.velI = gd.errVelI * gd.kI_vel;
   gd.velD = gd.errVelD * gd.kD_vel;
