@@ -17,6 +17,8 @@
 #define STARTING_Y 5.5
 #define STARTING_YAW 180
 
+#define FLOAT_INVALID 0xFFFF // TODO: make this live in globals .h
+
 Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
   sensors(sensors),
   cmdData(cmdData),
@@ -96,6 +98,25 @@ bool Nav::tofsUpdated(){
     return changed;
 }
 
+float Nav::predToFront(GuidanceData_Heading heading){
+    switch(heading){
+      case GuidanceData_Heading_UP:
+        return predNavData.posY;
+        break;
+      case GuidanceData_Heading_RIGHT:
+        return TRACK_DIM - predNavData.posX;
+        break;
+      case GuidanceData_Heading_DOWN:
+        return TRACK_DIM - predNavData.posY;
+        break;
+      case GuidanceData_Heading_LEFT:
+        return predNavData.posX;
+        break;
+      default:
+        return FLOAT_INVALID;
+    }
+}
+
 void Nav::updateTof(GuidanceData_Heading heading){
   if (tofsUpdated()){
       float angFromWall, front, left;
@@ -116,23 +137,37 @@ void Nav::updateTof(GuidanceData_Heading heading){
         angFromWallValid = false;
         leftValid = false;
       }
-
-      if (isValid(FRONT) && isValid(BACK)){ // If both valid, use the shortest
-        frontValid = true;
-        if (getTofFt(FRONT) <= getTofFt(BACK))
-          front = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
-        else
-          front = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
+      
+      float estimateFromFrontSensor;
+      if(isValid(FRONT)){
+        estimateFromFrontSensor = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
       }
-      else if(isValid(FRONT)){ // If not, use front if valid
-        frontValid = true;
-        front = (getTofFt(FRONT) + F_Y_OFFSET) * cosd(angFromWall) + F_X_OFFSET * sind(angFromWall);
+      else{
+        estimateFromFrontSensor = FLOAT_INVALID;
       }
-      else if(isValid(BACK)){ // If not, use back if valid
-        frontValid = true;
-        front = TRACK_DIM - (getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall);
+      
+      float estimateFromBackSensor;
+      if (isValid(BACK)){
+        estimateFromBackSensor = TRACK_DIM - ((getTofFt(BACK) + B_Y_OFFSET) * cosd(angFromWall) - B_X_OFFSET * sind(angFromWall));
       }
-      else{ // Well Fuck
+      else{
+        estimateFromBackSensor = FLOAT_INVALID;
+      }
+      float estimateSensorAvg = (estimateFromFrontSensor + estimateFromBackSensor) / 2;
+            
+      float estimateToWall = estimateSensorAvg;
+      if (fabs(predToFront(heading) - estimateFromFrontSensor) < fabs(predToFront(heading) - estimateToWall)) {
+        estimateToWall = estimateFromFrontSensor;
+      }
+      if (fabs(predToFront(heading) - estimateFromBackSensor) < fabs(predToFront(heading) - estimateToWall)) {
+        estimateToWall = estimateFromBackSensor;
+      }
+      
+      if (fabs(predToFront(heading) - estimateToWall) < MAX_DEVIATION){  // if our best guess is good
+        front = estimateToWall;
+        frontValid = true;
+      }
+      else{ // our best guess sucks. Tof luck bud
         if (hms->data.navLogLevel >= 2) Serial.println("vertical tofs INVALID");
         frontValid = false;
       }
@@ -222,10 +257,9 @@ void Nav::update(GuidanceData_Heading heading){
     // return;
   }
 
-  float delT = float(sensors.timestamp - navData.timestamp) / 1000000; // navData timestamp is the same as previous sensor timestamp
-  NavData pred = getPred(delT);
+  updatePred();
   if (hms->data.navLogLevel >= 1){
-    Serial.print("pred: x: "); Serial.print(pred.posX); Serial.print(", y: ");  Serial.print(pred.posY); Serial.print(", yaw: ");  Serial.print(pred.angXy); Serial.print(", dt: "); Serial.println(delT);
+    Serial.print("predNavData: x: "); Serial.print(predNavData.posX); Serial.print(", y: ");  Serial.print(predNavData.posY); Serial.print(", yaw: ");  Serial.println(predNavData.angXy);
   }
 
   updateTof(heading);
@@ -234,7 +268,7 @@ void Nav::update(GuidanceData_Heading heading){
     Serial.print("tof estimate: x: "); Serial.print(tofPos.x); Serial.print(", left: ");  Serial.print(tofPos.y); Serial.print(", yaw: ");  Serial.println(tofPos.yaw);
   }
 
-  updateEstimate(pred);
+  updateEstimate(predNavData);
   if (hms->data.navLogLevel >= 1){
     Serial.print("estimate: x: "); Serial.print(navData.posX); Serial.print(", y: ");  Serial.print(navData.posY); Serial.print(", yaw: ");  Serial.println(navData.angXy);
   }
@@ -291,82 +325,76 @@ bool Nav::isValid(TofOrder tof){
 //  }
 }
 
-NavData Nav::getPred(float delT){  // delT in seconds
-  NavData pred;
-  pred.angAccXy = navData.angAccXy;
-  pred.angAccXz = navData.angAccXz;
-  pred.angAccYz = navData.angAccYz;
-  pred.angVelXy = navData.angVelXy;
-  pred.angVelXz = navData.angVelXz;
-  pred.angVelYz = navData.angVelYz;
-  pred.angXy = navData.angXy;
-  pred.angXz = navData.angXz;
-  pred.angYz = navData.angYz;  // TODO: do we just want it to equal the previous one?
+void Nav::updatePred(){
+  float delT = float(sensors.timestamp - navData.timestamp) / 1000000; // navData timestamp is the same as previous sensor timestamp
+  predNavData.angAccXy = navData.angAccXy;
+  predNavData.angAccXz = navData.angAccXz;
+  predNavData.angAccYz = navData.angAccYz;
+  predNavData.angVelXy = navData.angVelXy;
+  predNavData.angVelXz = navData.angVelXz;
+  predNavData.angVelYz = navData.angVelYz;
+  predNavData.angXy = navData.angXy;
+  predNavData.angXz = navData.angXz;
+  predNavData.angYz = navData.angYz;  // TODO: do we just want it to equal the previous one?
 
   // TODO: take rotation into account
-  pred.accX = navData.accX;
-  pred.accY = navData.accY;
-  pred.accZ = navData.accZ;
-  /* pred.velX = navData.velX + navData.accX * delT; */
-  /* pred.velY = navData.velY + navData.accY * delT; */
-  pred.velX = navData.velX;
-  pred.velY = navData.velY;
-  pred.velZ = navData.velZ;
-  /* pred.posX = navData.posX + navData.velX * delT; // + navData.accX * delT * delT / 2; */
-  pred.posX = navData.posX;
-  /* pred.posY = navData.posY + navData.velY * delT; // + navData.accY * delT * delT / 2; */
-  pred.posY = navData.posY;
-  pred.posZ = navData.posZ + navData.velZ * delT; // + navData.accZ * delT * delT / 2;
+  predNavData.accX = navData.accX;
+  predNavData.accY = navData.accY;
+  predNavData.accZ = navData.accZ;
+  predNavData.velX = navData.velX; // + navData.accX * delT;
+  predNavData.velY = navData.velY; // + navData.accY * delT;
+  predNavData.velZ = navData.velZ; // + navData.accZ * delT;
+  predNavData.posX = navData.posX; // + navData.velX * delT; // + navData.accX * delT * delT / 2;
+  predNavData.posY = navData.posY; // + navData.velY * delT; // + navData.accY * delT * delT / 2;
+  predNavData.posZ = navData.posZ; // + navData.velZ * delT; // + navData.accZ * delT * delT / 2;
 
-  pred.timestamp = navData.timestamp + delT * 1000000;
-
-  return pred;
+  predNavData.timestamp = sensors.timestamp;
 }
 
-void Nav::updateEstimate(const NavData pred){
-  float delT = float(pred.timestamp - navData.timestamp) / 1000000;
+void Nav::updateEstimate(const NavData predNavData){
+  float delT = float(predNavData.timestamp - navData.timestamp) / 1000000;
   if (USE_TOFS && tofPos.xValid){
     if(hms->data.navLogLevel >= 1){ Serial.print("xValid, setting pos X: "); Serial.println(navData.posX); }
-    navData.posX = pred.posX + gain[0] * (tofPos.x - pred.posX);
-    navData.velX = pred.velX + gain[1] * (tofPos.x - pred.posX) / delT;
-    navData.accX = pred.accX + gain[2] * (tofPos.x - pred.posX) / (0.5 * delT * delT);
+    navData.posX = predNavData.posX + gain[0] * (tofPos.x - predNavData.posX);
+    navData.velX = predNavData.velX + gain[1] * (tofPos.x - predNavData.posX) / delT;
+    navData.accX = predNavData.accX + gain[2] * (tofPos.x - predNavData.posX) / (0.5 * delT * delT);
   }
   else{
-    if(hms->data.navLogLevel >= 1){ Serial.println("using pred for x"); }
-    navData.posX = pred.posX;
-    navData.velX = pred.velX;
-    navData.accX = pred.accX;
+    if(hms->data.navLogLevel >= 1){ Serial.println("using predNavData for x"); }
+    navData.posX = predNavData.posX;
+    navData.velX = predNavData.velX;
+    navData.accX = predNavData.accX;
   }
 
   if (USE_TOFS && tofPos.yValid){
     if(hms->data.navLogLevel >= 1){ Serial.print("yValid, setting pos Y: "); Serial.println(navData.posY); }
-    navData.posY = pred.posY + gain[0] * (tofPos.y - pred.posY);
-    navData.velX = pred.velY + gain[1] * (tofPos.y - pred.posY) / delT;
-    navData.accY = pred.accY + gain[2] * (tofPos.y - pred.posY) / (0.5 * delT * delT);
+    navData.posY = predNavData.posY + gain[0] * (tofPos.y - predNavData.posY);
+    navData.velX = predNavData.velY + gain[1] * (tofPos.y - predNavData.posY) / delT;
+    navData.accY = predNavData.accY + gain[2] * (tofPos.y - predNavData.posY) / (0.5 * delT * delT);
   }
   else{
-    if(hms->data.navLogLevel >= 1){ Serial.println("using pred for y"); }
-    navData.posY = pred.posY;
-    navData.velY = pred.velY;
-    navData.accY = pred.accY;
+    if(hms->data.navLogLevel >= 1){ Serial.println("using predNavData for y"); }
+    navData.posY = predNavData.posY;
+    navData.velY = predNavData.velY;
+    navData.accY = predNavData.accY;
   }
 
 //  if (USE_IMU && imuEstimate.angXy != FLT_INVALID){
-//    navData.angXy = pred.angXy + gain[3] * (imuEstimate.angXy - pred.angXy);
-//    navData.angVelXy = pred.angVelXy + gain[4] * (imuEstimate.angXy - pred.angXy) / delT;
-//    navData.angAccXy = pred.angAccXy + gain[5] * (imuEstimate.angXy - pred.angXy) / (0.5 * delT * delT);
+//    navData.angXy = predNavData.angXy + gain[3] * (imuEstimate.angXy - predNavData.angXy);
+//    navData.angVelXy = predNavData.angVelXy + gain[4] * (imuEstimate.angXy - predNavData.angXy) / delT;
+//    navData.angAccXy = predNavData.angAccXy + gain[5] * (imuEstimate.angXy - predNavData.angXy) / (0.5 * delT * delT);
 //  }
 //  else if (USE_TOFS && tofPos.yawValid){
   if (USE_TOFS && tofPos.yawValid){
-    navData.angXy = pred.angXy + gain[3] * (tofPos.yaw - pred.angXy);
-    navData.angVelXy = pred.angVelXy + gain[4] * (tofPos.yaw - pred.angXy) / delT;
-    navData.angAccXy = pred.angAccXy + gain[5] * (tofPos.yaw - pred.angXy) / (0.5 * delT * delT);
+    navData.angXy = predNavData.angXy + gain[3] * (tofPos.yaw - predNavData.angXy);
+    navData.angVelXy = predNavData.angVelXy + gain[4] * (tofPos.yaw - predNavData.angXy) / delT;
+    navData.angAccXy = predNavData.angAccXy + gain[5] * (tofPos.yaw - predNavData.angXy) / (0.5 * delT * delT);
   }
   else{
-    navData.angXy = pred.angXy;
-    navData.angVelXy = pred.angVelXy;
-    navData.angAccXy = pred.angAccXy;
+    navData.angXy = predNavData.angXy;
+    navData.angVelXy = predNavData.angVelXy;
+    navData.angAccXy = predNavData.angAccXy;
   }
 
-  navData.timestamp = pred.timestamp;
+  navData.timestamp = predNavData.timestamp;
 }
