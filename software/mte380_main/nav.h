@@ -20,16 +20,17 @@ class Nav{
     void update(GuidanceData_Heading heading);
     void init();
     NavData& getData();
-    NavData getPred(float delT);
+    void updatePred();
     float getGyroAngle();
 
   private:
     NavData navData;
+    NavData predNavData;  // This is a prediction based on previous navData and delta time
     CmdData* cmdData;
     Sensors& sensors;
     Hms* hms;
     TofPos tofPos;
-    float gain[6] = {1, 1, 1, 1, 0, 0};
+    float gain[6] = {0.2, 0.2, 1, 1, 0, 0};
     int lastTofsCount[4] = {-1, -1, -1, -1};
 
     bool isValid(TofOrder tof);
@@ -43,6 +44,7 @@ class Nav{
     float sind(float deg);
     float getTofFt(TofOrder tofNum);
     void updateEstimate(const NavData pred);
+    float predToFront(GuidanceData_Heading heading);
 
     // IMU Filter Gain
     constexpr static float imuGain = 0.1;

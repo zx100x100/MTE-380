@@ -107,6 +107,11 @@ class TelemetryPlot:
         screen.blit(self.background_image, self.rect)
         screen.blit(self.plot_image, self.plot_image_rect)
         screen.blit(self.y_label_area_image, self.y_label_area_image_rect)
+    
+    def erase(self, screen):
+        image = pg.Surface(self.rect.size)
+        image.fill((0,0,0))
+        screen.blit(image, self.rect)
 
     def erase_update_render(self, screen):
         #  print('eur.',end='')

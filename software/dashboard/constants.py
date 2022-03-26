@@ -6,8 +6,8 @@ from proto.hms_and_cmd_data_pb2 import CmdData
 KP_VEL = 140.0
 KI_VEL = 0.001
 KD_VEL = 0.0
-KP_DRIFT = 100.0
-KI_DRIFT = 0.0
+KP_DRIFT = 130.0
+KI_DRIFT = 0.001
 KD_DRIFT = 40.0
 
 N_TRAPS = 8
@@ -46,3 +46,10 @@ class Diagonal(Enum): # for corner circles
     TR = 1 # top right
     BL = 2 # bottom left
     BR = 3 # bottom right
+
+class TofPosition(Enum):
+    FRONT = 0
+    LEFT_FRONT = 1
+    LEFT_REAR = 2
+    REAR = 3
+
