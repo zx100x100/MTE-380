@@ -17,6 +17,7 @@ import network_setup
 from sim import Sim
 from recording import Recording
 from playback import Playback
+from handle_click import handle_click
 
 from constants import *
 
@@ -53,12 +54,13 @@ class App:
         self.screen.blit(self.arena.image, (0,0))
 
         self.data = Data(self)
+        self.telemetry_client = TelemetryClient(self.data, SERVER_IP, SERVER_PORT)
+        time.sleep(0.3)
         self.sim = Sim(self.data.cmd.pb)
         self.telemetry_plots = TelemetryPlots(self)
         self.telemetry_plots.render_init(self.screen)
         self.prev_run_state = CmdData.RunState.E_STOP
         
-        self.telemetry_client = TelemetryClient(self.data, SERVER_IP, SERVER_PORT)
 
         self.controls = Controls(self)
         self.controls.render_init()
@@ -133,49 +135,7 @@ class App:
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse_presses = pg.mouse.get_pressed()
-                if mouse_presses[0]: # LEFT MOUSE BUTTON CLICKED
-                    pos = pg.mouse.get_pos()
-                    clicked_tile = self.arena.handle_click(pos)
-                    if clicked_tile:
-                        # update cmdData!!
-                        found = False
-                        for i,pos in enumerate(zip(self.data.cmd.pb.trapX, self.data.cmd.pb.trapY)):
-                            posx, posy = pos 
-                            if posx == clicked_tile[0]+0.5 and posy == clicked_tile[1]+0.5:
-                                self.data.cmd.pb.trapX[i] = -1
-                                self.data.cmd.pb.trapY[i] = -1
-                                self.data.cmd.pb.nTraps -= 1
-                                found = True
-                        if not found:
-                            replaced = False
-                            for i,pos in enumerate(zip(self.data.cmd.pb.trapX, self.data.cmd.pb.trapY)):
-                                posx, posy = pos 
-                                if posx == -1 and posy == -1:
-                                    replaced = True
-                                    self.data.cmd.pb.nTraps += 1
-                                    self.data.cmd.pb.trapX[i] = clicked_tile[0]+0.5
-                                    self.data.cmd.pb.trapY[i] = clicked_tile[1]+0.5
-                                    break
-                            if not replaced:
-                                self.arena.tiles[posy]
-
-                    else:
-                        if not self.controls.handle_click(pos):
-                            if self.telemetry_plots.handle_click(pos):
-                                if self.previously_clicked_item:
-                                    self.previously_clicked_item.set_not_clicked()
-                            else:
-                                item = self.protobuf_readouts.handle_click(pos)
-                                if item:
-                                    if not item.is_numeric:
-                                        return
-                                    if not self.telemetry_plots.append_plot_if_fits(item):
-                                        if self.previously_clicked_item:
-                                            self.previously_clicked_item.set_not_clicked()
-                                        self.previously_clicked_item = item
-                                        item.set_clicked()
-                                    else:
-                                        self.previously_clicked_item = None
+                handle_click(self, mouse_presses)
 
         if self.keys[pg.K_r]:
             # start recording shit
@@ -189,25 +149,25 @@ class App:
                     if not os.path.exists(basedir):
                         os.makedirs(basedir)
                     self.data.recording_to_dirname = os.path.join(basedir,self.data.generate_recording_dirname())
-        if self.keys[pg.K_SPACE]:
-            # ESTOP:
-            self.data.cmd.pb.propPower = 0
-            if self.telemetry_client.connected:
-                if self.data.cmd.pb.runState is not CmdData.RunState.E_STOP:
-                    self.controls.start_button.click()
-            else: # not connected
-                # reset velocity
-                self.data.cmd.pb.simVelX = 0
-                self.data.cmd.pb.simAccX = 0
-                self.data.cmd.pb.simVelY = 0
-                self.data.cmd.pb.simAccY = 0
-                self.data.cmd.pb.simAngVelXy = 0
-                self.data.cmd.pb.simAngAccXy = 0
+        #  if self.keys[pg.K_SPACE]:
+            #  # ESTOP:
+            #  self.data.cmd.pb.propPower = 0
+            #  if self.telemetry_client.connected:
+                #  if self.data.cmd.pb.runState is not CmdData.RunState.E_STOP:
+                    #  self.controls.start_button.click()
+            #  else: # not connected
+                #  # reset velocity
+                #  self.data.cmd.pb.simVelX = 0
+                #  self.data.cmd.pb.simAccX = 0
+                #  self.data.cmd.pb.simVelY = 0
+                #  self.data.cmd.pb.simAccY = 0
+                #  self.data.cmd.pb.simAngVelXy = 0
+                #  self.data.cmd.pb.simAngAccXy = 0
 
-        if self.keys[pg.K_o]:
-            self.data.cmd.pb.propPower = max(self.data.cmd.pb.propPower - PROP_POWER_THROTTLE_INCREMENT, 0)
-        if self.keys[pg.K_p]:
-            self.data.cmd.pb.propPower = min(self.data.cmd.pb.propPower + PROP_POWER_THROTTLE_INCREMENT, 255)
+        #  if self.keys[pg.K_o]:
+            #  self.data.cmd.pb.propPower = max(self.data.cmd.pb.propPower - PROP_POWER_THROTTLE_INCREMENT, 0)
+        #  if self.keys[pg.K_p]:
+            #  self.data.cmd.pb.propPower = min(self.data.cmd.pb.propPower + PROP_POWER_THROTTLE_INCREMENT, 255)
 
         if self.data.cmd.pb.runState in (CmdData.RunState.TELEOP, CmdData.RunState.SIM):
             if SIM_USE_GUIDANCE_PID and self.telemetry_client.connected:

@@ -43,6 +43,9 @@ class TelemetryClient(threading.Thread):
 
     @property
     def playback_dir(self):
+        #  print(f'self.playback_dirnames[self.playback_dir_num]: {self.playback_dirnames[self.playback_dir_num]}')
+        #  print(f'self.playback_dir_num: {self.playback_dir_num}')
+        #  print(f'self.playback_dirnames: {self.playback_dirnames}')
         return self.playback_dirnames[self.playback_dir_num]
 
     def kill_thread(self):
@@ -73,15 +76,15 @@ class TelemetryClient(threading.Thread):
             return False
 
     def get_playback_filenames(self):
-        print(f'self.playback_filenames: {self.playback_filenames}')
+        #  print(f'self.playback_filenames: {self.playback_filenames}')
         return self.playback_filenames
 
     def regenerate_playback_filenames(self):
         if self.playback_dirnames is None:
-            self.playback_dirnames = [os.path.join(self.playback_base_dir,f) for f in os.listdir(self.playback_base_dir)]
+            self.playback_dirnames = [os.path.join(self.playback_base_dir,f) for f in sorted(os.listdir(self.playback_base_dir))]
             self.playback_dir_num = len(self.playback_dirnames)-1
-        self.playback_filenames = [os.path.join(self.playback_dir,f[:-3]) for f in os.listdir(self.playback_dir)]
-        print(f'generated playback_filenames: {self.playback_filenames}')
+        self.playback_filenames = [os.path.join(self.playback_dir,f[:-3]) for f in sorted(os.listdir(self.playback_dir))]
+        #  print(f'generated playback_filenames: {self.playback_filenames}')
 
     def run(self):
         longest_pull = 0
@@ -107,20 +110,20 @@ class TelemetryClient(threading.Thread):
                 if dirname != 'None':
                     if not os.path.exists(dirname):
                         os.makedirs(dirname)
-                    print(f'recording to: {dirname}')
+                    #  print(f'recording to: {dirname}')
                     (dt, micro) = datetime.datetime.now().strftime('%Y%m%d%H%M%S.%f').split('.')
                     dt = "%s%03d" % (dt, int(micro) / 1000)
                     title = f'{dt}_rx'
                     if received is not None:
                         pb_filename = os.path.join(dirname,title)
-                        print(f'pb_filename: {pb_filename}')
-                        print(f'exists: {os.path.exists(dirname)}')
+                        #  print(f'pb_filename: {pb_filename}')
+                        #  print(f'exists: {os.path.exists(dirname)}')
                         with open(pb_filename, 'wb') as f:
                             f.write(received)
                     if tx_raw is not None:
                         title = f'{dt}_tx'
-                        print(f'dirname: {dirname}')
-                        print(f'title: {title}')
+                        #  print(f'dirname: {dirname}')
+                        #  print(f'title: {title}')
                         pb_filename = os.path.join(dirname,title)
                         with open(pb_filename, 'wb') as f:
                             f.write(tx_raw)
@@ -137,7 +140,7 @@ class TelemetryClient(threading.Thread):
 
                     increment = 0
                     tx_file = self.playback_filenames[self.playback_file_num]+'_tx'
-                    print(tx_file)
+                    #  print(tx_file)
                     if os.path.exists(tx_file):
                         print('found tx file')
                         f = open(tx_file, "rb")
@@ -204,7 +207,7 @@ class TelemetryClient(threading.Thread):
         try:
             #  print('push')
             raw_outgoing = self.data.encode_outgoing()
-            encoded = raw_outgoing + BETWEEN_MESSAGES_SEP
+            encoded = BETWEEN_MESSAGES_SEP + raw_outgoing + BETWEEN_MESSAGES_SEP
             self.socket.sendall(encoded)
             return raw_outgoing
         except Exception as e:

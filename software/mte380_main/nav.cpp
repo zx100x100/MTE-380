@@ -264,6 +264,8 @@ void Nav::update(GuidanceData_Heading heading){
     Serial.print("predNavData: x: "); Serial.print(predNavData.posX); Serial.print(", y: ");  Serial.print(predNavData.posY); Serial.print(", yaw: ");  Serial.println(predNavData.angXy);
   }
 
+  getGyroAngle(); // TODO: Fuse Gyro angle with TOF angle and decide when to use each one!
+
   updateTof(heading);
   if (hms->data.navLogLevel >= 1){
     Serial.print("tof: FR: "); Serial.print(getTofFt(FRONT)); Serial.print(", LF: ");  Serial.print(getTofFt(L_FRONT)); Serial.print(", LB: ");  Serial.print(getTofFt(L_BACK)); Serial.print(", BA: ");  Serial.println(getTofFt(BACK));

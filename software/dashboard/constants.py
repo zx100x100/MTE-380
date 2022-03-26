@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 from proto.hms_and_cmd_data_pb2 import CmdData
+import os
 
 
 KP_VEL = 140.0
@@ -14,7 +15,16 @@ N_TRAPS = 8
 #  MAX_DATA_POINTS = 100
 PLOT_SIZE = (200,140) # pixels for the size of the inner plot
 DISPLAY_DATA_POINTS = PLOT_SIZE[0]
-SCREEN_SIZE = (1600,710)
+
+UGLY_SQUEEZE_MODE = True
+if os.path.exists(os.path.join(os.getcwd(),'.squeeze_ui')):
+    print('using ugly squeeze mode for kaelans tiny laptop screen')
+    UGLY_SQUEEZE_MODE = True
+
+if UGLY_SQUEEZE_MODE:
+    SCREEN_SIZE = (1368,710)
+else:
+    SCREEN_SIZE = (1600,710)
 ARENA_SIZE_INCHES = 72
 PIXELS_PER_INCH = 5
 INCHES_PER_TILE = 12

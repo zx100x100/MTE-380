@@ -1,6 +1,7 @@
 import pygame as pg
 from collections import deque
 import math
+import os
 
 from util import (pos_inside_rect, next_enum)
 from proto.hms_and_cmd_data_pb2 import HmsData
@@ -8,7 +9,10 @@ from constants import *
 
 READOUT_HEIGHT = SCREEN_SIZE[1]-ARENA_SIZE_PIXELS-CONTROL_ITEM_HEIGHT-3*GLOBAL_MARGIN
 READOUT_WIDTH = CONTROL_ITEM_WIDTH
-READOUT_H_MARGIN = 1#GLOBAL_MARGIN
+if UGLY_SQUEEZE_MODE:
+    READOUT_H_MARGIN = 0
+else:
+    READOUT_H_MARGIN = GLOBAL_MARGIN
 READOUT_T_MARGIN = GLOBAL_MARGIN
 TITLE_HEIGHT = 24
 TITLE_L_MARGIN = 2
@@ -26,13 +30,19 @@ ITEM_LABEL_FONT_COLOUR = (255,255,255)
 READOUT_BG_COLOUR = (70,70,70)
 CONTROL_LABEL_FONT_COLOUR = (70,70,70)
 ITEM_LABEL_FONT_SIZE = 10
-ITEM_VALUE_FONT_SIZE = 9
+ITEM_VALUE_FONT_SIZE = 10
 TITLE_FONT_SIZE = 16
 MAX_ITEMS_PER_READOUT = (READOUT_HEIGHT-TITLE_HEIGHT)/(ITEM_HEIGHT+ITEM_T_MARGIN)
 ERROR_INFO_FIELD_NAME = "errorInfo"
 ERROR_INFO_FONT_SIZE = ITEM_VALUE_FONT_SIZE = 12
 ERROR_INFO_LINE_HEIGHT = 14
 ERROR_INFO_T_PAD = 5
+                
+NAV_OFFSET = 0.2
+GUIDANCE_OFFSET = 0.1
+IMU_OFFSET = 0.25
+
+EPSILON = 0.0000001
 
 class ReadoutItem:
     def __init__(self, name, proto):
@@ -234,7 +244,16 @@ class Readout:
         title_surf = self.title_font.render(self.title, True, ITEM_LABEL_FONT_COLOUR)
         title_height = title_surf.get_rect().height
         title_top_offset = (TITLE_HEIGHT - title_height)/2
-        image.blit(title_surf,(TITLE_L_MARGIN, title_top_offset))
+        title_h_offset = TITLE_L_MARGIN
+        if UGLY_SQUEEZE_MODE:
+            if self.title == 'NavData':
+                title_h_offset += READOUT_WIDTH * NAV_OFFSET
+            elif self.title == 'GuidanceData':
+                title_h_offset += READOUT_WIDTH * GUIDANCE_OFFSET
+            elif self.title == 'ImuData':
+                title_h_offset += READOUT_WIDTH * IMU_OFFSET
+
+        image.blit(title_surf,(title_h_offset, title_top_offset))
         for item, topleft in self.item_topleft_pairs:
             image.blit(item.bg_image, (topleft[0]-self.rect.left,topleft[1]-self.rect.top))
             image.blit(item.value_image, (topleft[0]-self.rect.left+item.value_rect.left, topleft[1]-self.rect.top))
@@ -283,7 +302,10 @@ class Readout:
             topleft = (h_offset_total, v_offset_total)
             toplefts.append(topleft)
             if (h_offset == 0) and (n+2>MAX_ITEMS_PER_READOUT):
-                h_offset = READOUT_WIDTH+READOUT_H_MARGIN#-10
+                if UGLY_SQUEEZE_MODE:
+                    h_offset = READOUT_WIDTH+READOUT_H_MARGIN-14
+                else:
+                    h_offset = READOUT_WIDTH+READOUT_H_MARGIN
                 v_offset = TITLE_HEIGHT
             else:
                 v_offset += ITEM_HEIGHT + ITEM_T_MARGIN
@@ -309,11 +331,11 @@ class ReadoutGroup:
         self.screen = self.app.screen
 
     def position(self, col):
-        if self.readouts[0].title == 'ImuData':
-            col += 1
-        elif self.readouts[0].title.startswith('TOF'):
-            print('moving tof')
-            col -= 1
+        #  if self.readouts[0].title == 'ImuData':
+            #  col += 1
+        #  elif self.readouts[0].title.startswith('TOF'):
+            #  print('moving tof')
+            #  col -= 1
 
         self.col = col
         for row, r in enumerate(self.readouts):
@@ -361,6 +383,16 @@ class ProtobufReadouts:
             if readout_group.readouts[0].double_wide:
                 col += 1
             col += 1
+
+            if UGLY_SQUEEZE_MODE:
+                print(col)
+                if col == 2:
+                    col -= NAV_OFFSET
+                if math.isclose(col, 4 - NAV_OFFSET, abs_tol=EPSILON):
+                    col -= GUIDANCE_OFFSET
+                if math.isclose(col, 7 - NAV_OFFSET - GUIDANCE_OFFSET, abs_tol=EPSILON):
+                    print('hi')
+                    col -= IMU_OFFSET
 
     def render(self):
         for group in self.readout_groups:

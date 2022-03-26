@@ -10,7 +10,7 @@
 #include "hms_and_cmd_data.pb.h"
 
 #define DEAD_MAN_TIMEOUT_MS 2000
-#define CMD_BUF_SIZE 400
+#define CMD_BUF_SIZE 600
 #define OUTPUT_BUF_SIZE 1200
 #define INFREQUENT_TELEMETRY_INTERVAL 100 // every 100 ticks, send back telem
 
@@ -149,58 +149,84 @@ bool TelemetryServer::update(){
         beforeReceiveT = micros();
         // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
-        int i = 0;
         int seps = 0;
-        while (client.available() > 0) {
-          // read the bytes incoming from the client:
+        bool encounteredMessageProblem = false;
+        while (true){
+          if (!client.available()){
+            encounteredMessageProblem = true;
+            break;
+          }
           uint8_t thisChar = uint8_t(client.read());
           if (thisChar == delimit[0]){
             seps++;
           }
           else{
-            seps = 0;
+            Serial.print("x");
           }
           if (seps == 3){
-            i -= 2;
+            Serial.println("found valid message start");
             break;
           }
-          inputBuffer[i++] = thisChar;
-          if (i >= CMD_BUF_SIZE){
-            Serial.println("Received too much data!!!!!");
-            client.flush();
-            return false;
-          }
         }
-        // client.flush();
-        pb_istream_t instream = pb_istream_from_buffer(inputBuffer, i);
-        bool decodeStatus = pb_decode(&instream, CmdData_fields, &cmdData);
-        if (!decodeStatus){
-          Serial.printf("Decoding Cmd fail: %s\n", PB_GET_ERROR(&instream));
+        int i = 0;
+        seps = 0;
+        if (!encounteredMessageProblem){
+          encounteredMessageProblem = true;
+          while (client.available() > 0){
+            // read the bytes incoming from the client:
+            uint8_t thisChar = uint8_t(client.read());
+            if (thisChar == delimit[0]){
+              seps++;
+            }
+            else{
+              seps = 0;
+            }
+            if (seps == 3){
+              Serial.println("found valid message end");
+              i -= 2;
+              encounteredMessageProblem = false;
+              break;
+            }
+            inputBuffer[i++] = thisChar;
+            if (i >= CMD_BUF_SIZE){
+              Serial.println("Received too much data!!!!!");
+              client.flush();
+              return false;
+            }
+          }
+          if (!encounteredMessageProblem){
+            // client.flush();
+            pb_istream_t instream = pb_istream_from_buffer(inputBuffer, i);
+            bool decodeStatus = pb_decode(&instream, CmdData_fields, &cmdData);
+            if (!decodeStatus){
+              Serial.printf("Decoding Cmd fail: %s\n", PB_GET_ERROR(&instream));
 
-          for (int i=0; i<CMD_BUF_SIZE; i++){
-            Serial.print(char(inputBuffer[i]));
+              for (int i=0; i<CMD_BUF_SIZE; i++){
+                Serial.print(char(inputBuffer[i]));
+              }
+              Serial.println();
+              // delay(2000);
+              // TODO
+              //
+              // ADD THIS TO HSM ERROR LOGGER!!!!!!!!!!!
+              //
+              //
+              return false;
+            }
+            hms->data.mainLogLevel = HmsData_LogLevel(cmdData.mainLogLevel);
+            hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
+            hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
+            hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
+            guidanceData.kP_vel = cmdData.kP_vel;
+            guidanceData.kD_vel = cmdData.kD_vel;
+            // if(hms->data.guidanceLogLevel >= 2){ Serial.print("guidanceData.kD_vel: "); Serial.println(guidanceData.kD_vel); }
+            guidanceData.kI_vel = cmdData.kI_vel;
+            guidanceData.kP_drift = cmdData.kP_drift;
+            guidanceData.kD_drift = cmdData.kD_drift;
+            guidanceData.kI_drift = cmdData.kI_drift;
+            // client.flush();
           }
-          Serial.println();
-          // delay(2000);
-          // TODO
-          //
-          // ADD THIS TO HSM ERROR LOGGER!!!!!!!!!!!
-          //
-          //
-          return false;
         }
-        hms->data.mainLogLevel = HmsData_LogLevel(cmdData.mainLogLevel);
-        hms->data.guidanceLogLevel = HmsData_LogLevel(cmdData.guidanceLogLevel);
-        hms->data.navLogLevel = HmsData_LogLevel(cmdData.navLogLevel);
-        hms->data.sensorsLogLevel = HmsData_LogLevel(cmdData.sensorsLogLevel);
-        guidanceData.kP_vel = cmdData.kP_vel;
-        guidanceData.kD_vel = cmdData.kD_vel;
-        // if(hms->data.guidanceLogLevel >= 2){ Serial.print("guidanceData.kD_vel: "); Serial.println(guidanceData.kD_vel); }
-        guidanceData.kI_vel = cmdData.kI_vel;
-        guidanceData.kP_drift = cmdData.kP_drift;
-        guidanceData.kD_drift = cmdData.kD_drift;
-        guidanceData.kI_drift = cmdData.kI_drift;
-        // client.flush();
       }
       if (!cmdData.disableTelemetry){
         if(hms->data.mainLogLevel >= 2){ Serial.println("Sending telemetry"); }

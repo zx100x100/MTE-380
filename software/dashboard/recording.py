@@ -1,4 +1,5 @@
 import pygame as pg
+import time
 
 DIAM = 8
 PAD = 2
@@ -8,7 +9,7 @@ class Recording:
     def __init__(self, app):
         self.app = app
         self.rect = pg.Rect(0,0,DIAM+PAD,DIAM+PAD)
-        self.rect.topright = self.app.screen.get_rect().topright
+        self.rect.bottomright = self.app.screen.get_rect().bottomright
         self.on_image = self.generate_on_image()
         self.off_image = self.generate_off_image()
         self.ticks_since_blinked = 0
@@ -47,5 +48,9 @@ class Recording:
         else:
             if self.last_enabled:
                 self.app.screen.blit(self.off_image, self.rect)
+                self.app.telemetry_client.regenerate_playback_filenames()
+                time.sleep(0.3)
+                self.app.telemetry_client.playback_dir_num += 1
+                self.app.telemetry_client.regenerate_playback_filenames()
 
         self.last_enabled = self.enabled

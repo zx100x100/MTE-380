@@ -32,7 +32,7 @@ def get_ssid():
                 # ethernet
                 ssid = 'EMU'
             elif ssid not in ALLOWED_SSIDS:
-                if is_windows():
+                if not is_windows():
                     try:
                         print(f'Changing to EMU')
                         out = os.popen("nmcli dev wifi connect EMU")
