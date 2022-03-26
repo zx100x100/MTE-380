@@ -207,7 +207,10 @@ class TelemetryClient(threading.Thread):
         try:
             #  print('push')
             raw_outgoing = self.data.encode_outgoing()
-            encoded = BETWEEN_MESSAGES_SEP + raw_outgoing + BETWEEN_MESSAGES_SEP
+            encoded = raw_outgoing + BETWEEN_MESSAGES_SEP
+            #  encoded2 = BETWEEN_MESSAGES_SEP + raw_outgoing + BETWEEN_MESSAGES_SEP
+            print('encoded:')
+            print(encoded)
             self.socket.sendall(encoded)
             return raw_outgoing
         except Exception as e:

@@ -41,7 +41,7 @@ STOPPED_STATES = [CmdData.RunState.E_STOP]
 STARTED_STATES = [CmdData.RunState.AUTO, CmdData.RunState.TELEOP, CmdData.RunState.SIM]
             
 BETWEEN_MESSAGE_SETS_SEP = b';;;'
-BETWEEN_MESSAGES_SEP = b':::'
+BETWEEN_MESSAGES_SEP = b'xxx'
 MESSAGE_SET_START = b'((('
 
 

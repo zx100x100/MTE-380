@@ -10,11 +10,11 @@
 #include "hms_and_cmd_data.pb.h"
 
 #define DEAD_MAN_TIMEOUT_MS 2000
-#define CMD_BUF_SIZE 600
+#define CMD_BUF_SIZE 300
 #define OUTPUT_BUF_SIZE 1200
 #define INFREQUENT_TELEMETRY_INTERVAL 100 // every 100 ticks, send back telem
 
-const uint8_t delimit[3] = {uint8_t(':'),uint8_t(':'),uint8_t(':')};
+const uint8_t delimit[3] = {uint8_t('x'),uint8_t('x'),uint8_t('x')};
 const uint8_t delimitEnd[3] = {uint8_t(';'),uint8_t(';'),uint8_t(';')};
 const uint8_t delimitStart[3] = {uint8_t('('),uint8_t('('),uint8_t('(')};
 
@@ -149,27 +149,17 @@ bool TelemetryServer::update(){
         beforeReceiveT = micros();
         // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
-        int seps = 0;
         bool encounteredMessageProblem = false;
-        while (true){
-          if (!client.available()){
-            encounteredMessageProblem = true;
-            break;
-          }
-          uint8_t thisChar = uint8_t(client.read());
-          if (thisChar == delimit[0]){
-            seps++;
-          }
-          else{
-            Serial.print("x");
-          }
-          if (seps == 3){
-            Serial.println("found valid message start");
-            break;
-          }
+        for (int n=0; n<3; n++){
+            uint8_t thisChar = uint8_t(client.read());
+            inputBuffer[n] = thisChar;
         }
-        int i = 0;
-        seps = 0;
+        if (inputBuffer[0] != 48 || inputBuffer[1] != 2 || inputBuffer[2] != 82){
+          Serial.println("Invalid message start");
+          encounteredMessageProblem = true;
+        }
+        int i = 3;
+        int seps = 0;
         if (!encounteredMessageProblem){
           encounteredMessageProblem = true;
           while (client.available() > 0){
@@ -182,7 +172,7 @@ bool TelemetryServer::update(){
               seps = 0;
             }
             if (seps == 3){
-              Serial.println("found valid message end");
+              /* Serial.println("found valid message end"); */
               i -= 2;
               encounteredMessageProblem = false;
               break;
@@ -194,6 +184,16 @@ bool TelemetryServer::update(){
               return false;
             }
           }
+          /* Serial.print("receiveBytes: "); Serial.println(receiveBytes); */
+          /* Serial.print("i: "); Serial.println(i); */
+          /* Serial.println(char(inputBuffer[0])); */
+          /* Serial.println(char(inputBuffer[1])); */
+          /* Serial.println(char(inputBuffer[2])); */
+          /* for (int j=0; j<i; j++){ */
+            /* Serial.print(char(inputBuffer[j])); */
+          /* } */
+          /* Serial.println(); */
+          /* return false; */
           if (!encounteredMessageProblem){
             // client.flush();
             pb_istream_t instream = pb_istream_from_buffer(inputBuffer, i);
@@ -201,10 +201,6 @@ bool TelemetryServer::update(){
             if (!decodeStatus){
               Serial.printf("Decoding Cmd fail: %s\n", PB_GET_ERROR(&instream));
 
-              for (int i=0; i<CMD_BUF_SIZE; i++){
-                Serial.print(char(inputBuffer[i]));
-              }
-              Serial.println();
               // delay(2000);
               // TODO
               //

@@ -109,4 +109,10 @@ void loop() {
   hms.data.combinedTickRate = afterNetworkT - startT;
   hms.data.sensorsTickRate = afterSensorT - startT;
   hms.update();
+
+  /* uint8_t xNum = uint8_t('x'); */
+  /* char xChar = char(xNum); */
+  /* Serial.print("xNum: "); Serial.println(xNum); // should be 120 */
+  /* Serial.print("xChar: "); Serial.println(xChar); // should be x */
+  /* while(true){} */
 }
