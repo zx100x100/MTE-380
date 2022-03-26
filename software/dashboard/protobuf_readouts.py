@@ -8,10 +8,10 @@ from constants import *
 
 READOUT_HEIGHT = SCREEN_SIZE[1]-ARENA_SIZE_PIXELS-CONTROL_ITEM_HEIGHT-3*GLOBAL_MARGIN
 READOUT_WIDTH = CONTROL_ITEM_WIDTH
-READOUT_H_MARGIN = GLOBAL_MARGIN
+READOUT_H_MARGIN = 1#GLOBAL_MARGIN
 READOUT_T_MARGIN = GLOBAL_MARGIN
 TITLE_HEIGHT = 24
-TITLE_L_MARGIN = 8
+TITLE_L_MARGIN = 2
 ITEM_H_PAD = 5
 ITEM_T_MARGIN = 2
 ITEM_VALUE_RECT_WIDTH = 80
@@ -27,7 +27,7 @@ READOUT_BG_COLOUR = (70,70,70)
 CONTROL_LABEL_FONT_COLOUR = (70,70,70)
 ITEM_LABEL_FONT_SIZE = 10
 ITEM_VALUE_FONT_SIZE = 9
-TITLE_FONT_SIZE = 20
+TITLE_FONT_SIZE = 16
 MAX_ITEMS_PER_READOUT = (READOUT_HEIGHT-TITLE_HEIGHT)/(ITEM_HEIGHT+ITEM_T_MARGIN)
 ERROR_INFO_FIELD_NAME = "errorInfo"
 ERROR_INFO_FONT_SIZE = ITEM_VALUE_FONT_SIZE = 12
@@ -174,6 +174,10 @@ class Readout:
         self.items = self.get_items()
         self.rect, self.double_wide = self.generate_rect()
         self.title = type(self.proto).__name__
+        if self.title == 'TofData':
+            tof_enum = TofPosition(self.app.tof_readouts_initialized)
+            self.title = f'TOF_{tof_enum.value}_{tof_enum.name}'
+            self.app.tof_readouts_initialized += 1
         self.toplefts = None # toplets of each item, assigned during positioning
 
     def update_vals(self):
@@ -201,6 +205,7 @@ class Readout:
         self.col = col
         self.row = row
         self.rect.height = self.rect.height/n
+
         self.rect.top = ARENA_SIZE_PIXELS+READOUT_T_MARGIN+(self.rect.height+READOUT_T_MARGIN)*row
         self.rect.left = READOUT_H_MARGIN+col*(READOUT_WIDTH+READOUT_H_MARGIN)
         self.toplefts = self.get_topleft_of_each_item()
@@ -304,6 +309,12 @@ class ReadoutGroup:
         self.screen = self.app.screen
 
     def position(self, col):
+        if self.readouts[0].title == 'ImuData':
+            col += 1
+        elif self.readouts[0].title.startswith('TOF'):
+            print('moving tof')
+            col -= 1
+
         self.col = col
         for row, r in enumerate(self.readouts):
             r.position(col, row, len(self.readouts))

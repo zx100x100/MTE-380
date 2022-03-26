@@ -1,16 +1,20 @@
 #include "guidance.h"
 #include "math_utils.h"
 
-#define MAX_OUTPUT_POWER 130 // must be < 255
-#define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255
+#define MAX_OUTPUT_POWER 90 // must be < 255
+/* #define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255 */
+#define MAX_TURN_IN_PLACE_OUTPUT_POWER 50//75 // must be < 255
 #define MAX_TURN_IN_PLACE_ERROR_I 500
 #define MAX_VELOCITY_ERROR_I 500
 
-Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav):
+#define LOWER_RIGHT_VEL_SP_BY 0.94
+
+Guidance::Guidance(NavData& _navData, CmdData& _cmdData, Hms* _hms, Motors* motors, Nav* nav, Sensors* sensors):
   navData(_navData),
   cmdData(_cmdData),
   hms(_hms),
   motors(motors),
+  sensors(sensors),
   nav(nav)
 {
   gd = GuidanceData_init_zero;
@@ -124,7 +128,7 @@ void Guidance::update(){
   gd.velD = gd.errVelD * gd.kD_vel;
 
   gd.leftOutputVel = gd.velP + gd.velI + gd.velD;
-  gd.rightOutputVel = gd.leftOutputVel;
+  gd.rightOutputVel = gd.leftOutputVel*LOWER_RIGHT_VEL_SP_BY;
 
   gd.leftOutputVel = constrainVal(gd.leftOutputVel, MAX_OUTPUT_POWER);
   gd.rightOutputVel = constrainVal(gd.rightOutputVel, MAX_OUTPUT_POWER);
@@ -199,15 +203,15 @@ void Guidance::update(){
 
   // A PID while(true) loop to turn in place. delete when curves are sexy
 void Guidance::turnInPlace(){
-  float startAngle = -nav->getGyroAngle();
-  float curAngle = startAngle;
   // float threshhold = 5; // end loop when 5 degrees from donezo
   float threshold = 3; // end loop when 2 degrees from donezo for thresholdTime sec
   unsigned long thresholdTime = 50000;
   float angleDelta = 0;
 
+  float DUMB_ERROR_OFFSET = 49;
 
-  float error = 90;
+  float turnAmount = 90 + DUMB_ERROR_OFFSET;
+  float error = turnAmount;
   float lastError = error;
   float kp_turny = 1.5;
   float kd_turny = 240;
@@ -233,9 +237,40 @@ void Guidance::turnInPlace(){
 
   // theres a timeout dont worry
   Serial.println("Start turny");
+  delay(1000);
+  sensors->initGyro();
+  Serial.println(nav->getGyroAngle());
+  delay(1000);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  delay(50);
+  Serial.println(nav->getGyroAngle());
+  float startAngle = nav->getGyroAngle();
+  float curAngle = startAngle;
 
   while(true){
-    rawAngle = -nav->getGyroAngle();
+    rawAngle = nav->getGyroAngle();
     if (curAngle - rawAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360
       curAngle = 360 + rawAngle;
     }
@@ -243,7 +278,7 @@ void Guidance::turnInPlace(){
       curAngle = rawAngle;
     }
     angleDelta = curAngle - startAngle;
-    error = 90 - angleDelta;
+    error = turnAmount - angleDelta;
     curTimestamp = micros();
     if (fabs(error) < threshold){
       if (withinThreshold){
@@ -262,7 +297,7 @@ void Guidance::turnInPlace(){
     }
 
     /* if it takes longer than 4 seconds to turn, you fucked up */
-    if (curTimestamp - firstTimestamp > 6000000){
+    if (curTimestamp - firstTimestamp > 2*1000*1000){
       Serial.println("turn better next time please");
       break;
     }
@@ -291,6 +326,8 @@ void Guidance::turnInPlace(){
   }
   motors->setAllToZero();
   gd.segNum++;
+  while(true){
+  }
   return;
 }
 

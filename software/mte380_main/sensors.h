@@ -16,6 +16,7 @@ class Sensors{
     /*Sensors(); */
      Sensors(Hms* hms, VL53LX tof_objects[]);
      bool init();
+     void initGyro();
     // Sensors& getData();
     void update();
     Imu imu;

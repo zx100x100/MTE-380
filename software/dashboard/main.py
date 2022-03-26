@@ -42,6 +42,7 @@ class App:
         self.clock = pg.time.Clock()
         self.error_info = None
         self.screen = pg.display.get_surface()
+        self.tof_readouts_initialized = 0
         self.last_connected = False
         self.robot = Robot()
         self.arena = Arena(self.robot, self)

@@ -8,10 +8,11 @@
 #include "traj.h"
 #include "motors.h"
 #include "nav.h"
+#include "sensors.h"
 
 class Guidance{
   public:
-    Guidance(NavData& navData, CmdData& cmdData, Hms* hms, Motors* motors, Nav* nav);
+    Guidance(NavData& navData, CmdData& cmdData, Hms* hms, Motors* motors, Nav* nav, Sensors* sensors);
     void init();
     void update();
     GuidanceData& getData();
@@ -24,6 +25,7 @@ class Guidance{
     CmdData& cmdData;
     Hms* hms;
     Nav* nav;
+    Sensors* sensors;
 
     unsigned long lastTimestamp;
 

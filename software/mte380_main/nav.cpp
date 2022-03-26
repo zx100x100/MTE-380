@@ -39,9 +39,11 @@ void Nav::init(){
 
   unsigned long startT = micros();
   unsigned long curT = 0;
-  unsigned long initTime = 1000000;
+  unsigned long initTime = 1*1000*1000;
+  Serial.println("waiting for gyro to calm down");
   while(true){
-    getGyroAngle();
+    float rawAngle = getGyroAngle();
+    Serial.print("gyro raw (stop drifting pls): "); Serial.println(rawAngle);
     curT = micros();
     if (curT - startT > initTime){
       break;
@@ -74,12 +76,12 @@ NavData Nav::calculateImu(){
 }
 
 float Nav::getGyroAngle(){
-  /* sensors.imu.poll(); */
+  sensors.imu.poll();
 
-  /* fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ); */
+  fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
-  /* float yaw = rad2deg(fusion.yaw()); */
-  float yaw = 5;
+  float yaw = rad2deg(fusion.yaw());
+  // float yaw = 5;
   /* Serial.print("yaw: "); Serial.println(yaw); */
 
   return yaw;

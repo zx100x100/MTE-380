@@ -32,17 +32,15 @@ def get_ssid():
                 # ethernet
                 ssid = 'EMU'
             elif ssid not in ALLOWED_SSIDS:
-                try:
-                    print(f'Changing to EMU')
-                    out = os.popen("nmcli dev wifi connect EMU")
-                    time.sleep(5)
-                    ssid = os.popen("sudo iwgetid -r").read()[:-1]
-                    if ssid not in ALLOWED_SSIDS:
-                        time.sleep(2)
+                if is_windows():
+                    try:
+                        print(f'Changing to EMU')
+                        out = os.popen("nmcli dev wifi connect EMU")
+                        time.sleep(6)
                         ssid = os.popen("sudo iwgetid -r").read()[:-1]
-                    print(ssid)
-                except:
-                    return '', False
+                    except Exception as e:
+                        print(f'e: {e}')
+                        return '', False
             return ssid, True
 
     except Exception as e:

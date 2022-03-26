@@ -16,10 +16,13 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
   }
   updateBatteryVoltage();
 }
+void Sensors::initGyro(){
+  imu = Imu(hms);
+  imu.poll();
+}
 
 bool Sensors::init(){
-  // imu = Imu(hms);
-  /* imu.poll(); */
+  initGyro();
 
   // " this is the last thing ill try "
   // - ahmad
@@ -51,7 +54,7 @@ void Sensors::updateBatteryVoltage(){
 
 void Sensors::update(){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
-  /* imu.poll(); */
+  imu.poll();
   for (int i=0; i<4; i++){
     tof[i].poll();
   }

@@ -47,7 +47,7 @@ class Sim:
             TELEOP_POWER = TELEOP_MEDIUM
         if keys[pg.K_w]:
             left_power = TELEOP_POWER
-            right_power = TELEOP_POWER
+            right_power = TELEOP_POWER * 0.91
             if keys[pg.K_d]:
                 left_power += TURNING_WHILE_MOVING_POWER_DIFFERENTIAL
                 left_power = min(left_power, MAX_TELEOP_POWER)

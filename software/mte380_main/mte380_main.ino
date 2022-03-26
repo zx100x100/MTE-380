@@ -28,7 +28,8 @@ Guidance guidance = Guidance(nav.getData(),
                              cmdData,
                              &hms,
                              NULL,
-                             &nav);
+                             &nav,
+                             &sensors);
 TelemetryServer telemetryServer = TelemetryServer(sensors,
                                                   nav.getData(),
                                                   guidance.getData(),
