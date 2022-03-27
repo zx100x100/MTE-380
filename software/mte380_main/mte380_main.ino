@@ -10,6 +10,7 @@
 /* #define RUN_TURN_IN_PLACE_TEST */
 /* #define NO_SENSORS */
 /* #define NO_NAV */
+#define NO_TELEMETRY_RUN_AUTO
 
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {
@@ -43,7 +44,7 @@ void setup() {
   Serial.begin(115200);
 
   // this delay is to be able to put the robot on the ground before it starts measuring. SPEED!!!!
-  delay(3000);
+  delay(5000);
 
   Serial.println("Initializing Health Monitoring System");
   hms.init();
@@ -60,13 +61,34 @@ void setup() {
 
   guidance.motors = &motors;
   cmdData.runState = CmdData_RunState_E_STOP;
+
+#ifdef NO_TELEMETRY_RUN_AUTO
+  cmdData.runState = CmdData_RunState_AUTO;
+  /* hms.data.mainLogLevel = HmsData_LogLevel_OVERKILL; */
+  hms.data.mainLogLevel = HmsData_LogLevel_NORMAL;
+  hms.data.sensorsLogLevel = HmsData_LogLevel_NORMAL;
+  hms.data.navLogLevel = HmsData_LogLevel_NORMAL;
+  /* hms.data.guidanceLogLevel = HmsData_LogLevel_OVERKILL; */
+  hms.data.guidanceLogLevel = HmsData_LogLevel_DEBUG;
+  /* hms.data.guidanceLogLevel = HmsData_LogLevel_NORMAL; */
+
+  guidance.gd.kP_vel = 130.0;//140.0;
+  guidance.gd.kI_vel = 40.0;
+  guidance.gd.kD_vel = 18000;
+  /* guidance.gd.kP_drift = 130.0; */
+  /* guidance.gd.kI_drift = 0; */
+  /* guidance.gd.kD_drift = 40; */
+  guidance.gd.kP_drift = 1.1;
+  guidance.gd.kD_drift = 2500;
+  guidance.gd.kI_drift = 0.02 * (hms.data.nCells < 3 ? 1.5: 1);
+#endif
   
 #ifdef RUN_TURN_IN_PLACE_TEST
   delay(1000);
   guidance.turnInPlace();
   while(true){}
 #endif
-#ifndef RUN_TURN_IN_PLACE_TEST
+#ifndef NO_TELEMETRY_RUN_AUTO
   Serial.println("Initializing Telemetry");
   telemetryServer.init();
 #endif
@@ -84,7 +106,7 @@ void loop() {
 #endif
   unsigned long afterSensorT = micros();
   
-  // Guidence
+  // Guidance
   if (hms.data.mainLogLevel >= 1){
     Serial.println("main->guidance");
   }
@@ -97,11 +119,13 @@ void loop() {
   motors.update();
   
   // Telemetry
+unsigned long beforeNetworkT = micros();
+#ifndef NO_TELEMETRY_RUN_AUTO
   if (hms.data.mainLogLevel >= 1){
     Serial.println("main->telemetry");
   }
-  unsigned long beforeNetworkT = micros();
   bool updated = telemetryServer.update();
+#endif
   unsigned long afterNetworkT = micros();
   // TODO make hms heartbeat function:
   hms.data.mainTickRate = beforeNetworkT - startT;

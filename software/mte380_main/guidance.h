@@ -18,9 +18,9 @@ class Guidance{
     GuidanceData& getData();
     void turnInPlace();
     Motors* motors;
+    GuidanceData gd;
 
   private:
-    GuidanceData gd;
     NavData& navData;
     CmdData& cmdData;
     Hms* hms;
@@ -28,10 +28,20 @@ class Guidance{
     Sensors* sensors;
 
     unsigned long lastTimestamp;
+    unsigned long firstTimestamp;
 
     CmdData_RunState prevRunState;
 
     Traj traj;
+
+    float lastPosX;
+    float lastPosY;
+    float lastVelX;
+    float lastVelY;
+    float velX;
+    float velY;
+
+    int consecutiveBadNavDataTicks;
 };
 
 #endif

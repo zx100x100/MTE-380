@@ -55,4 +55,5 @@ message GuidanceData {
 
   bool completedTrack = 32;
   Heading heading = 33;
+  uint32 lastCompletedSegmentTime = 34;
 }

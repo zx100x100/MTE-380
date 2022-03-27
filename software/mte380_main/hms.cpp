@@ -24,6 +24,7 @@ Hms::Hms()
 }
 
 void Hms::updateLEDs(){
+  // Serial.print("hms.data.batteryVoltage: "); Serial.println(data.batteryVoltage);
   if (greenLedState == LED_ON){
     if (!greenLedLastOn){
       digitalWrite(LED_PIN_GREEN, 1);

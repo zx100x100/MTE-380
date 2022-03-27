@@ -4,12 +4,14 @@
 #include "math_utils.h"
 
 #define CURVE_RADIUS 0.5 // tiles (AKA feet, they are litterally just feet)
-#define CURVE_SPEED 0.1 // tiles/s
+#define CURVE_SPEED 0.12 // tiles/s
 /* #define ACC 12 // tiles/s^2 (So this is just ft/s^2) */
 /* #define VMAX 3 // tiles/s */
-#define ACC 1 // tiles/s^2 (So this is just ft/s^2)
-#define VMAX 0.5 // tiles/s
+#define ACC 0.5 // tiles/s^2 (So this is just ft/s^2)
+#define VMAX 0.3 // tiles/s
 #define TRAP_SPEED 2 // tiles/s
+
+#define OFFSET_WALLS_FOR_SAFETY_TEMP 0.3
 
 Subline::Subline(){}
 Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
@@ -47,14 +49,14 @@ Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
 // get velocity based on trapezoidalAcceleration acceleration profile.
 // d represents distance along the axis in which we are doing position based velocity
 float Subline::trapezoidalAcceleration(float d){
-  if(hms->data.guidanceLogLevel >= 2){ Serial.println("trapezoidalAcceleration velocity"); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d2: "); Serial.println(d2); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d3: "); Serial.println(d3); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d4: "); Serial.println(d4); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("v1: "); Serial.println(v1); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("v4: "); Serial.println(v4); }
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("d: "); Serial.println(d); }
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.println("trapezoidalAcceleration velocity"); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("d1: "); Serial.println(d1); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("d2: "); Serial.println(d2); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("d3: "); Serial.println(d3); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("d4: "); Serial.println(d4); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("v1: "); Serial.println(v1); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("v4: "); Serial.println(v4); } */
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("d: "); Serial.println(d); } */
 
   float v; // were gonna return a velocity. whiteboard math-------------------------
   if(float_le(d*sign(vm), d1*sign(vm))){
@@ -73,7 +75,7 @@ float Subline::trapezoidalAcceleration(float d){
     v = v4;
   }
 
-  if(hms->data.guidanceLogLevel >= 2){ Serial.print("v: "); Serial.println(v); }
+  /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("v: "); Serial.println(v); } */
   return v;
   // end of whiteboard math -------------------------------------------------------
   //
@@ -235,7 +237,7 @@ Line::Line(float _xa, float _ya, float _xb, float _yb, float trapX[MAX_N_TRAPS],
         }
       }
     }
-    if(hms->data.guidanceLogLevel >= 2){ Serial.print("nearestTrapInd: "); Serial.println(nearestTrapInd); }
+    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("nearestTrapInd: "); Serial.println(nearestTrapInd); } */
 
     // if no trap was found, simply finish subline
     if (nearestTrapInd == -1){
@@ -382,13 +384,13 @@ void Traj::init(){
 
   /* heap_caps_check_integrity(MALLOC_CAP_8BIT, true); */
 
-  segments[0] = new Line(4.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[0] = new Line(4.5,5.5 -OFFSET_WALLS_FOR_SAFETY_TEMP,1+OFFSET_WALLS_FOR_SAFETY_TEMP, 5.5 -OFFSET_WALLS_FOR_SAFETY_TEMP,cmdData->trapX,cmdData->trapY,hms);
   segments[1] = new Curve(1,5,BL,hms); // BL = bottom left, etc.
-  segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY,hms);
+  segments[2] = new Line(0.5+OFFSET_WALLS_FOR_SAFETY_TEMP,5- OFFSET_WALLS_FOR_SAFETY_TEMP,0.5+ OFFSET_WALLS_FOR_SAFETY_TEMP,1+OFFSET_WALLS_FOR_SAFETY_TEMP,cmdData->trapX,cmdData->trapY,hms);
   segments[3] = new Curve(1,1,TL,hms);
-  segments[4] = new Line(1,0.5,5,0.5,cmdData->trapX,cmdData->trapY,hms);
+  segments[4] = new Line(1+ OFFSET_WALLS_FOR_SAFETY_TEMP,0.5+ OFFSET_WALLS_FOR_SAFETY_TEMP,5-OFFSET_WALLS_FOR_SAFETY_TEMP,0.5+OFFSET_WALLS_FOR_SAFETY_TEMP,cmdData->trapX,cmdData->trapY,hms);
   segments[5] = new Curve(5,1,TR,hms);
-  segments[6] = new Line(5.5,1,5.5,4,cmdData->trapX,cmdData->trapY,hms);
+  segments[6] = new Line(5.5 - OFFSET_WALLS_FOR_SAFETY_TEMP/2,1+OFFSET_WALLS_FOR_SAFETY_TEMP/2,5.5-OFFSET_WALLS_FOR_SAFETY_TEMP/2,4-OFFSET_WALLS_FOR_SAFETY_TEMP/2,cmdData->trapX,cmdData->trapY,hms);
   segments[7] = new Curve(5,4,BR_,hms);
   segments[8] = new Line(5,4.5,2,4.5,cmdData->trapX,cmdData->trapY,hms);
   segments[9] = new Curve(2,4,BL,hms);
@@ -443,7 +445,8 @@ bool Traj::updatePos(float xp, float yp){
       return true;
     }
     alreadyAdvancedHowTheFuckIsThatPossible = true;
-    if(hms->data.guidanceLogLevel >= 2){ Serial.print("completion loop. segNum: "); Serial.println(gd->segNum); }
+    gd->lastCompletedSegmentTime = micros();
+    /* if(hms->data.guidanceLogLevel >= 2){ Serial.print("completion loop. segNum: "); Serial.println(gd->segNum); } */
   }
   return false;
 }

@@ -80,7 +80,7 @@ float Nav::getGyroAngle(){
 
   fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
-  float yaw = rad2deg(fusion.yaw());
+  float yaw = -rad2deg(fusion.yaw());
   // float yaw = 5;
   /* Serial.print("yaw: "); Serial.println(yaw); */
 
@@ -190,6 +190,7 @@ void Nav::updateTof(GuidanceData_Heading heading){
         if (tofPos.xValid) tofPos.x = left;
         if (tofPos.yValid) tofPos.y = front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
+
         break;
       case GuidanceData_Heading_RIGHT:
         tofPos.xValid = frontValid && fabs(tofPos.x - (TRACK_DIM - front)) < MAX_DEVIATION;
@@ -218,6 +219,9 @@ void Nav::updateTof(GuidanceData_Heading heading){
         if (tofPos.yValid) tofPos.y = TRACK_DIM - left;
         if (angFromWallValid) tofPos.yaw = angFromWall + 180;
         break;
+    }
+    if (hms->data.navLogLevel >= 1){
+      Serial.printf("xValid: %d x: %7.3f yValid: %d y: %7.3f\n", tofPos.xValid, tofPos.x, tofPos.yValid, tofPos.y);
     }
   }
   else{ // ToFs not updated
@@ -373,7 +377,7 @@ void Nav::updateEstimate(const NavData predNavData){
   if (USE_TOFS && tofPos.yValid){
     if(hms->data.navLogLevel >= 1){ Serial.print("yValid, setting pos Y: "); Serial.println(navData.posY); }
     navData.posY = predNavData.posY + gain[0] * (tofPos.y - predNavData.posY);
-    navData.velX = predNavData.velY + gain[1] * (tofPos.y - predNavData.posY) / delT;
+    navData.velY = predNavData.velY + gain[1] * (tofPos.y - predNavData.posY) / delT;
     navData.accY = predNavData.accY + gain[2] * (tofPos.y - predNavData.posY) / (0.5 * delT * delT);
   }
   else{

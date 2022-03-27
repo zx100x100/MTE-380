@@ -30,3 +30,7 @@ float constrainVal(float val, float maximum){
   return val;
 }
 
+float rad2deg(float rad){
+  return rad * 180 / PI;
+}
+

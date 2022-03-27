@@ -150,15 +150,16 @@ bool TelemetryServer::update(){
         // RECEIVE DATA -----------------------------------
         uint8_t inputBuffer[CMD_BUF_SIZE];
         bool encounteredMessageProblem = false;
-        for (int n=0; n<3; n++){
-            uint8_t thisChar = uint8_t(client.read());
-            inputBuffer[n] = thisChar;
-        }
-        if (inputBuffer[0] != 48 || inputBuffer[1] != 2 || inputBuffer[2] != 82){
-          Serial.println("Invalid message start");
-          encounteredMessageProblem = true;
-        }
-        int i = 3;
+        /* for (int n=0; n<3; n++){ */
+            /* uint8_t thisChar = uint8_t(client.read()); */
+            /* inputBuffer[n] = thisChar; */
+        /* } */
+        /* if (inputBuffer[0] != 48 || inputBuffer[1] != 2 || inputBuffer[2] != 82){ */
+          /* Serial.println("Invalid message start"); */
+          /* encounteredMessageProblem = true; */
+        /* } */
+        /* int i = 3; */
+        int i = 0;
         int seps = 0;
         if (!encounteredMessageProblem){
           encounteredMessageProblem = true;

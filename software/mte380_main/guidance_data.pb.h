@@ -55,6 +55,7 @@ typedef struct _GuidanceData {
     uint32_t segNum; /* current arena segment number */
     bool completedTrack; 
     GuidanceData_Heading heading; 
+    uint32_t lastCompletedSegmentTime; 
 } GuidanceData;
 
 
@@ -69,8 +70,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _GuidanceData_Heading_MIN}
-#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _GuidanceData_Heading_MIN}
+#define GuidanceData_init_default                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _GuidanceData_Heading_MIN, 0}
+#define GuidanceData_init_zero                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _GuidanceData_Heading_MIN, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define GuidanceData_deltaT_tag                  1
@@ -106,6 +107,7 @@ extern "C" {
 #define GuidanceData_segNum_tag                  31
 #define GuidanceData_completedTrack_tag          32
 #define GuidanceData_heading_tag                 33
+#define GuidanceData_lastCompletedSegmentTime_tag 34
 
 /* Struct field encoding specification for nanopb */
 #define GuidanceData_FIELDLIST(X, a) \
@@ -141,7 +143,8 @@ X(a, STATIC,   SINGULAR, FLOAT,    rightPower,       29) \
 X(a, STATIC,   SINGULAR, FLOAT,    propPower,        30) \
 X(a, STATIC,   SINGULAR, UINT32,   segNum,           31) \
 X(a, STATIC,   SINGULAR, BOOL,     completedTrack,   32) \
-X(a, STATIC,   SINGULAR, UENUM,    heading,          33)
+X(a, STATIC,   SINGULAR, UENUM,    heading,          33) \
+X(a, STATIC,   SINGULAR, UINT32,   lastCompletedSegmentTime,  34)
 #define GuidanceData_CALLBACK NULL
 #define GuidanceData_DEFAULT NULL
 
@@ -151,7 +154,7 @@ extern const pb_msgdesc_t GuidanceData_msg;
 #define GuidanceData_fields &GuidanceData_msg
 
 /* Maximum encoded size of messages (where known) */
-#define GuidanceData_size                        178
+#define GuidanceData_size                        185
 
 #ifdef __cplusplus
 } /* extern "C" */

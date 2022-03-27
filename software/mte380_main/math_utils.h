@@ -10,6 +10,6 @@ float constrainVal(float val, float maximum);
 template <typename T> int sign(T val) {
     return (T(0) < val) - (val < T(0));
 }
-
+float rad2deg(float rad);
 
 #endif
