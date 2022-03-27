@@ -125,14 +125,15 @@ void Nav::updateTof(GuidanceData_Heading heading){
       bool angFromWallValid, frontValid, leftValid;
 
       if (hms->data.navLogLevel >= 2) Serial.println("tofs updated");
+      angFromWall = rad2deg(atan((getTofFt(L_FRONT) - getTofFt(L_BACK)) / L_Y_DELTA));
+      // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
+      left = ((getTofFt(L_FRONT) + getTofFt(L_BACK)) / 2 + L_X_OFFSET) * cosd(angFromWall);
+      if(hms->data.sensorsLogLevel >= 1){ Serial.print("isValid(L_FRONT): "); Serial.println(isValid(L_FRONT)); }
+      if(hms->data.sensorsLogLevel >= 1){ Serial.print("isValid(L_BACK): "); Serial.println(isValid(L_BACK)); }
       if (isValid(L_FRONT) && isValid(L_BACK)) {//TODO && (fmod(navData.angXy, 90) < 35 || fmod(navData.angXy, 90) > 55)) {
         angFromWallValid = true;
         leftValid = true;
         if (hms->data.navLogLevel >= 2) Serial.println("Left valid");
-
-        angFromWall = rad2deg(atan((getTofFt(L_FRONT) - getTofFt(L_BACK)) / L_Y_DELTA));
-        // The following assumes L_BACK and L_FRONT symmetrical about center of beep boop
-        left = ((getTofFt(L_FRONT) + getTofFt(L_BACK)) / 2 + L_X_OFFSET) * cosd(angFromWall);
       }
       else{
         if (hms->data.navLogLevel >= 2) Serial.println("Left invalid");
@@ -165,8 +166,8 @@ void Nav::updateTof(GuidanceData_Heading heading){
         estimateToWall = estimateFromBackSensor;
       }
       
+      front = estimateToWall;
       if (fabs(predToFront(heading) - estimateToWall) < MAX_DEVIATION){  // if our best guess is good
-        front = estimateToWall;
         frontValid = true;
       }
       else{ // our best guess sucks. Tof luck bud
@@ -174,7 +175,7 @@ void Nav::updateTof(GuidanceData_Heading heading){
         frontValid = false;
       }
 
-    if(hms->data.navLogLevel >= 1){ Serial.print("Heading: "); Serial.println(heading); }
+    /* if(hms->data.navLogLevel >= 1){ Serial.print("Heading: "); Serial.println(heading); } */
     tofPos.yawValid = angFromWallValid;  // TODO: validate angle change
     
     // Local to global coordinate conversion switch case:
@@ -183,12 +184,16 @@ void Nav::updateTof(GuidanceData_Heading heading){
     navData.angFromWall = angFromWall;
     switch(heading){
       case GuidanceData_Heading_UP:
+        if(hms->data.sensorsLogLevel >= 1){ Serial.print("fabs(tofPos.x - left) < MAX_DEVIATION: "); Serial.println(fabs(tofPos.x - left) < MAX_DEVIATION); }
+        if(hms->data.sensorsLogLevel >= 1){ Serial.print("leftValid: "); Serial.println(leftValid); }
         tofPos.xValid = leftValid && fabs(tofPos.x - left) < MAX_DEVIATION;
         tofPos.yValid = frontValid && fabs(tofPos.y - front) < MAX_DEVIATION;
         navData.xValid = tofPos.xValid;
         navData.yValid = tofPos.yValid;
-        if (tofPos.xValid) tofPos.x = left;
-        if (tofPos.yValid) tofPos.y = front;
+        /* if (tofPos.xValid) tofPos.x = left; */
+        /* if (tofPos.yValid) tofPos.y = front; */
+        tofPos.x = left;
+        tofPos.y = front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 270;
 
         break;
@@ -197,8 +202,12 @@ void Nav::updateTof(GuidanceData_Heading heading){
         tofPos.yValid = leftValid && fabs(tofPos.y - left) < MAX_DEVIATION;
         navData.xValid = tofPos.xValid;
         navData.yValid = tofPos.yValid;
-        if (tofPos.xValid) tofPos.x = TRACK_DIM - front;
-        if (tofPos.yValid) tofPos.y = left;
+        /* if (tofPos.xValid) tofPos.x = TRACK_DIM - front; */
+        /* if (tofPos.yValid) tofPos.y = left; */
+        tofPos.x = TRACK_DIM - front;
+        tofPos.y = left;
+        tofPos.x = TRACK_DIM - front;
+        tofPos.y = left;
         if (angFromWallValid) tofPos.yaw = angFromWall;
         break;
       case GuidanceData_Heading_DOWN:
@@ -206,8 +215,10 @@ void Nav::updateTof(GuidanceData_Heading heading){
         tofPos.yValid = frontValid && fabs(tofPos.y - (TRACK_DIM - front)) < MAX_DEVIATION;
         navData.xValid = tofPos.xValid;
         navData.yValid = tofPos.yValid;
-        if (tofPos.xValid) tofPos.x = TRACK_DIM - left;
-        if (tofPos.yValid) tofPos.y = TRACK_DIM - front;
+        /* if (tofPos.xValid) tofPos.x = TRACK_DIM - left; */
+        /* if (tofPos.yValid) tofPos.y = TRACK_DIM - front; */
+        tofPos.x = TRACK_DIM - left;
+        tofPos.y = TRACK_DIM - front;
         if (angFromWallValid) tofPos.yaw = angFromWall + 90;
         break;
       case GuidanceData_Heading_LEFT:
@@ -215,13 +226,15 @@ void Nav::updateTof(GuidanceData_Heading heading){
         tofPos.yValid = leftValid && fabs(tofPos.y - (TRACK_DIM - left)) < MAX_DEVIATION;
         navData.xValid = tofPos.xValid;
         navData.yValid = tofPos.yValid;
-        if (tofPos.xValid) tofPos.x = front;
-        if (tofPos.yValid) tofPos.y = TRACK_DIM - left;
+        /* if (tofPos.xValid) tofPos.x = front; */
+        /* if (tofPos.yValid) tofPos.y = TRACK_DIM - left; */
+        tofPos.x = front;
+        tofPos.y = TRACK_DIM - left;
         if (angFromWallValid) tofPos.yaw = angFromWall + 180;
         break;
     }
     if (hms->data.navLogLevel >= 1){
-      Serial.printf("xValid: %d x: %7.3f yValid: %d y: %7.3f\n", tofPos.xValid, tofPos.x, tofPos.yValid, tofPos.y);
+      /* Serial.printf("xValid: %d x: %7.3f yValid: %d y: %7.3f\n", tofPos.xValid, tofPos.x, tofPos.yValid, tofPos.y); */
     }
   }
   else{ // ToFs not updated
@@ -264,22 +277,28 @@ void Nav::update(GuidanceData_Heading heading){
   }
 
   updatePred();
-  if (hms->data.navLogLevel >= 1){
-    Serial.print("predNavData: x: "); Serial.print(predNavData.posX); Serial.print(", y: ");  Serial.print(predNavData.posY); Serial.print(", yaw: ");  Serial.println(predNavData.angXy);
-  }
-
   getGyroAngle(); // TODO: Fuse Gyro angle with TOF angle and decide when to use each one!
 
   updateTof(heading);
-  if (hms->data.navLogLevel >= 1){
-    Serial.print("tof: FR: "); Serial.print(getTofFt(FRONT)); Serial.print(", LF: ");  Serial.print(getTofFt(L_FRONT)); Serial.print(", LB: ");  Serial.print(getTofFt(L_BACK)); Serial.print(", BA: ");  Serial.println(getTofFt(BACK));
-    Serial.print("tof estimate: x: "); Serial.print(tofPos.x); Serial.print(", left: ");  Serial.print(tofPos.y); Serial.print(", yaw: ");  Serial.println(tofPos.yaw);
-  }
+  /* if (hms->data.navLogLevel >= 1){ */
+    /* Serial.print("tof: FR: "); Serial.print(getTofFt(FRONT)); Serial.print(", LF: ");  Serial.print(getTofFt(L_FRONT)); Serial.print(", LB: ");  Serial.print(getTofFt(L_BACK)); Serial.print(", BA: ");  Serial.println(getTofFt(BACK)); */
+    /* Serial.print("tof estimate: x: "); Serial.print(tofPos.x); Serial.print(", left: ");  Serial.print(tofPos.y); Serial.print(", yaw: ");  Serial.println(tofPos.yaw); */
+  /* } */
 
   updateEstimate(predNavData);
   if (hms->data.navLogLevel >= 1){
-    Serial.print("estimate: x: "); Serial.print(navData.posX); Serial.print(", y: ");  Serial.print(navData.posY); Serial.print(", yaw: ");  Serial.println(navData.angXy);
+    /* Serial.print("estimate: x: "); Serial.print(navData.posX); Serial.print(", y: ");  Serial.print(navData.posY); Serial.print(", yaw: ");  Serial.println(navData.angXy); */
   }
+  if (hms->data.navLogLevel >= 1){
+    Serial.print("predNavData: x: "); Serial.print(predNavData.posX); Serial.print(", y: ");  Serial.print(predNavData.posY); Serial.print(", yaw: ");  Serial.println(predNavData.angXy);
+    Serial.printf("predX: %3.2f predY: %3.2f  yaw: %4.1f tof1: %4f tof2: %4f tof3: %4f tof4: %4f tofX: %3.2f tofY: %3.2f tofYaw: %4.1f estX: %3.2f estY: %3.2f estYaw: %4.1f xV: %d, yV: %d\n",
+        predNavData.posX,predNavData.posY, predNavData.angXy,
+        getTofFt(FRONT),getTofFt(L_FRONT),getTofFt(L_BACK),getTofFt(BACK),
+        tofPos.x, tofPos.y, tofPos.yaw,
+        navData.posX, navData.posY, navData.angXy,
+        tofPos.xValid, tofPos.yValid);
+  }
+
 }
 
 NavData& Nav::getData(){
@@ -362,26 +381,26 @@ void Nav::updatePred(){
 void Nav::updateEstimate(const NavData predNavData){
   float delT = float(predNavData.timestamp - navData.timestamp) / 1000000;
   if (USE_TOFS && tofPos.xValid){
-    if(hms->data.navLogLevel >= 1){ Serial.print("xValid, setting pos X: "); Serial.println(navData.posX); }
+    /* if(hms->data.navLogLevel >= 1){ Serial.print("xValid, setting pos X: "); Serial.println(navData.posX); } */
     navData.posX = predNavData.posX + gain[0] * (tofPos.x - predNavData.posX);
     navData.velX = predNavData.velX + gain[1] * (tofPos.x - predNavData.posX) / delT;
     navData.accX = predNavData.accX + gain[2] * (tofPos.x - predNavData.posX) / (0.5 * delT * delT);
   }
   else{
-    if(hms->data.navLogLevel >= 1){ Serial.println("using predNavData for x"); }
+    /* if(hms->data.navLogLevel >= 1){ Serial.println("using predNavData for x"); } */
     navData.posX = predNavData.posX;
     navData.velX = predNavData.velX;
     navData.accX = predNavData.accX;
   }
 
   if (USE_TOFS && tofPos.yValid){
-    if(hms->data.navLogLevel >= 1){ Serial.print("yValid, setting pos Y: "); Serial.println(navData.posY); }
+    /* if(hms->data.navLogLevel >= 1){ Serial.print("yValid, setting pos Y: "); Serial.println(navData.posY); } */
     navData.posY = predNavData.posY + gain[0] * (tofPos.y - predNavData.posY);
     navData.velY = predNavData.velY + gain[1] * (tofPos.y - predNavData.posY) / delT;
     navData.accY = predNavData.accY + gain[2] * (tofPos.y - predNavData.posY) / (0.5 * delT * delT);
   }
   else{
-    if(hms->data.navLogLevel >= 1){ Serial.println("using predNavData for y"); }
+    /* if(hms->data.navLogLevel >= 1){ Serial.println("using predNavData for y"); } */
     navData.posY = predNavData.posY;
     navData.velY = predNavData.velY;
     navData.accY = predNavData.accY;

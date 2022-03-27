@@ -1,7 +1,7 @@
 #include "guidance.h"
 #include "math_utils.h"
 
-#define MAX_OUTPUT_POWER 60 // must be < 255
+#define MAX_OUTPUT_POWER 75 // must be < 255
 /* #define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255 */
 #define MAX_TURN_IN_PLACE_OUTPUT_POWER 80//75 // must be < 255
 #define MAX_TURN_IN_PLACE_ERROR_I 500
@@ -200,10 +200,12 @@ void Guidance::update(){
   if (consecutiveBadNavDataTicks > MAX_TICKS_OF_BAD_NAV_DATA){
     motors->setAllToZero();
     hms->redLedState = LED_SLOW_FLASH;
+    Serial.println("Gave up on nav data :( please go fix that shit");
     while(true){
-      Serial.println("Gave up on nav data :( please go fix that shit");
       hms->update();
-      delay(500);
+      sensors->update();
+      nav->update(gd.heading);
+      delay(1000);
     }
   }
 

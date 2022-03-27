@@ -66,8 +66,8 @@ void setup() {
   cmdData.runState = CmdData_RunState_AUTO;
   /* hms.data.mainLogLevel = HmsData_LogLevel_OVERKILL; */
   hms.data.mainLogLevel = HmsData_LogLevel_NORMAL;
-  hms.data.sensorsLogLevel = HmsData_LogLevel_NORMAL;
-  hms.data.navLogLevel = HmsData_LogLevel_NORMAL;
+  hms.data.sensorsLogLevel = HmsData_LogLevel_DEBUG;
+  hms.data.navLogLevel = HmsData_LogLevel_DEBUG;
   /* hms.data.guidanceLogLevel = HmsData_LogLevel_OVERKILL; */
   hms.data.guidanceLogLevel = HmsData_LogLevel_DEBUG;
   /* hms.data.guidanceLogLevel = HmsData_LogLevel_NORMAL; */

@@ -11,7 +11,8 @@
 #define VMAX 0.3 // tiles/s
 #define TRAP_SPEED 2 // tiles/s
 
-#define OFFSET_WALLS_FOR_SAFETY_TEMP 0.3
+// #define OFFSET_WALLS_FOR_SAFETY_TEMP 0 //0.3
+#define OFFSET_WALLS_FOR_SAFETY_TEMP 0.3 //0.3
 
 Subline::Subline(){}
 Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):

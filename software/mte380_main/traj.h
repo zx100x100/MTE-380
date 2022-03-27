@@ -7,6 +7,7 @@
 
 #define NUM_SEGMENTS 20
 #define MAX_N_TRAPS 8
+/* #define CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE 0 // ft */
 #define CORNER_OFFSET_BULLSHIT_FOR_TURN_IN_PLACE 0.2 // ft
 
 // TL = Top Left, etc.

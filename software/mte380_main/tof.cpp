@@ -13,17 +13,17 @@ Tof::Tof()
 bool Tof::init(){
 
   bool initializedProperly = true;
-  if (hms->data.sensorsLogLevel >= 1) Serial.println("begin");
+  if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("begin"); }
 
   // Configure VL53LX satellite component.
   sensor_vl53lx_sat->begin();
 
-  if (hms->data.sensorsLogLevel >= 1) Serial.println("init tof sensor");
+  if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("init tof sensor");}
   //Initialize VL53LX satellite component.
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
 
-  if (hms->data.sensorsLogLevel >= 1) Serial.println("start measurement");
+  if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index);  Serial.println("start measurement"); }
   // Start Measurements
   sensor_vl53lx_sat->VL53LX_StartMeasurement();
 
@@ -64,7 +64,10 @@ void Tof::poll(){
                 if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
                 lastReading = micros();
                 if (tofData.numObjs){ // if at least 1 object found
-                    if (pMultiRangingData->RangeData[0].RangeStatus == 0){
+                  if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter); }
+                  if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(pMultiRangingData->RangeData[0].RangeMilliMeter); }
+                  if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist: "); Serial.println(tofData.dist); }
+                    if (pMultiRangingData->RangeData[0].RangeStatus == 0 && tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter){
                         consecutiveBadReadings = 0;
                         tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
                         tofData.count = pMultiRangingData->StreamCount;
@@ -72,13 +75,14 @@ void Tof::poll(){
                         consecutiveBadReadings++;
                         if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
                             needsToBeInitialized = true;
-                            Serial.println("REBOOTING TOF due to bad readings");
+                            Serial.print("tof"); Serial.print(index); Serial.println("REBOOTING TOF due to bad readings");
                             init();
                             return;
                         }
                     } // TODO: if no objects found, we don't increment consecutiveBadReadings
 
                     if (hms->data.sensorsLogLevel >= 2) {
+                        Serial.print("tof"); Serial.print(index); 
                         Serial.print("status=");
                         Serial.print(pMultiRangingData->RangeData[0].RangeStatus);
                         Serial.print(", D=");
@@ -91,21 +95,31 @@ void Tof::poll(){
                         Serial.print(" Mcps \n");
                     }
                 }
+                else{
+                  Serial.print("tof"); Serial.print(index); Serial.println(" 0 detected");
+                  consecutiveBadReadings++;
+                  if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
+                      needsToBeInitialized = true;
+                      Serial.print("tof"); Serial.print(index); Serial.println("uniquexxx REBOOTING TOF due to bad readings");
+                      init();
+                      return;
+                  }
+                }
 
                 status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
             }
             else{
-              Serial.println("unique_fuck2");
+              Serial.print("tof"); Serial.print(index); Serial.println("unique_fuck2");
             }
         }
         else{
-          Serial.println("unique_fuck1");
+          Serial.print("tof"); Serial.print(index); Serial.println("unique_fuck1");
         }
     }
     //else{
       /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
       if (micros() - lastReading > TIMEOUT){
-        if (hms->data.sensorsLogLevel >= 1) Serial.println("Timeout");
+        if (hms->data.sensorsLogLevel >= 1) { Serial.print("tof"); Serial.print(index); Serial.println("Timeout");}
         status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
         NewDataReady = 0;
         tofData.timeoutCount++;
@@ -113,7 +127,7 @@ void Tof::poll(){
 
         if (tofData.timeoutCount % MAX_TIMEOUTS == 0){
           needsToBeInitialized = true;
-          Serial.println("REBOOTING TOF due to timeouts");
+          Serial.print("tof"); Serial.print(index); Serial.println("REBOOTING TOF due to timeouts");
           init();
           return;
         }
