@@ -13,19 +13,19 @@ Tof::Tof()
 bool Tof::init(){
 
   bool initializedProperly = true;
-  if (print) Serial.println("begin");
+  // if (print) Serial.println("begin");
 
   // Configure VL53LX satellite component.
   sensor_vl53lx_sat->begin();
 
-  if (print) Serial.println("init tof sensor");
+  // if (print) Serial.println("init tof sensor");
   //the dumb library doesn't understand that if you reboot the device, it goes back to the default address, so we need to remind it.
   sensor_vl53lx_sat->VL53LX_SetDeviceAddress(VL53LX_DEFAULT_DEVICE_ADDRESS);
   //Initialize VL53LX satellite component.
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
 
-  if (print) Serial.println("start measurement");
+  // if (print) Serial.println("start measurement");
   // Start Measurements
   sensor_vl53lx_sat->VL53LX_StartMeasurement();
 

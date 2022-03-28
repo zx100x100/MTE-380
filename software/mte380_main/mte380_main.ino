@@ -4,13 +4,15 @@
 #include "nav.h"
 #include "guidance.h"
 #include "sensors.h"
+#include "sorry.h"
 #include "hms.h"
 #include "hms_and_cmd_data.pb.h"
 
 /* #define RUN_TURN_IN_PLACE_TEST */
 /* #define NO_SENSORS */
 /* #define NO_NAV */
-#define NO_TELEMETRY_RUN_AUTO
+/* #define NO_TELEMETRY_RUN_AUTO */
+#define SORRY
 
 //creat TOF objects, not working when in tof.c
 VL53LX sensor_vl53lx_sat[4] = {
@@ -31,12 +33,18 @@ Guidance guidance = Guidance(nav.getData(),
                              NULL,
                              &nav,
                              &sensors);
+#ifndef SORRY
 TelemetryServer telemetryServer = TelemetryServer(sensors,
                                                   nav.getData(),
                                                   guidance.getData(),
                                                   cmdData,
                                                   &hms);
+#endif
 Motors motors = Motors(guidance.getData(), &hms);
+
+#ifdef SORRY
+Sorry sorry = Sorry(&motors, &sensors, &nav, &hms);
+#endif
 
 
 
@@ -66,11 +74,15 @@ void setup() {
   cmdData.runState = CmdData_RunState_AUTO;
   /* hms.data.mainLogLevel = HmsData_LogLevel_OVERKILL; */
   hms.data.mainLogLevel = HmsData_LogLevel_NORMAL;
-  hms.data.sensorsLogLevel = HmsData_LogLevel_DEBUG;
+
+  hms.data.sensorsLogLevel = HmsData_LogLevel_NORMAL;
+
+  /* hms.data.navLogLevel = HmsData_LogLevel_DEBUG; */
   hms.data.navLogLevel = HmsData_LogLevel_DEBUG;
+
   /* hms.data.guidanceLogLevel = HmsData_LogLevel_OVERKILL; */
-  hms.data.guidanceLogLevel = HmsData_LogLevel_DEBUG;
   /* hms.data.guidanceLogLevel = HmsData_LogLevel_NORMAL; */
+  hms.data.guidanceLogLevel = HmsData_LogLevel_DEBUG;
 
   guidance.gd.kP_vel = 130.0;//140.0;
   guidance.gd.kI_vel = 40.0;
@@ -89,12 +101,18 @@ void setup() {
   while(true){}
 #endif
 #ifndef NO_TELEMETRY_RUN_AUTO
+#ifndef SORRY
   Serial.println("Initializing Telemetry");
   telemetryServer.init();
+#endif
 #endif
 }
 
 void loop() {
+#ifdef SORRY
+  sorry.run();
+  while(true){}
+#endif
   unsigned long startT = micros();
 
   // Sensors
@@ -121,10 +139,12 @@ void loop() {
   // Telemetry
 unsigned long beforeNetworkT = micros();
 #ifndef NO_TELEMETRY_RUN_AUTO
+#ifndef SORRY
   if (hms.data.mainLogLevel >= 1){
     Serial.println("main->telemetry");
   }
   bool updated = telemetryServer.update();
+#endif
 #endif
   unsigned long afterNetworkT = micros();
   // TODO make hms heartbeat function:

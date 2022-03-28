@@ -1,4 +1,5 @@
 #include "nav.h"
+#include "math_utils.h"
 
 #define L_Y_DELTA 0.3958  // ft
 #define L_X_OFFSET 0.213  // ft
@@ -31,6 +32,7 @@ Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
   tofPos.x = navData.posX;
   tofPos.y = navData.posY;
   tofPos.yaw = navData.angXy;
+  lastBackSensorVal = 0;
 }
 
 void Nav::init(){
@@ -49,22 +51,6 @@ void Nav::init(){
       break;
     }
   }
-}
-
-float Nav::rad2deg(float rad){
-  return rad * 180 / PI;
-}
-
-float Nav::deg2rad(float deg){
-  return deg / 180 * PI;
-}
-
-float Nav::cosd(float deg){
-  return cos(deg2rad(deg));
-}
-
-float Nav::sind(float deg){
-  return sin(deg2rad(deg));
 }
 
 float Nav::getTofFt(TofOrder tofNum){
@@ -159,10 +145,27 @@ void Nav::updateTof(GuidanceData_Heading heading){
       float estimateSensorAvg = (estimateFromFrontSensor + estimateFromBackSensor) / 2;
             
       float estimateToWall = estimateSensorAvg;
-      if (fabs(predToFront(heading) - estimateFromFrontSensor) < fabs(predToFront(heading) - estimateToWall)) {
-        estimateToWall = estimateFromFrontSensor;
+      /* if (fabs(predToFront(heading) - estimateFromFrontSensor) < fabs(predToFront(heading) - estimateToWall)) { */
+      bool backFrozen = getTofFt(BACK) == lastBackSensorVal;
+      bool justUseFront = (predToFront(heading) < 1.5 && estimateFromFrontSensor < 1.5) || backFrozen || getTofFt(BACK) > 4.0;
+      if (!justUseFront && angFromWallValid && fabs(angFromWall)<10 && getTofFt(FRONT) < 2){
+        justUseFront = true;
       }
-      if (fabs(predToFront(heading) - estimateFromBackSensor) < fabs(predToFront(heading) - estimateToWall)) {
+      if(hms->data.sensorsLogLevel >= 1){ Serial.print("estimateFromFrontSensor: "); Serial.println(estimateFromFrontSensor); }
+      if(hms->data.sensorsLogLevel >= 1){ Serial.print("predToFront(heading): "); Serial.println(predToFront(heading)); }
+      if ((fabs(predToFront(heading) - estimateFromFrontSensor) < fabs(predToFront(heading) - estimateToWall))
+      || justUseFront){
+        estimateToWall = estimateFromFrontSensor;
+        if (justUseFront){
+          Serial.println("JUST using front sensor!!!");
+        }
+        else{
+          Serial.println("using front sensor!!!");
+        }
+      }
+      if ((fabs(predToFront(heading) - estimateFromBackSensor) < fabs(predToFront(heading) - estimateToWall))
+          && !justUseFront) {
+        Serial.println("using back sensor");
         estimateToWall = estimateFromBackSensor;
       }
       
@@ -171,8 +174,14 @@ void Nav::updateTof(GuidanceData_Heading heading){
         frontValid = true;
       }
       else{ // our best guess sucks. Tof luck bud
-        if (hms->data.navLogLevel >= 2) Serial.println("vertical tofs INVALID");
-        frontValid = false;
+        if (hms->data.navLogLevel >= 1) Serial.println("vertical tofs INVALID");
+        if (justUseFront){
+          if (hms->data.navLogLevel >= 1) Serial.println("jk were gonna use em anyway cuz justUseFront==true");
+          frontValid = true;
+        }
+        else{
+          frontValid = false;
+        }
       }
 
     /* if(hms->data.navLogLevel >= 1){ Serial.print("Heading: "); Serial.println(heading); } */
@@ -236,6 +245,7 @@ void Nav::updateTof(GuidanceData_Heading heading){
     if (hms->data.navLogLevel >= 1){
       /* Serial.printf("xValid: %d x: %7.3f yValid: %d y: %7.3f\n", tofPos.xValid, tofPos.x, tofPos.yValid, tofPos.y); */
     }
+    lastBackSensorVal = getTofFt(BACK);
   }
   else{ // ToFs not updated
     if (hms->data.navLogLevel >= 2) Serial.println("tofs NOT updated");
@@ -248,6 +258,7 @@ void Nav::updateTof(GuidanceData_Heading heading){
 }
 
 void Nav::update(GuidanceData_Heading heading){
+  Serial.println("NAV UPDATE------");
 //  if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav update"); } // temp
   if (cmdData -> runState == CmdData_RunState_SIM){
 //    if(hms->data.guidanceLogLevel >= 2){ Serial.println("nav in SIM mode"); }

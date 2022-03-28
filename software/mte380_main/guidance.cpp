@@ -1,19 +1,19 @@
 #include "guidance.h"
 #include "math_utils.h"
 
-#define MAX_OUTPUT_POWER 75 // must be < 255
+#define MAX_OUTPUT_POWER 95 // must be < 255
 /* #define MAX_TURN_IN_PLACE_OUTPUT_POWER 130 // must be < 255 */
 #define MAX_TURN_IN_PLACE_OUTPUT_POWER 80//75 // must be < 255
 #define MAX_TURN_IN_PLACE_ERROR_I 500
 #define MAX_DRIFT_ERROR_I 400
-#define MAX_VELOCITY_ERROR_I 30
-#define MAX_VELOCITY_ERROR_I_INCREASE_IN_ONE_TICK 0.6
+#define MAX_VELOCITY_ERROR_I 60
+#define MAX_VELOCITY_ERROR_I_INCREASE_IN_ONE_TICK 0.4
 
 #define LOWER_RIGHT_VEL_SP_BY 0.94
 #define DRIFT_LOOK_AHEAD_DIST 2
 
 // #define MAX_AUTON_MICROS 39000000
-#define MAX_AUTON_MICROS 75000000
+#define MAX_AUTON_MICROS 90000000
 
 #define CHILL_AFTER_COMLPETING_SEGMENT_TIME 400000
 
@@ -131,6 +131,8 @@ void Guidance::update(){
     }
   }
 
+  // if (cmdData.runState == CmdData_RunState_AUTO && gd.segNum ==)
+
   // update trajectory if the trap layout has changed
   /* if(hms->data.guidanceLogLevel >= 2){ Serial.println("checking traps"); } */
   if (traj.trapsChanged()){
@@ -200,7 +202,7 @@ void Guidance::update(){
   if (consecutiveBadNavDataTicks > MAX_TICKS_OF_BAD_NAV_DATA){
     motors->setAllToZero();
     hms->redLedState = LED_SLOW_FLASH;
-    Serial.println("Gave up on nav data :( please go fix that shit");
+    Serial.println("Gave up on nav data :( please go fix that shit ----------------------------------------------");
     while(true){
       hms->update();
       sensors->update();
@@ -328,7 +330,7 @@ void Guidance::turnInPlace(){
   float lastError = error;
   float kp_turny = 1.5;
   float kd_turny = 300;
-  float ki_turny = 0.1 * (hms->data.nCells < 3 ? 1.5: 1);
+  float ki_turny = 0.16 * (hms->data.nCells < 3 ? 1.5: 1);
   unsigned long firstTimestamp = micros();
   unsigned long lastTimestamp = micros(); // zach I pinky promise that these two timestamps
   // will not be subtracted from each other and result in divide by zero errors.

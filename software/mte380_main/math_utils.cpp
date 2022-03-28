@@ -1,6 +1,23 @@
 #include "math_utils.h"
 #include "Arduino.h"
 
+float rad2deg(float rad){
+  return rad * 180 / PI;
+}
+
+float deg2rad(float deg){
+  return deg / 180 * PI;
+}
+
+float cosd(float deg){
+  return cos(deg2rad(deg));
+}
+
+float sind(float deg){
+  return sin(deg2rad(deg));
+}
+
+
 bool float_eq(float num1, float num2) {
       float diff = num1 - num2;
       return (diff < EPSILON) && ((diff*(-1)) < EPSILON);
@@ -29,8 +46,3 @@ float constrainVal(float val, float maximum){
   }
   return val;
 }
-
-float rad2deg(float rad){
-  return rad * 180 / PI;
-}
-

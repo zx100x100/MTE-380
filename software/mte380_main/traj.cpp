@@ -12,7 +12,7 @@
 #define TRAP_SPEED 2 // tiles/s
 
 // #define OFFSET_WALLS_FOR_SAFETY_TEMP 0 //0.3
-#define OFFSET_WALLS_FOR_SAFETY_TEMP 0.3 //0.3
+#define OFFSET_WALLS_FOR_SAFETY_TEMP 0 //0.3
 
 Subline::Subline(){}
 Subline::Subline(float d1, float d4, float v1, float v4, Hms* hms):
@@ -385,13 +385,20 @@ void Traj::init(){
 
   /* heap_caps_check_integrity(MALLOC_CAP_8BIT, true); */
 
-  segments[0] = new Line(4.5,5.5 -OFFSET_WALLS_FOR_SAFETY_TEMP,1+OFFSET_WALLS_FOR_SAFETY_TEMP, 5.5 -OFFSET_WALLS_FOR_SAFETY_TEMP,cmdData->trapX,cmdData->trapY,hms);
+  segments[0] = new Line(4.5,5.5,1,5.5,cmdData->trapX,cmdData->trapY,hms);
   segments[1] = new Curve(1,5,BL,hms); // BL = bottom left, etc.
-  segments[2] = new Line(0.5+OFFSET_WALLS_FOR_SAFETY_TEMP,5- OFFSET_WALLS_FOR_SAFETY_TEMP,0.5+ OFFSET_WALLS_FOR_SAFETY_TEMP,1+OFFSET_WALLS_FOR_SAFETY_TEMP,cmdData->trapX,cmdData->trapY,hms);
+  segments[2] = new Line(0.5,5,0.5,1,cmdData->trapX,cmdData->trapY,hms);
   segments[3] = new Curve(1,1,TL,hms);
-  segments[4] = new Line(1+ OFFSET_WALLS_FOR_SAFETY_TEMP,0.5+ OFFSET_WALLS_FOR_SAFETY_TEMP,5-OFFSET_WALLS_FOR_SAFETY_TEMP,0.5+OFFSET_WALLS_FOR_SAFETY_TEMP,cmdData->trapX,cmdData->trapY,hms);
+
+  // this motherfucker has a trap on it
+  segments[4] = new Line(1,0.5,5,0.5,cmdData->trapX,cmdData->trapY,hms);
+
+  // Line* tempLine = static_cast<Line*>(segments[4]);
+  // Serial.println(tempLine->xb);
+  // while(true){}
+
   segments[5] = new Curve(5,1,TR,hms);
-  segments[6] = new Line(5.5 - OFFSET_WALLS_FOR_SAFETY_TEMP/2,1+OFFSET_WALLS_FOR_SAFETY_TEMP/2,5.5-OFFSET_WALLS_FOR_SAFETY_TEMP/2,4-OFFSET_WALLS_FOR_SAFETY_TEMP/2,cmdData->trapX,cmdData->trapY,hms);
+  segments[6] = new Line(5.5,1,5.5,4,cmdData->trapX,cmdData->trapY,hms);
   segments[7] = new Curve(5,4,BR_,hms);
   segments[8] = new Line(5,4.5,2,4.5,cmdData->trapX,cmdData->trapY,hms);
   segments[9] = new Curve(2,4,BL,hms);
