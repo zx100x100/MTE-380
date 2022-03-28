@@ -5,6 +5,8 @@
 #include "sensors.h"
 #include "hms.h"
 
+enum CorrectionMode{ UNGUIDED, GUIDED, PARALLEL, GUIDED_GYRO };
+
 class Sorry{
   public:
     Sorry();
@@ -13,8 +15,8 @@ class Sorry{
     bool isValid(int tofNum);
     float getTofFt(int tofNum);
     bool updateWallAngleAndDistance();
-    void driveTick(float motorPower, float leftWallDist);
-    void drive(unsigned long goMediumForFirst, unsigned long goFastFor, unsigned long goFastUnguidedDur, unsigned long goMediumFor, float distanceToStopAt, float leftWallDist, bool ultraPower=false);
+    void driveTick(float motorPower, float leftWallDist, CorrectionMode correctionMode, bool firstTick);
+    void drive(float motorPower, unsigned long timeout, float leftWallDist, CorrectionMode correctionMode, float distanceToStopAt=-1);
     void turnInPlace();
     void run();
 
@@ -26,12 +28,13 @@ class Sorry{
     unsigned long curT;
     unsigned long deltaT;
 
-    bool dontCorrectDrift;
+    bool firstTick;
+
+    float gyroTurnStartAngle;
 
     Hms* hms;
     Nav* nav;
     Motors* motors;
     Sensors* sensors;
-
 };
 #endif

@@ -1,10 +1,12 @@
 #include "sorry.h"
 #include "math_utils.h"
 
-#define ULTRA_POWER_MWAHAHAHA 140
+#define ULTRA_ULTRA_POWER 180
+#define ULTRA_POWER 140
 #define FAST_POWER 80
 #define MEDIUM_POWER 76
 #define SLOW_POWER 62
+#define STOPPED_POWER 0
 
 #define MAX_OUTPUT_POWER 110
 
@@ -30,6 +32,8 @@
 #define kD_drift 900
 #define kI_drift 0.002
 
+#define TURN_IN_PLACE_TIMEOUT 2000000
+
 Sorry::Sorry(Motors* motors, Sensors* sensors, Nav* nav, Hms* hms):
 motors(motors),
 sensors(sensors),
@@ -40,111 +44,79 @@ nav(nav){
   angFromWall = 0;
   deltaT = 0;
   curT = micros();
-  dontCorrectDrift = false;
 }
 
 void Sorry::run(){
-  drive(0, 800000, 0, 200000, 0.55, 0.5);
+  /* calibrateGyro(); */
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
   turnInPlace();
-  drive(0, 800000, 0, 200000, 0.55, 0.5);
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
   turnInPlace();
-  drive(0, 800000, 0, 200000, 0.48, 0.5);
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
+  drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
   turnInPlace();
-  drive(3300000, 260000, 0, 200000, 1.5, 0.4, true);
+  drive(MEDIUM_POWER,  3300, 0.4,  GUIDED        );
+  drive(ULTRA_POWER,   260,  0.4,  UNGUIDED      );
+  drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
   turnInPlace();
-  drive(0, 1000000, 0, 1200000, 1.5, 1.47);
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  GUIDED        );
   turnInPlace();
-  drive(0, 1000000, 0, 1200000, 1.5, 1.47);
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
   turnInPlace();
-  drive(0, 1000000, 0, 1200000, 1.5, 1.47);
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
   turnInPlace();
-  drive(0, 1000000, 0, 1200000, 2.5, 1.47);
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
   turnInPlace();
 }
 
-void Sorry::drive(unsigned long goMediumForFirst, unsigned long goFastFor, unsigned long goFastUnguidedDur, unsigned long goMediumFor, float distanceToStopAt, float leftWallDist, bool ultraPower){
-  if (goMediumForFirst > 0){
-    unsigned long startT0 = micros();
-    while(true){
-      deltaT = micros() - curT;
-      curT += deltaT;
-      if (curT - startT0 >= goMediumForFirst){
-        break;
-      }
-      driveTick(MEDIUM_POWER, leftWallDist);
-    }
-  }
-  if (goFastFor > 0){
-    unsigned long startT1 = micros();
-    while(true){
-      deltaT = micros() - curT;
-      curT += deltaT;
-      if (curT - startT1 <= goFastFor - goFastUnguidedDur){
-        dontCorrectDrift = true;
-      }
-      else{
-        dontCorrectDrift = false;
-      }
-      if (curT - startT1 >= goFastFor){
-        break;
-      }
-      driveTick(ultraPower?ULTRA_POWER_MWAHAHAHA:FAST_POWER, leftWallDist);
-    }
-    dontCorrectDrift = false;
-  }
-
-  if (goMediumFor > 0){
-    unsigned long startT2 = micros();
-    /* motors->setPower(MEDIUM, MEDIUM); */
-    while(true){
-      deltaT = micros() - curT;
-      curT += deltaT;
-      if (curT - startT2 >= goMediumFor){
-        break;
-      }
-      driveTick(MEDIUM_POWER, leftWallDist);
-    }
-  }
-
-  unsigned long startLastMoveT = micros();
-  unsigned long timeout = 8 * 1000000;
+void Sorry::drive(float motorPower, unsigned long timeout, float leftWallDist, CorrectionMode correctionMode, float distanceToStopAt){
+  timeout *= 1000;
+  unsigned long startT = micros();
+  curT = micros();
+  firstTick = true;
   while(true){
     deltaT = micros() - curT;
     curT += deltaT;
     float frontDist = getTofFt(0);
-    Serial.printf("frontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
-    if (frontDist <= distanceToStopAt + STOP_OFFSET){
-      break;
+    if (distanceToStopAt > 0){
+      Serial.printf("frontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
+      if (frontDist <= distanceToStopAt + STOP_OFFSET){
+        break;
+      }
     }
-    if (micros() - startLastMoveT >= timeout){
+    if (curT - startT >= timeout){
       break;
     }
     nav->getGyroAngle(); // literally just so fusion updates
-    driveTick(SLOW_POWER, leftWallDist);
-  }
-  unsigned long startStayStillT = micros();
-  unsigned long stayStillTime = 1000000;
-  curT = micros();
-  while (micros() - startStayStillT < stayStillTime){
-    deltaT = micros() - curT;
-    curT += deltaT;
-    float frontDist = getTofFt(0);
-    Serial.printf("xxfrontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
-    nav->getGyroAngle(); // literally just so fusion updates
-    driveTick(0, leftWallDist);
-  }
-  motors->setAllToZero();
-  unsigned long beforeFinishT = micros();
-  unsigned long endWait = 1000000;
-  while(micros()-beforeFinishT < endWait){
-    Serial.println(nav->getGyroAngle());
-    delay(40);
+    driveTick(motorPower, leftWallDist, correctionMode, firstTick);
+    firstTick = false;
   }
 
-  // RESET INTEGRAL TERMS!!
-  errDriftI = 0;
+  if (motorPower == STOPPED_POWER){
+    motors->setAllToZero();
+  }
 }
-
 
 bool Sorry::isValid(int tofNum){
   return !(getTofFt(tofNum) > TRACK_DIM  || getTofFt(tofNum) <= 0);
@@ -160,24 +132,45 @@ bool Sorry::updateWallAngleAndDistance(){
   return isValid(1) && isValid(2);
 }
 
-void Sorry::driveTick(float motorPower, float leftWallDist){
-  sensors->update();
-  nav->getGyroAngle();
+void Sorry::driveTick(float motorPower, float leftWallDist, CorrectionMode correctionMode, bool firstTick){
+  if (correctionMode != GUIDED_GYRO){
+    sensors->update();
+  }
+  float gyroAngle = nav->getGyroAngle();
+
   // DRIFT PID --------------------------------------------------------------------------
   float lastErrDrift = errDrift;
   float dist = left - leftWallDist;
 
-  float desiredAngle = -rad2deg(atan(dist/DRIFT_LOOK_AHEAD_DIST));
-
-  if (!updateWallAngleAndDistance() || (motorPower == ULTRA_POWER_MWAHAHAHA && dontCorrectDrift)){
+  float desiredAngle;
+  if (!updateWallAngleAndDistance() || correctionMode == UNGUIDED){
     motors->setPower(motorPower, motorPower);
+    return;
   }
-
+  else if (correctionMode == PARALLEL){
+    desiredAngle = 0;
+  }
+  else if (correctionMode == GUIDED){
+    desiredAngle = -rad2deg(atan(dist/DRIFT_LOOK_AHEAD_DIST));
+  }
   errDrift = angFromWall - desiredAngle;
+  if (correctionMode == GUIDED_GYRO){
+    if (firstTick){
+      gyroTurnStartAngle = gyroAngle;
+    }
+    else{
+      desiredAngle = gyroTurnStartAngle;
+      errDrift = gyroAngle - desiredAngle;
+    }
+  }
   float errDriftD = (errDrift - lastErrDrift)*1000/deltaT;
   errDriftI += errDrift * deltaT/1000;
   if (sign(lastErrDrift) != sign(errDrift)){
     errDriftI = 0;
+  }
+  if (firstTick){
+    errDriftI = 0;
+    errDriftD = 0;
   }
   errDriftI = constrainVal(errDriftI, MAX_DRIFT_ERROR_I);
 
@@ -186,9 +179,12 @@ void Sorry::driveTick(float motorPower, float leftWallDist){
   float D = errDriftD * kD_drift;
 
   float driftOutput = P + I + D;
+
+  driftOutput *= motorPower / MAX_OUTPUT_POWER;
   if (motorPower == SLOW_POWER){
     driftOutput *= 0.6;
   }
+
   float rightOutputDrift = driftOutput;
   float leftOutputDrift = -driftOutput;
     
@@ -225,19 +221,16 @@ void Sorry::driveTick(float motorPower, float leftWallDist){
 }
 
 void Sorry::turnInPlace(){
-  // float threshhold = 5; // end loop when 5 degrees from donezo
-  float threshold = 3; // end loop when 2 degrees from donezo for thresholdTime sec
+  float threshold = 3; // end loop when 3 degrees from donezo for thresholdTime sec
   unsigned long thresholdTime = 50000;
   float angleDelta = 0;
-
   float DUMB_ERROR_OFFSET = 0;
-
   float turnAmount = 90 + DUMB_ERROR_OFFSET;
   float error = turnAmount;
   float lastError = error;
   float kp_turny = 1.5;
   float kd_turny = 400;
-  float ki_turny = 0.18 * (hms->data.nCells < 3 ? 1.5: 1);
+  float ki_turny = 0.18;
   unsigned long _firstT = micros();
   unsigned long lastTimestamp = micros(); // zach I pinky promise that these two timestamps
   // will not be subtracted from each other and result in divide by zero errors.
@@ -293,7 +286,7 @@ void Sorry::turnInPlace(){
     lastTimestamp = curTs;
 
     /* if it takes longer than 4 seconds to turn, you fucked up */
-    if (curTs - _firstT > 2*1000*1000){
+    if (curTs - _firstT > TURN_IN_PLACE_TIMEOUT){
       Serial.println("turn better next time please");
       break;
     }
