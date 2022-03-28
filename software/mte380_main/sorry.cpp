@@ -34,6 +34,24 @@
 
 #define TURN_IN_PLACE_TIMEOUT 2000000
 
+
+// MAJOR TODOs
+// 0) Don't bother updating back TOF 99% of the time, we only need it for possibly TODO #3 (add a flag to sensors::update()
+
+// 1) Calibrate gyro at start,
+//   1b) keep a running curAngle, account for gyro drift every tick.
+//   1c) when running getWallAngle, if the angle calculated differs sufficiently from the gyro's measurement, just trust the gyro. In that case, just re-use the previous wall distance (distToLeftWallError) for correction.
+
+// 2) If front or left TOF readings are bad for long enough, just stop the robot entirely I guess
+//
+// 3) Use either backTof distance or the correct gyro axis to calculate when we've overcome the trap lip, make some kind of new threshhold argument to drive() with a default value <- eg. by default dont use this new threshold so we can enable it for just the trap segment
+//
+// 4) if curDistToLeftWall differs by the expected by more than 1 tile, use GUIDED_GYRO correction instead of GUIDED
+// 4b) if this persists for more than some threshold like 1 second or something, stop robot entirely
+//
+// 5) do all TOF i2c commands from seperate thread, see https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
+// 5b) if thread hangs kill it ASAP and try again
+
 Sorry::Sorry(Motors* motors, Sensors* sensors, Nav* nav, Hms* hms):
 motors(motors),
 sensors(sensors),
@@ -63,8 +81,9 @@ void Sorry::run(){
   drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
   drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
   turnInPlace();
+  // segment 3: deep pit to climb
   drive(MEDIUM_POWER,  3300, 0.4,  GUIDED        );
-  drive(ULTRA_POWER,   260,  0.4,  UNGUIDED      );
+  drive(ULTRA_ULTRA_POWER,260,0.4, UNGUIDED      );
   drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
   drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
   turnInPlace();
@@ -90,7 +109,7 @@ void Sorry::run(){
   turnInPlace();
 }
 
-void Sorry::drive(float motorPower, unsigned long timeout, float leftWallDist, CorrectionMode correctionMode, float distanceToStopAt){
+void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt){
   timeout *= 1000;
   unsigned long startT = micros();
   curT = micros();
@@ -109,7 +128,7 @@ void Sorry::drive(float motorPower, unsigned long timeout, float leftWallDist, C
       break;
     }
     nav->getGyroAngle(); // literally just so fusion updates
-    driveTick(motorPower, leftWallDist, correctionMode, firstTick);
+    driveTick(motorPower, desiredDistToLeftWall, correctionMode, firstTick);
     firstTick = false;
   }
 
@@ -123,16 +142,16 @@ bool Sorry::isValid(int tofNum){
 }
 
 float Sorry::getTofFt(int tofNum){
-  return sensors->tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+  return sensors->tof[tofNum].getData().distToLeftWallError * 0.00328084; //mm -> ft
 }
 
 bool Sorry::updateWallAngleAndDistance(){
   angFromWall = rad2deg(atan((getTofFt(1) - getTofFt(2)) / L_Y_DELTA));
-  left = ((getTofFt(1) + getTofFt(2)) / 2 + L_X_OFFSET) * cosd(angFromWall);
+  curDistToLeftWall = ((getTofFt(1) + getTofFt(2)) / 2 + L_X_OFFSET) * cosd(angFromWall);
   return isValid(1) && isValid(2);
 }
 
-void Sorry::driveTick(float motorPower, float leftWallDist, CorrectionMode correctionMode, bool firstTick){
+void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionMode correctionMode, bool firstTick){
   if (correctionMode != GUIDED_GYRO){
     sensors->update();
   }
@@ -140,7 +159,7 @@ void Sorry::driveTick(float motorPower, float leftWallDist, CorrectionMode corre
 
   // DRIFT PID --------------------------------------------------------------------------
   float lastErrDrift = errDrift;
-  float dist = left - leftWallDist;
+  float distToLeftWallError = curDistToLeftWall - desiredDistToLeftWall;
 
   float desiredAngle;
   if (!updateWallAngleAndDistance() || correctionMode == UNGUIDED){
@@ -151,7 +170,7 @@ void Sorry::driveTick(float motorPower, float leftWallDist, CorrectionMode corre
     desiredAngle = 0;
   }
   else if (correctionMode == GUIDED){
-    desiredAngle = -rad2deg(atan(dist/DRIFT_LOOK_AHEAD_DIST));
+    desiredAngle = -rad2deg(atan(distToLeftWallError/DRIFT_LOOK_AHEAD_DIST));
   }
   errDrift = angFromWall - desiredAngle;
   if (correctionMode == GUIDED_GYRO){
