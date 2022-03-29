@@ -14,7 +14,7 @@ class Motors{
   public:
     Motors(GuidanceData& guidanceData, Hms* hms);
     void update();
-    void setPower(float leftPower, float rightPower);
+    void setPower(float leftPower, float rightPower, bool breakingBool = false);
 
     void setAllToZero();
 
