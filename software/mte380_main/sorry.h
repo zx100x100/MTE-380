@@ -20,7 +20,7 @@ class Sorry{
     float getDriftCorrectedGyroAngle(unsigned long microsSinceLastZeroed);
     float bringGyroMeasurementIntoPositiveDegreesUsingNumClockwiseWraparounds(float rawAngle);
     void calibrateGyroDrift();
-    void drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt=-1);
+    void drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt=-1, float pitchToStopAt = -1);
     void turnInPlace();
     void run();
 

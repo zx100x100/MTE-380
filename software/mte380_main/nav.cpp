@@ -60,6 +60,28 @@ float Nav::getGyroAngle(){
   return yaw;
 }
 
+float Nav::getGyroAnglePitch(){
+  sensors.imu.poll();
+
+  fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
+
+  float pitch = -rad2deg(fusion.pitch());
+  /* Serial.print("yaw: "); Serial.println(yaw); */
+
+  return pitch;
+}
+
+float Nav::getGyroAngleRoll(){
+  sensors.imu.poll();
+
+  fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
+
+  float roll = -rad2deg(fusion.roll());
+  /* Serial.print("yaw: "); Serial.println(yaw); */
+
+  return pitch;
+}
+
 bool Nav::tofsUpdated(){
     bool changed = true;
     for (int i = 0; i < 4; ++i){
