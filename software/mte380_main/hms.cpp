@@ -70,7 +70,7 @@ void Hms::updateLEDs(){
       redLedLastOn = !redLedLastOn;
     }
   }
-  else{
+  else if (redLedState == LED_FAST_FLASH){
     if (data.nTicks % LED_FAST_FLASH_TICKS_INTERVAL == 0){
       if (redLedLastOn){
         digitalWrite(LED_PIN_RED, 0);
@@ -80,6 +80,15 @@ void Hms::updateLEDs(){
       }
       redLedLastOn = !redLedLastOn;
     }
+  }
+  else if (redLedState == LED_OFF){
+    if (redLedLastOn){
+      digitalWrite(LED_PIN_RED, 0);
+    }
+    redLedLastOn = false;
+  }
+  else{
+    // code should never get here, all enum cases should be handled above
   }
 }
 
