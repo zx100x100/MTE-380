@@ -149,47 +149,52 @@ void Sorry::calibrateGyroDrift(){
 
 void Sorry::run(){
   calibrateGyroDrift();
-  drive(FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
-  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
-  turnInPlace();
-  drive(FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
-  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
-  turnInPlace();
-  drive(FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
-  drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
-  turnInPlace();
-  // segment 3: deep pit to climb
-  drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO     );
-  drive(MEDIUM_POWER,  3300, 0.4,  GUIDED, -1, 20); //The -1 is the flag for not reading distance to stop at (otherwise defaulted argument)
-  drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
-  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  turnInPlace();
-  drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  drive(STOPPED_POWER, 500,  0.4,  GUIDED        );
-  turnInPlace();
-  drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  turnInPlace();
-  drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  turnInPlace();
-  drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  turnInPlace();
+  drive(STOPPED_POWER, 20000,  0.5,  GUIDED        );
+
+
+
+
+  // drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  // drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  // drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  // drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
+  // turnInPlace();
+  // drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  // drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  // drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  // drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
+  // turnInPlace();
+  // drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  // drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  // drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
+  // drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
+  // turnInPlace();
+  // // segment 3: deep pit to climb
+  // // drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO     );
+  // drive(MEDIUM_POWER,  3300, 0.4,  GUIDED, -1, 20); //The -1 is the flag for not reading distance to stop at (otherwise defaulted argument)
+  // drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
+  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  // turnInPlace();
+  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  // drive(STOPPED_POWER, 500,  0.4,  GUIDED        );
+  // turnInPlace();
+  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  // turnInPlace();
+  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  // turnInPlace();
+  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  // turnInPlace();
 }
 
 void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt, float pitchToStopAt){

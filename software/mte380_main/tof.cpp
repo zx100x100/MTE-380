@@ -7,30 +7,35 @@
 /* Tof::Tof(){ */
 /* } */
 Tof::Tof(){
-  lastPolled = 0;
 }
 
 Tof::Tof(TofInfo* tofInfo){
   sensor_vl53lx_sat = tofInfo->sensor;
   tofData = tofInfo->tofData;
+  tofData.dist = 0;
+  tofData.numObjs = 0;
+  tofData.count = 0;
+  tofData.timeoutCount = 0;
+  tofData.lastPolled = 0;
   index = tofInfo->tofIndex;
+  dataMutex = tofInfo->dataMutex;
   init();
 }
 
 
 bool Tof::init(){
   bool initializedProperly = true;
-  if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("begin"); }
+  // if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("begin"); }
 
   // Configure VL53LX satellite component.
   sensor_vl53lx_sat->begin();
 
-  if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("init tof sensor");}
+  // if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("init tof sensor");}
   //Initialize VL53LX satellite component.
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
 
-  if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index);  Serial.println("start measurement"); }
+  // if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index);  Serial.println("start measurement"); }
   // Start Measurements
   sensor_vl53lx_sat->VL53LX_StartMeasurement();
 
@@ -44,7 +49,10 @@ TofData& Tof::getData(){
 }
 
 void Tof::poll(){
+  TickType_t mutexTimeout = MUTEX_TIMEOUT_TICKS;
+  xSemaphoreTake(dataMutex, mutexTimeout);
   lastPolled = micros();
+  xSemaphoreGive(dataMutex);
   VL53LX_MultiRangingData_t MultiRangingData;
   VL53LX_MultiRangingData_t* pMultiRangingData = &MultiRangingData;
 
@@ -60,16 +68,18 @@ void Tof::poll(){
         tofData.numObjs = pMultiRangingData->NumberOfObjectsFound;
 
         snprintf(report, sizeof(report), " TOF %d: Count=%d, #Objs=%1d ", index, tofData.count, tofData.numObjs);
-        if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
+        // if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
         lastReading = micros();
         if (tofData.numObjs){ // if at least 1 object found
-          if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter); }
-          if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(pMultiRangingData->RangeData[0].RangeMilliMeter); }
-          if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist: "); Serial.println(tofData.dist); }
+          // if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter); }
+          // if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(pMultiRangingData->RangeData[0].RangeMilliMeter); }
+          // if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist: "); Serial.println(tofData.dist); }
           if (pMultiRangingData->RangeData[0].RangeStatus == 0 && tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter){
             consecutiveBadReadings = 0;
+            xSemaphoreTake(dataMutex, mutexTimeout);
             tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
             tofData.count = pMultiRangingData->StreamCount;
+            xSemaphoreGive(dataMutex);
           } else{
             consecutiveBadReadings++;
             if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
@@ -121,7 +131,9 @@ void Tof::poll(){
     if (hms->data.sensorsLogLevel >= 1) { Serial.print("tof"); Serial.print(index); Serial.println("Timeout");}
     status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
     NewDataReady = 0;
+    xSemaphoreTake(dataMutex, mutexTimeout);
     tofData.timeoutCount++;
+    xSemaphoreGive(dataMutex);
 
 
     if (tofData.timeoutCount % MAX_TIMEOUTS == 0){

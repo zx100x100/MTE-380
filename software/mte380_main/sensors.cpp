@@ -52,9 +52,10 @@ bool Sensors::init(){
 
   Wire.begin();
   Wire.setClock(400000);
+  SemaphoreHandle_t newMutexHandle = xSemaphoreCreateMutex();
 
   for (int i=0; i<4; i++){
-    struct TofInfo newTofInfo = {sensor_vl53lx_sat[i], TofData_init_zero, i, hms};
+    struct TofInfo newTofInfo = {sensor_vl53lx_sat[i], TofData_init_zero, i, hms, newMutexHandle};
     tofInfo[i] = newTofInfo;
     xTaskCreate(
         tofTask, /* Task function. */
@@ -106,12 +107,18 @@ void Sensors::initGyro(){
 }
 
 uint32_t Sensors::getTofDist(int n){
-  return tofInfo[n].tofData.dist;
+  xSemaphoreTake(tofInfo[n].dataMutex, MUTEX_TIMEOUT_TICKS);
+  uint32_t dist = tofInfo[n].tofData.dist;
+  xSemaphoreGive(tofInfo[n].dataMutex);
+  return dist;
 }
 
 void Sensors::tofWatchdog(){
   for (int i=0; i<4; i++){
-    if ((micros() - tofInfo[i].tofData.lastPolled)/1000 > TOF_TIMEOUT_MS){
+    xSemaphoreTake(tofInfo[i].dataMutex, MUTEX_TIMEOUT_TICKS);
+    unsigned long timeSinceLastPollMs = (micros() - tofInfo[i].tofData.lastPolled)/1000;
+    xSemaphoreGive(tofInfo[i].dataMutex);
+    if (timeSinceLastPollMs > TOF_TIMEOUT_MS){
       Serial.println("Watchdog go brrrrrrrr");
       vTaskDelete(xHandle[i]);
       Serial.println("We killed it");
