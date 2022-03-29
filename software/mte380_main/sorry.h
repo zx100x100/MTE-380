@@ -35,8 +35,6 @@ class Sorry{
 
     bool firstTick;
 
-    float gyroTurnStartAngle;
-
     Hms* hms;
     Nav* nav;
     Motors* motors;

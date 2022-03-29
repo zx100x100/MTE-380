@@ -275,7 +275,7 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
   }
   float curAngle;
   if (correctionMode == GUIDED_GYRO){
-      desiredAngle = gyroTurnStartAngle;
+      desiredAngle = startCurDriveSegmentAngle;
       curAngle = gyroAngle;
   }
   else if (updateWallAngleAndDistance(gyroAngle, desiredDistToLeftWall, firstTick) && correctionMode == GUIDED){
