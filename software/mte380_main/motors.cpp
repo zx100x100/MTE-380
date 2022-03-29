@@ -10,9 +10,7 @@
 // #define PROP_MIN 55
 // #define PROP_MAX 150
 
-Motors::Motors(GuidanceData& guidanceData,
-               Hms* hms):
-  guidanceData(guidanceData),
+Motors::Motors(Hms* hms):
   hms(hms)
 {
   setAllToZero();
@@ -54,31 +52,4 @@ void Motors::setPower(float leftPower, float rightPower, bool breakingBool){
     analogWrite(RIGHT_DRIVE_1, 0, PWM_FREQ);
     analogWrite(RIGHT_DRIVE_2, -rightPower, PWM_FREQ);
   }
-}
-
-void Motors::update(){
-  if (hms->data.mainLogLevel >= 2) Serial.println("motors");
-  if(hms->data.mainLogLevel >= 2){ Serial.print("leftPower: "); Serial.println(guidanceData.leftPower); }
-  if(hms->data.mainLogLevel >= 2){ Serial.print("rightPower: "); Serial.println(guidanceData.rightPower); }
-  if (guidanceData.leftPower >= 0){
-    // Serial.println("MOTORS::::::::::::::;");
-    // if(hms->data.guidanceLogLevel >= 2){ Serial.print("guidanceData.leftPower: "); Serial.println(guidanceData.leftPower); }
-    analogWrite(LEFT_DRIVE_1, guidanceData.leftPower, PWM_FREQ);
-    analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);
-  }
-  else{
-    analogWrite(LEFT_DRIVE_1, 0, PWM_FREQ);
-    analogWrite(LEFT_DRIVE_2, -guidanceData.leftPower, PWM_FREQ);
-  }
-  if (guidanceData.rightPower >= 0){
-    analogWrite(RIGHT_DRIVE_1, guidanceData.rightPower, PWM_FREQ);
-    analogWrite(RIGHT_DRIVE_2, 0, PWM_FREQ);
-  }
-  else{
-    analogWrite(RIGHT_DRIVE_1, 0, PWM_FREQ);
-    analogWrite(RIGHT_DRIVE_2, -guidanceData.rightPower, PWM_FREQ);
-  }
-  // float propPower = map(guidanceData.propPower, 0, 255, PROP_MIN, PROP_MAX);
-  // if (hms->data.mainLogLevel >= 2){ Serial.print("propPower: "); Serial.println(propPower);}
-  // propServo.write(propPower);
 }

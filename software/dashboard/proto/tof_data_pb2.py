@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14proto/tof_data.proto\"M\n\x07TofData\x12\x0c\n\x04\x64ist\x18\x01 \x01(\r\x12\x0f\n\x07numObjs\x18\x02 \x01(\r\x12\r\n\x05\x63ount\x18\x03 \x01(\r\x12\x14\n\x0ctimeoutCount\x18\x04 \x01(\rb\x06proto3'
+  serialized_pb=b'\n\x14proto/tof_data.proto\"a\n\x07TofData\x12\x0c\n\x04\x64ist\x18\x01 \x01(\r\x12\x0f\n\x07numObjs\x18\x02 \x01(\r\x12\r\n\x05\x63ount\x18\x03 \x01(\r\x12\x14\n\x0ctimeoutCount\x18\x04 \x01(\r\x12\x12\n\nlastPolled\x18\x05 \x01(\rb\x06proto3'
 )
 
 
@@ -61,6 +61,13 @@ _TOFDATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='lastPolled', full_name='TofData.lastPolled', index=4,
+      number=5, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -74,7 +81,7 @@ _TOFDATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=24,
-  serialized_end=101,
+  serialized_end=121,
 )
 
 DESCRIPTOR.message_types_by_name['TofData'] = _TOFDATA

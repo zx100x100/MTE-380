@@ -4,14 +4,19 @@
 #define MAX_TIMEOUTS 5
 #define MAX_BAD_READINGS 5
 
-/* Tof::Tof(){ */
-/* } */
-Tof::Tof()
-{
+Tof::Tof(){
 }
 
-bool Tof::init(){
+Tof::Tof(VL53LX* tof_sensor, uint8_t tof_index):
+  sensor_vl53lx_sat(tof_sensor)
+{
+  tofData = {0, 0, 0, 0};
+  index = tof_index;
+  init();
+}
 
+
+bool Tof::init(){
   bool initializedProperly = true;
   if (print){ Serial.print("tof"); Serial.print(index); Serial.println("begin"); }
 
@@ -30,14 +35,6 @@ bool Tof::init(){
   needsToBeInitialized = false;
 
   return initializedProperly;
-}
-
-Tof::Tof(VL53LX* tof_sensor, uint8_t tof_index):
-  sensor_vl53lx_sat(tof_sensor)
-{
-  tofData = {0, 0, 0, 0};
-  index = tof_index;
-  init();
 }
 
 TofData& Tof::getData(){

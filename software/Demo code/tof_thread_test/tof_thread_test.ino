@@ -1,5 +1,5 @@
 #include "tof.h"
-#include "FreeRTOSConfig.h"
+/* #include "FreeRTOSConfig.h" */
 
 #define TOF_X_SHUT 19
 #define TOF_INDEX 0
@@ -14,13 +14,11 @@ volatile TofData tofData;
 
 void setup()
 {
-    Serial.begin(112500);
+    Serial.begin(115200);
     Wire.begin();
     Wire.setClock(400000);
 
-//     tof = Tof(static_cast<VL53LX*>(&sensor), TOF_INDEX);
-//     Serial.println("Started");
-    /* we create a new task here */
+    Serial.println("Started");
     xTaskCreate(
         tofTask, /* Task function. */
         "tof Task", /* name of task. */
@@ -38,14 +36,21 @@ void loop()
     Serial.println("this is ESP32 Task");
 
     TickType_t xLastWakeTime;
-    const TickType_t xFrequency = 1000;
+    const TickType_t xFrequency = 100;
 
-    xLastWakeTime = xTaskGetTickCount ();
+    xLastWakeTime = xTaskGetTickCount();
 
     while(true){
         Serial.print("wakeTime: "); Serial.println(xLastWakeTime);
+        /* continue; */
+        /* if ((micros() - lastReading)/1000 > 250){ */
         vTaskDelayUntil( &xLastWakeTime, xFrequency );
-        if (micros() - lastReading > 250){
+
+
+        // you have this
+        // you needed this
+        if ((micros() - lastReading)/1000 > 150){
+
             Serial.println("Watchdog go brrrrrrrr");
             vTaskDelete(xHandle);
             Serial.println("We killed it");
@@ -67,11 +72,10 @@ void loop()
 void tofTask( void * sensorPtr )
 {
     tof = Tof(static_cast<VL53LX*>(sensorPtr), TOF_INDEX);
-    tof.print = false;
+    /* tof.print = false; */
     Serial.println("Started");
     /* loop forever */
-    for(;;)
-    {
+    for(;;){
         lastReading = micros();
         Serial.printf("tof poll: %lu\n", lastReading);
 

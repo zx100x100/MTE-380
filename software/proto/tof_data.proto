@@ -5,4 +5,5 @@ message TofData {
   uint32 numObjs = 2;
   uint32 count = 3;
   uint32 timeoutCount = 4;
+  uint32 lastPolled = 5;
 }

@@ -1,8 +1,6 @@
 #ifndef TOF_H
 #define TOF_H
 
-const static int tofPins[4] = {26, 25, 18, 19};
-
 #include "hms.h"
 #include "tof_data.pb.h"
 
@@ -14,11 +12,18 @@ const static int tofPins[4] = {26, 25, 18, 19};
 #include <stdio.h>
 #include <stdint.h>
 
+const static int tofPins[4] = {26, 25, 18, 19};
+struct TofInfo {
+  VL53LX* sensor;
+  TofData tofData;
+  uint8_t tofIndex;
+  Hms* hms;
+};
 
 class Tof{
   public:
     Tof();
-    Tof(Hms* hms, VL53LX* tof_sensor, uint8_t tof_index);
+    Tof(TofInfo* tofInfo);
     void poll();
     TofData& getData();
     bool init();
@@ -35,7 +40,7 @@ class Tof{
     char report[64];
     int status;
     int consecutiveBadReadings = 0;
-
+    unsigned long lastPolled = 0;
 };
 
 #endif

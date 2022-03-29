@@ -69,11 +69,11 @@
 // 5) do all TOF i2c commands from seperate thread, see https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
 // 5b) if thread hangs kill it ASAP and try again
 
-Sorry::Sorry(Motors* motors, Sensors* sensors, Nav* nav, Hms* hms):
+Sorry::Sorry(Motors* motors, Sensors* sensors, Hms* hms):
 motors(motors),
 sensors(sensors),
-hms(hms),
-nav(nav){
+hms(hms)
+{
   errDriftI = 0;
   angleError = 0;
   angFromWall = 0;
@@ -149,23 +149,23 @@ void Sorry::calibrateGyroDrift(){
 
 void Sorry::run(){
   calibrateGyroDrift();
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55); */
-  /* drive(STOPPED_POWER, 500,  0.5,  GUIDED        ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55); */
-  /* drive(STOPPED_POWER, 500,  0.5,  GUIDED        ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48); */
-  /* drive(STOPPED_POWER, 500,  0.5,  PARALLEL      ); */
-  /* turnInPlace(); */
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
+  turnInPlace();
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
+  turnInPlace();
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
+  drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
+  turnInPlace();
   // segment 3: deep pit to climb
-  /* drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO   ); */
+  drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO     );
   drive(MEDIUM_POWER,  3300, 0.4,  GUIDED, -1, 20); //The -1 is the flag for not reading distance to stop at (otherwise defaulted argument)
   drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
   drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
@@ -201,7 +201,7 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
     deltaT = micros() - curT;
     curT += deltaT;
     float frontDist = getTofFt(0);
-    float pitch = nav->getGyroAnglePitch();
+    float pitch = sensors->getGyroAnglePitch();
     if (distanceToStopAt > 0){
       Serial.printf("frontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
       if (frontDist <= distanceToStopAt + STOP_OFFSET){
@@ -220,7 +220,6 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
     if (curT - startCurDriveSegmentT >= timeout){
       break;
     }
-    /* nav->getGyroAngle(); // literally just so fusion updates */
     driveTick(motorPower, desiredDistToLeftWall, correctionMode, firstTick);
     firstTick = false;
   }
@@ -231,7 +230,7 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
 }
 
 float Sorry::getDirectionCorrectedGyroAngle(){
-  return bringGyroMeasurementIntoPositiveDegreesUsingNumClockwiseWraparounds(nav->getGyroAngle());
+  return bringGyroMeasurementIntoPositiveDegreesUsingNumClockwiseWraparounds(sensors->getGyroAngle());
 }
 
 // correct a gyro angle 
@@ -246,7 +245,7 @@ bool Sorry::isValid(int tofNum){
 }
 
 float Sorry::getTofFt(int tofNum){
-  return sensors->tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+  return sensors->getTofDist(tofNum) * 0.00328084; //mm -> ft
 }
 
 bool Sorry::updateWallAngleAndDistance(float gyroAngle, float desiredDistToLeftWall, bool firstTick){
@@ -269,14 +268,15 @@ bool Sorry::updateWallAngleAndDistance(float gyroAngle, float desiredDistToLeftW
 void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionMode correctionMode, bool firstTick){
   float gyroAngle = 0;
   float desiredAngle = 0;
+  sensors->tofWatchdog();
   if (correctionMode == UNGUIDED){
-    nav->getGyroAngle();
+    sensors->getGyroAngle();
 #ifndef DISABLE_MOTORS
     motors->setPower(motorPower, motorPower*LOWER_RIGHT_VEL_SP_BY);
 #endif
     return;
   }
-  sensors->update(correctionMode==GUIDED_GYRO); // the bool param is skipTOFs which we do only in guided_gyro mode
+  // sensors->update(correctionMode==GUIDED_GYRO); // the bool param is skipTOFs which we do only in guided_gyro mode
   if (firstTick){
     startCurDriveSegmentAngle = getDirectionCorrectedGyroAngle();
     gyroAngle = startCurDriveSegmentAngle;
@@ -409,13 +409,7 @@ void Sorry::turnInPlace(){
 
   while(true){
     curTs = micros();
-    curAngle = getDriftCorrectedGyroAngle(curTs - _firstT); //nav->getGyroAngle();
-    /* if (curAngle - rawAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360 */
-      /* curAngle = 360 + rawAngle; */
-    /* } */
-    /* else{ */
-      /* curAngle = rawAngle; */
-    /* } */
+    curAngle = getDriftCorrectedGyroAngle(curTs - _firstT);
     angleDelta = curAngle - startAngle;
     error = turnAmount - angleDelta;
     if (fabs(error) < threshold){

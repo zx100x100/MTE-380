@@ -76,8 +76,9 @@ float Nav::getGyroAngleRoll(){
   fusion.update(sensors.imu.getData().gyroX, sensors.imu.getData().gyroY, sensors.imu.getData().gyroZ, sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
   float roll = rad2deg(fusion.roll());
+  /* Serial.print("yaw: "); Serial.println(yaw); */
 
-  return roll;
+  return pitch;
 }
 
 bool Nav::tofsUpdated(){

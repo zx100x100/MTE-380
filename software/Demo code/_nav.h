@@ -21,9 +21,6 @@ class Nav{
     void init();
     NavData& getData();
     void updatePred();
-    float getGyroAngle();
-    float getGyroAnglePitch();
-    float getGyroAngleRoll();
 
   private:
     NavData navData;

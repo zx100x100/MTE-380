@@ -64,7 +64,7 @@ void loop()
 void mainThread(void * state) {
     while(g_mainSync.post([](void * state){
                                             Serial.println("main");
-                                            if (micros() - lastReading > 250){
+                                            if ((micros() - lastReading)/1000 > 250){
                                                 Serial.println("Watchdog go brrrrrrrr");
                                                 vTaskDelete(xHandle);
                                                 Serial.println("We killed it");
