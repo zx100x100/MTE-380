@@ -38,19 +38,6 @@ Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
 void Nav::init(){
   //set up sensor fusion lib
   /* fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ); */
-
-  unsigned long startT = micros();
-  unsigned long curT = 0;
-  unsigned long initTime = 1*1000*1000;
-  Serial.println("waiting for gyro to calm down");
-  while(true){
-    float rawAngle = getGyroAngle();
-    Serial.print("gyro raw (stop drifting pls): "); Serial.println(rawAngle);
-    curT = micros();
-    if (curT - startT > initTime){
-      break;
-    }
-  }
 }
 
 float Nav::getTofFt(TofOrder tofNum){

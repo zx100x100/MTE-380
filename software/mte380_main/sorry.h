@@ -14,16 +14,21 @@ class Sorry{
 
     bool isValid(int tofNum);
     float getTofFt(int tofNum);
-    bool updateWallAngleAndDistance();
+    bool updateWallAngleAndDistance(float gyroAngle, float desiredDistToLeftWall, bool firstTick);
     void driveTick(float motorPower, float leftWallDist, CorrectionMode correctionMode, bool firstTick);
-    void drive(float motorPower, unsigned long timeout, float leftWallDist, CorrectionMode correctionMode, float distanceToStopAt=-1);
+    float getDirectionCorrectedGyroAngle();
+    float getDriftCorrectedGyroAngle(unsigned long microsSinceLastZeroed);
+    float bringGyroMeasurementIntoPositiveDegreesUsingNumClockwiseWraparounds(float rawAngle);
+    void calibrateGyroDrift();
+    void drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt=-1);
     void turnInPlace();
     void run();
 
     float errDriftI;
-    float errDrift;
-    float left;
+    float curDistToLeftWall;
     float angFromWall;
+    float gyroAngleAtLastValidWallAngle;
+    float lastValidWallAngle;
 
     unsigned long curT;
     unsigned long deltaT;
@@ -36,5 +41,12 @@ class Sorry{
     Nav* nav;
     Motors* motors;
     Sensors* sensors;
+
+    unsigned long startCurDriveSegmentT;
+    bool prevGyroMeasurementWasLargeAndMightWrapAroundToNegative;
+    int numGyroClockwiseWraparounds = 0;
+    float gyroDriftPerMicro;
+    float startCurDriveSegmentAngle;
+    float angleError;
 };
 #endif

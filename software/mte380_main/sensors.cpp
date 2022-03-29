@@ -52,10 +52,13 @@ void Sensors::updateBatteryVoltage(){
   // return sensorData;
 // }
 
-void Sensors::update(){
+void Sensors::update(bool skipTOFs, bool skipJustBackTof){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   imu.poll();
   for (int i=0; i<4; i++){
+    if (skipJustBackTof && i == 3){
+      break;
+    }
     tof[i].poll();
   }
 //  if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");

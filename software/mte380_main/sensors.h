@@ -18,7 +18,7 @@ class Sensors{
      bool init();
      void initGyro();
     // Sensors& getData();
-    void update();
+    void update(bool skipTOFs=false, bool skipJustBackTof=false);
     Imu imu;
     Tof tof[4];
     long timestamp;
