@@ -36,6 +36,8 @@
 
 #define TURN_IN_PLACE_TIMEOUT 2000000
 
+#define NO_PITCH_ANGLE_THRESHOLD -1000
+
 // ready to start calibration once the gyro has calmed down after init
 // (at init, it drifts like 10 deg / sec which is way faster than we actually expect and will be calibrating for.)
 #define MAX_DEGREES_PER_SECOND_BEFORE_CALIBRATION 0.2
@@ -164,7 +166,7 @@ void Sorry::run(){
   /* drive(STOPPED_POWER, 500,  0.5,  PARALLEL      ); */
   /* turnInPlace(); */
   /* // segment 3: deep pit to climb */
-  /* drive(MEDIUM_POWER,  3300, 0.4,  GUIDED        ); */
+  /* drive(MEDIUM_POWER,  3300, 0.4,  GUIDED, -1, 20); */ //The -1 is the flag for not reading distance to stop at (otherwise defaulted argument)
   /* drive(ULTRA_ULTRA_POWER,260,0.4, UNGUIDED      ); */
   /* drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50); */
   /* drive(STOPPED_POWER, 500,  0.4,  PARALLEL      ); */
@@ -191,7 +193,7 @@ void Sorry::run(){
   /* turnInPlace(); */
 }
 
-void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt){
+void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt, float pitchToStopAt){
   timeout *= 1000;
   startCurDriveSegmentT = micros();
   curT = micros();
@@ -200,9 +202,19 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
     deltaT = micros() - curT;
     curT += deltaT;
     float frontDist = getTofFt(0);
+    float pitch = nav->getGyroAnglePitch();
     if (distanceToStopAt > 0){
       Serial.printf("frontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
       if (frontDist <= distanceToStopAt + STOP_OFFSET){
+        break;
+      }
+    }
+    if (pitchToStopAt != NO_PITCH_ANGLE_THRESHOLD){
+      Serial.printf("Gyro pitch: %5.4f pitchToStop: %5.4f\n", pitch, pitchToStopAt);
+      if (pitch >= pitchToStopAt && pitchToStopAt > 0){
+        break;
+      }
+      else if (pitch <= pitchToStopAt && pitchToStopAt < 0){
         break;
       }
     }
