@@ -286,11 +286,19 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
     gyroAngle = getDriftCorrectedGyroAngle(curT - startCurDriveSegmentT);
   }
   float curAngle;
+
+  bool wallAngleAndDistanceUpdated = updateWallAngleAndDistance(gyroAngle, desiredDistToLeftWall, firstTick);
+  if (wallAngleAndDistanceUpdated){
+    hms->redLedState = LED_ON;
+  }
+  else{
+    hms->redLedState = LED_OFF;
+  }
   if (correctionMode == GUIDED_GYRO){
       desiredAngle = startCurDriveSegmentAngle;
       curAngle = gyroAngle;
   }
-  else if (updateWallAngleAndDistance(gyroAngle, desiredDistToLeftWall, firstTick) && correctionMode == GUIDED){
+  else if (wallAngleAndDistanceUpdated && correctionMode == GUIDED){
     float distToLeftWallError = curDistToLeftWall - desiredDistToLeftWall;
     desiredAngle = -rad2deg(atan(distToLeftWallError/DRIFT_LOOK_AHEAD_DIST));
     lastValidWallAngle = angFromWall;
