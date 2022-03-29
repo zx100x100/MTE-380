@@ -27,10 +27,14 @@ void Motors::setAllToZero(){
   // propServo.write(PROP_MIN);
 }
 
-void Motors::setPower(float leftPower, float rightPower){
+void Motors::setPower(float leftPower, float rightPower, bool breakingBool){
   if(hms->data.mainLogLevel >= 2){ Serial.print("leftPower: "); Serial.println(leftPower); }
   if(hms->data.mainLogLevel >= 2){ Serial.print("rightPower: "); Serial.println(rightPower); }
-  if (leftPower >= 0){
+  if(breakingBool == true){
+    analogWrite(LEFT_DRIVE_1, fabs(leftPower), PWM_FREQ);
+    analogWrite(LEFT_DRIVE_2, fabs(leftPower), PWM_FREQ);
+  }
+  else if (leftPower >= 0){
     analogWrite(LEFT_DRIVE_1, leftPower, PWM_FREQ);
     analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);
   }
@@ -38,7 +42,11 @@ void Motors::setPower(float leftPower, float rightPower){
     analogWrite(LEFT_DRIVE_1, 0, PWM_FREQ);
     analogWrite(LEFT_DRIVE_2, -leftPower, PWM_FREQ);
   }
-  if (rightPower >= 0){
+  if (breakingBool == true){
+    analogWrite(RIGHT_DRIVE_1, fabs(leftPower), PWM_FREQ);
+    analogWrite(RIGHT_DRIVE_2, fabs(leftPower), PWM_FREQ);
+  }
+  else if (rightPower >= 0){
     analogWrite(RIGHT_DRIVE_1, rightPower, PWM_FREQ);
     analogWrite(RIGHT_DRIVE_2, 0, PWM_FREQ);
   }
