@@ -13,20 +13,23 @@ Tof::Tof()
 bool Tof::init(){
 
   bool initializedProperly = true;
+  Serial.printf("tof%d: ",index);
   Serial.println("begin");
 
   // Configure VL53LX satellite component.
   sensor_vl53lx_sat->begin();
 
+  Serial.printf("tof%d: ",index);
   Serial.println("init tof sensor");
   //Initialize VL53LX satellite component.
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
-
+  Serial.printf("tof%d: ",index);
   Serial.println("start measurement");
   // Start Measurements
   sensor_vl53lx_sat->VL53LX_StartMeasurement();
-
+  Serial.printf("tof%d: ",index);
+  Serial.println("done init()");
   needsToBeInitialized = false;
 
   return initializedProperly;
@@ -62,17 +65,17 @@ void Tof::poll(){
                 Serial.print(report);
                 lastReading = micros();
                 if (tofData.numObjs){ // if at least 1 object found
-                    if (pMultiRangingData->RangeData[0].RangeStatus == 0){
+                    if (pMultiRangingData->RangeData[0].RangeStatus == 0 && tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter){
                         consecutiveBadReadings = 0;
                         tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
                         tofData.count = pMultiRangingData->StreamCount;
                     } else{
                         consecutiveBadReadings++;
                         if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
-                            needsToBeInitialized = true;
-                            Serial.println("REBOOTING TOF due to bad readings");
-                            init();
-                            return;
+                          needsToBeInitialized = true;
+                          Serial.print("tof"); Serial.print(index); Serial.println("REBOOTING TOF due to bad readings");
+                          init();
+                          return;
                         }
                     } // TODO: if no objects found, we don't increment consecutiveBadReadings
                     
