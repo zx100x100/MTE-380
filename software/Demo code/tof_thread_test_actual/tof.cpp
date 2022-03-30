@@ -19,7 +19,10 @@ bool Tof::init(){
   sensor_vl53lx_sat->begin();
 
   if (print){ Serial.print("tof"); Serial.print(index); Serial.println("init tof sensor");}
-  //Initialize VL53LX satellite component.
+  //Initialize VL53LX satellite component
+
+  motors->setPower(0,0);
+  delay(25);
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
 
 

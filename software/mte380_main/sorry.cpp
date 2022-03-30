@@ -1,7 +1,7 @@
 #include "sorry.h"
 #include "math_utils.h"
 
-#define DISABLE_MOTORS
+/* #define DISABLE_MOTORS */
 
 #define ULTRA_ULTRA_POWER 180
 #define ULTRA_POWER 140
@@ -147,48 +147,47 @@ void Sorry::calibrateGyroDrift(){
 
 void Sorry::run(){
   calibrateGyroDrift();
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
   turnInPlace();
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55); */
-  /* drive(STOPPED_POWER, 500,  0.5,  GUIDED        ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55); */
-  /* drive(STOPPED_POWER, 500,  0.5,  GUIDED        ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48); */
-  /* drive(STOPPED_POWER, 500,  0.5,  PARALLEL      ); */
-  /* turnInPlace(); */
-  /* // segment 3: deep pit to climb */
-  /* drive(MEDIUM_POWER,  3300, 0.4,  GUIDED        ); */
-  /* drive(ULTRA_ULTRA_POWER,260,0.4, UNGUIDED      ); */
-  /* drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50); */
-  /* drive(STOPPED_POWER, 500,  0.4,  PARALLEL      ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    1000, 1.47, GUIDED        ); */
-  /* drive(MEDIUM_POWER,  1200, 1.47, GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50); */
-  /* drive(STOPPED_POWER, 500,  0.4,  GUIDED        ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    1000, 1.47, GUIDED        ); */
-  /* drive(MEDIUM_POWER,  1200, 1.47, GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50); */
-  /* drive(STOPPED_POWER, 500,  0.4,  PARALLEL      ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    1000, 1.47, GUIDED        ); */
-  /* drive(MEDIUM_POWER,  1200, 1.47, GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50); */
-  /* drive(STOPPED_POWER, 500,  0.4,  PARALLEL      ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    1000, 1.47, GUIDED        ); */
-  /* drive(MEDIUM_POWER,  1200, 1.47, GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50); */
-  /* drive(STOPPED_POWER, 500,  0.4,  PARALLEL      ); */
-  /* turnInPlace(); */
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
+  turnInPlace();
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
+  drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
+  turnInPlace();
+  // segment 3: deep pit to climb
+  drive(MEDIUM_POWER,  3300, 0.4,  GUIDED        );
+  drive(ULTRA_ULTRA_POWER,260,0.4, UNGUIDED      );
+  drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  turnInPlace();
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  GUIDED        );
+  turnInPlace();
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  turnInPlace();
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  turnInPlace();
+  drive(FAST_POWER,    1000, 1.47, GUIDED        );
+  drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
+  drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
+  drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
+  turnInPlace();
 }
 
 void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt){
@@ -235,7 +234,9 @@ bool Sorry::isValid(int tofNum){
 }
 
 float Sorry::getTofFt(int tofNum){
-  return sensors->tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+  float val = sensors->tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+    Serial.print("tof val: "); Serial.println(val);
+    return val;
 }
 
 bool Sorry::updateWallAngleAndDistance(float gyroAngle, float desiredDistToLeftWall, bool firstTick){

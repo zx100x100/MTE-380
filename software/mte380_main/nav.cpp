@@ -41,7 +41,11 @@ void Nav::init(){
 }
 
 float Nav::getTofFt(TofOrder tofNum){
-    return sensors.tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+    float val = sensors.tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+    Serial.print("tof val: "); Serial.println(val);
+    return val;
+
+
 }
 
 NavData Nav::calculateImu(){

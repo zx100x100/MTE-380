@@ -13,7 +13,16 @@ volatile TofData tofData;
 
 void setup()
 {
-    Serial.begin(112500);
+    pinMode(19, OUTPUT);
+    pinMode(18, OUTPUT);
+    pinMode(25, OUTPUT);
+    pinMode(26, OUTPUT);
+    digitalWrite(19, LOW);
+    digitalWrite(18, LOW);
+    digitalWrite(25, LOW);
+    digitalWrite(26, LOW);
+    delay(150);
+    Serial.begin(115200);
     Wire.begin();
     Wire.setClock(400000);
 
@@ -35,7 +44,7 @@ void setup()
 void loop()
 {
     Serial.println("this is ESP32 Task");
-    if (micros() - lastReading > 250){
+    if ((micros() - lastReading)/1000 > 250){
         Serial.println("Watchdog go brrrrrrrr");
         vTaskDelete(xHandle);
         Serial.println("We killed it");
