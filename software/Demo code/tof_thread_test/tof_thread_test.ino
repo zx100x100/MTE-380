@@ -55,6 +55,17 @@ void setup()
   }
 
     Serial.println("Started");
+    xSemaphoreTake(xSemaphore, MUTEX_TIMEOUT);
+        xTaskCreate(
+            watchdog, /* Task function. */
+            "watchdog: ", /* name of task. */
+            1000, /* Stack size of task */
+            NULL, /* parameter of the task */
+            2, /* priority of the task */
+            NULL
+        ); /* Task handle to keep track of created task */
+    xSemaphoreGive(xSemaphore);
+    Serial.println("blah1");
     for (int i = 0; i < 4; i++){
         xSemaphoreTake(xSemaphore, MUTEX_TIMEOUT);
         xTaskCreate(
@@ -65,18 +76,31 @@ void setup()
             1, /* priority of the task */
             &xHandle[i]
         ); /* Task handle to keep track of created task */
+        Serial.printf("tof%d giving back semaphore\n", i);
         xSemaphoreGive(xSemaphore);
-        delay(250);
+        delay(500);
+        //delay(250);
+
     }
 }
 
-/* the forever loop() function is invoked by Arduino ESP32 loopTask */
 void loop()
+{
+    delay(1000);
+    Serial.println("this is FAKE Task");
+}
+
+/* the forever loop() function is invoked by Arduino ESP32 loopTask */
+void watchdog(void * param)
 {
     while(true){
         delay(1000);
         Serial.println("this is ESP32 Task");
         for (int i = 0; i < 4; ++i){
+            if (xHandle[i] == NULL){
+                vTaskDelay(100);
+                continue;
+            }
             if ((micros() - lastReading[i])/1000 > 500){
 
                 Serial.printf("Watchdog go brrrrrrrr on %d\n", i);
@@ -84,11 +108,11 @@ void loop()
                 Serial.printf("We killed it %d\n", i);
                 xSemaphoreGive(xSemaphore); // TODO: make this check if already taken
 
-                xSemaphoreTake(xSemaphore, MUTEX_TIMEOUT);
+
                 Serial.printf("about to create task after like 5 sec%d\n", i);
                 delay(5000);
                 Serial.printf("about to create task rn%d\n", i);
-
+                xSemaphoreTake(xSemaphore, MUTEX_TIMEOUT);
                 xTaskCreate(
                     tofTask, /* Task function. */
                     "tof Task: ", /* name of task. */
