@@ -1,6 +1,8 @@
 #ifndef TOF_H
 #define TOF_H
 
+const static int tofPins[4] = {26, 25, 18, 19};
+
 #include <Arduino.h>
 #include <Wire.h>
 #include "src/VL53L3CX_lib/vl53lx_class.h"
@@ -9,13 +11,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "tof_data.pb.h"
 
-struct TofData {
-  uint32_t dist;
-  uint32_t numObjs;
-  uint32_t count;
-  uint32_t timeoutCount;
-};
 
 class Tof{
   public:
@@ -26,7 +23,6 @@ class Tof{
     bool init();
     /* void displayDetails(); */
     bool needsToBeInitialized = true;
-    bool print = true;
 
   private:
     TofData tofData;
