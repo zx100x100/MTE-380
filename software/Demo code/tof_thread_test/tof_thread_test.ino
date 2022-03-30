@@ -1,4 +1,5 @@
 #include "tof.h"
+#include "motors.h"
 #include "FreeRTOSConfig.h"
 
 #define RUN_TIMEOUT 5000 //ms
@@ -22,6 +23,7 @@ VL53LX sensor_vl53lx_sat[4] = {
 SemaphoreHandle_t xSemaphore;
 #define MUTEX_TIMEOUT portMAX_DELAY
 
+Motors motors = Motors();
 
 Tof tof[4];
 
@@ -87,7 +89,12 @@ void setup()
 void loop()
 {
     delay(1000);
-    Serial.println("this is FAKE Task");
+        Serial.println("setting high power");
+    motors.setPower(200,200);
+    delay(1000);
+    Serial.println("setting 0 power");
+    motors.setPower(0, 0);
+
 }
 
 /* the forever loop() function is invoked by Arduino ESP32 loopTask */
