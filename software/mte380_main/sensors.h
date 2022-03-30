@@ -28,6 +28,7 @@ class Sensors{
     long timestamp;
     Hms* hms;
   private:
+    SemaphoreHandle_t i2cMutexHandle;
     // TODO update IMU and TOFs
     void updateBatteryVoltage();
     VL53LX* sensor_vl53lx_sat[4];

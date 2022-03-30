@@ -87,6 +87,7 @@ hms(hms)
 }
 
 float Sorry::bringGyroMeasurementIntoPositiveDegreesUsingNumClockwiseWraparounds(float rawAngle){
+  Serial.println("bringGyro");
   float correctedAngle = rawAngle;
   if (rawAngle < 0 && prevGyroMeasurementWasLargeAndMightWrapAroundToNegative){
     correctedAngle += 360;
@@ -95,6 +96,7 @@ float Sorry::bringGyroMeasurementIntoPositiveDegreesUsingNumClockwiseWraparounds
   correctedAngle += 360 * numGyroClockwiseWraparounds;
   prevGyroMeasurementWasLargeAndMightWrapAroundToNegative = rawAngle > 150;
   /* Serial.print("bring to positive -> rawAngle: "); Serial.print(rawAngle); Serial.print(" +360*n: "); Serial.println(correctedAngle); */
+  Serial.println("bringGyro done");
   return correctedAngle;
 }
 
@@ -102,10 +104,13 @@ void Sorry::calibrateGyroDrift(){
   unsigned long preCalibrationT;
 
   // start by waiting for gyro to calm the fuck down because when it first inits it sucks dick
+  Serial.println("getting a prevAngle");
   float prevAngle = getDirectionCorrectedGyroAngle();
+  Serial.println("got a prevAngle");
   unsigned long lastTimestamp = micros();
   delay(5);
   int numSatisfactoryTicks = 0; // number of ticks where gyro drift is slow enough
+  Serial.println("start loop 1");
   while(micros()-preCalibrationT<MAX_WAIT_FOR_DUMB_GYRO_SECONDS*1000000){
     delay(5);
     float curAngle = getDirectionCorrectedGyroAngle();
@@ -117,6 +122,7 @@ void Sorry::calibrateGyroDrift(){
     }
     unsigned long curTimestamp = micros();
     unsigned long deltaMicros = curTimestamp - lastTimestamp;
+    Serial.print("deltaMicros: "); Serial.println(deltaMicros);
     if ((abs(curAngle - prevAngle)/deltaMicros)<MAX_DEGREES_PER_SECOND_BEFORE_CALIBRATION/1000000){
       numSatisfactoryTicks++;
     }
@@ -129,6 +135,7 @@ void Sorry::calibrateGyroDrift(){
     }
     lastTimestamp = curTimestamp;
     prevAngle = curAngle;
+    Serial.println("loopy doopy ;)");
   }
   Serial.println("done pre calibration");
   float firstAngle = getDirectionCorrectedGyroAngle();
@@ -148,6 +155,7 @@ void Sorry::calibrateGyroDrift(){
 }
 
 void Sorry::run(){
+  Serial.println("heyyyy");
   calibrateGyroDrift();
   drive(STOPPED_POWER, 20000,  0.5,  GUIDED        );
 
@@ -206,22 +214,22 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
     deltaT = micros() - curT;
     curT += deltaT;
     float frontDist = getTofFt(0);
-    float pitch = sensors->getGyroAnglePitch();
+    // float pitch = sensors->getGyroAnglePitch();
     if (distanceToStopAt > 0){
       Serial.printf("frontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
       if (frontDist <= distanceToStopAt + STOP_OFFSET){
         break;
       }
     }
-    if (pitchToStopAt != NO_PITCH_ANGLE_THRESHOLD){
-      Serial.printf("Gyro pitch: %5.4f pitchToStop: %5.4f\n", pitch, pitchToStopAt);
-      if (pitch >= pitchToStopAt && pitchToStopAt > 0){
-        break;
-      }
-      else if (pitch <= pitchToStopAt && pitchToStopAt < 0){
-        break;
-      }
-    }
+    // if (pitchToStopAt != NO_PITCH_ANGLE_THRESHOLD){
+      // Serial.printf("Gyro pitch: %5.4f pitchToStop: %5.4f\n", pitch, pitchToStopAt);
+      // if (pitch >= pitchToStopAt && pitchToStopAt > 0){
+        // break;
+      // }
+      // else if (pitch <= pitchToStopAt && pitchToStopAt < 0){
+        // break;
+      // }
+    // }
     if (curT - startCurDriveSegmentT >= timeout){
       break;
     }

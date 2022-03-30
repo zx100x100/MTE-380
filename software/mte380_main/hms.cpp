@@ -1,5 +1,4 @@
 #include "hms.h"
-#include "log_level_defaults.h"
 
 #define DEFAULT_N_BATTERY_CELLS 2
 #define LED_PIN_GREEN 32
@@ -9,7 +8,6 @@
 
 Hms::Hms()
 {
-  navData = NavData_init_zero;
   HmsData data = HmsData_init_zero;
   /* HmsData data_ = HmsData_init_zero; */
   /* data = data_; */
@@ -93,10 +91,8 @@ void Hms::updateLEDs(){
 }
 
 void Hms::init(){
-  data.mainLogLevel = MAIN_LOG_LEVEL_DEFAULT;
-  data.sensorsLogLevel = SENSORS_LOG_LEVEL_DEFAULT;
-  data.guidanceLogLevel = GUIDANCE_LOG_LEVEL_DEFAULT;
-  data.navLogLevel = NAV_LOG_LEVEL_DEFAULT;
+  data.mainLogLevel = HmsData_LogLevel_DEBUG;
+  data.sensorsLogLevel = HmsData_LogLevel_DEBUG;
 }
 
 void Hms::update(){

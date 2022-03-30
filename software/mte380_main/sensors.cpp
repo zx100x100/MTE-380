@@ -2,6 +2,7 @@
 #include "hms_and_cmd_data.pb.h"
 #include "tof_data.pb.h"
 #include "math_utils.h"
+#include "FreeRTOSConfig.h"
 
 #define V_SENSE_PIN 15
 #define MIN_CELL_VOLTAGE 3 // TODO update value?
@@ -29,6 +30,9 @@ void tofTask(void* tofInfo){
 Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
   hms(hms)
 {
+  i2cMutexHandle = xSemaphoreCreateBinary();
+  xSemaphoreGive(i2cMutexHandle);
+  Serial.printf("handle(init): %p\n", (void*)i2cMutexHandle);
   for (int i = 0; i < 4; ++i){
     pinMode(tofPins[i], OUTPUT);
     digitalWrite(tofPins[i], LOW);
@@ -41,6 +45,7 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
 }
 
 bool Sensors::init(){
+  // i2cMutexHandle = xSemaphoreCreateMutex();
   initGyro();
 
   fusion.setup(imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
@@ -50,21 +55,24 @@ bool Sensors::init(){
   //
   // he was talking about eng right?
 
-  Wire.begin();
-  Wire.setClock(400000);
   SemaphoreHandle_t newMutexHandle = xSemaphoreCreateMutex();
 
   for (int i=0; i<4; i++){
-    struct TofInfo newTofInfo = {sensor_vl53lx_sat[i], TofData_init_zero, i, hms, newMutexHandle};
-    tofInfo[i] = newTofInfo;
-    xTaskCreate(
+    // struct TofInfo newTofInfo = {sensor_vl53lx_sat[i], TofData_init_zero, i, hms, newMutexHandle, i2cMutexHandle};
+    tofInfo[i] = TofInfo{sensor_vl53lx_sat[i], TofData_init_zero, i, hms, newMutexHandle, i2cMutexHandle};
+
+    xTaskCreatePinnedToCore(
         tofTask, /* Task function. */
         "Tof Task", /* name of task. */
-        10000, /* Stack size of task */
+        2000, /* Stack size of task */
         &tofInfo[i], /* parameter of the task */
         1, /* priority of the task */
-        &xHandle[i] // TODO does this need to be xHandle + sizeof(xHandle) * i or something?
+        &xHandle[i], // TODO does this need to be xHandle + sizeof(xHandle) * i or something?
+        0
     ); /* Task handle to keep track of created task */
+    Serial.println("made a task");
+    heap_caps_check_integrity(MALLOC_CAP_8BIT, true);
+    vTaskDelay(10);
     // tof[i] = Tof(hms, sensor_vl53lx_sat[i], i);
   }
   timestamp = 0;
@@ -73,9 +81,21 @@ bool Sensors::init(){
 
 
 float Sensors::getGyroAngle(){
+  Serial.println("getGyroAngle");
+  // heap_caps_check_integrity(MALLOC_CAP_8BIT, true);
+  Serial.println("heap check complete");
   imu.poll();
+  Serial.print("imu.getData().accelZ: "); Serial.println(imu.getData().accelZ);
+
+  if (imu.getData().accelZ == 0 && imu.getData().accelZ == 0 && imu.getData().accelZ == 0){
+    while(true){
+      Serial.println("go home imu u r drunk");
+      delay(1000);
+    }
+  }
 
   fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
+  Serial.println("fusion done");
 
   float yaw = -rad2deg(fusion.yaw());
   return yaw;
@@ -91,18 +111,18 @@ float Sensors::getGyroAnglePitch(){
   return pitch;
 }
 
-float Sensors::getGyroAngleRoll(){
-  imu.poll();
+// float Sensors::getGyroAngleRoll(){
+  // imu.poll();
 
-  fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
+  // fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
 
-  float roll = rad2deg(fusion.roll());
+  // float roll = rad2deg(fusion.roll());
 
-  return roll;
-}
+  // return roll;
+// }
 
 void Sensors::initGyro(){
-  imu = Imu(hms);
+  imu = Imu(hms, i2cMutexHandle);
   imu.poll();
 }
 
@@ -123,13 +143,14 @@ void Sensors::tofWatchdog(){
       vTaskDelete(xHandle[i]);
       Serial.println("We killed it");
 
-      xTaskCreate(
+      xTaskCreatePinnedToCore(
         tofTask, /* Task function. */
         "Tof Task", /* name of task. */
         10000, /* Stack size of task */
         &tofInfo[i], /* parameter of the task */
         1, /* priority of the task */
-        &xHandle[i]
+        &xHandle[i],
+        0
       ); /* Task handle to keep track of created task */
       Serial.println("made another task");
     }

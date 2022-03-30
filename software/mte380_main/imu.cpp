@@ -6,13 +6,18 @@ Imu::Imu(){
 }
 
 // TODO do we need this to return a bool (success/fail?)
-Imu::Imu(Hms* hms):
+Imu::Imu(Hms* hms, SemaphoreHandle_t _i2cMutexHandle):
   hms(hms)
 {
+  i2cMutexHandle = _i2cMutexHandle;
+  Serial.printf("handle(imu init): %p\n", (void*)i2cMutexHandle);
   imuData = ImuData_init_zero;
   // return;
   bool success = true;
   //ACCELL
+
+  xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+  Serial.println("takeIMU");
   if(!accel.begin())
   {
     /* There was a problem detecting the ADXL345 ... check your connections */
@@ -34,6 +39,8 @@ Imu::Imu(Hms* hms):
     Serial.println("Ooops, no L3GD20 detected ... Check your wiring!");
     success = false;
   }
+  xSemaphoreGive(i2cMutexHandle);
+  Serial.println("giveIMU");
 
 //  displayDetails();
   /* return success; */
@@ -42,12 +49,16 @@ Imu::Imu(Hms* hms):
 void Imu::poll(){
   // imuData.timestamp = micros();
   sensors_event_t event;
+  Serial.println("imu poll start");
   
+  xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+  Serial.println("takeIMU2");
   accel.getEvent(&event);
   imuData.accelX = event.acceleration.x;
   imuData.accelY = event.acceleration.y;
   imuData.accelZ = event.acceleration.z;
   
+  Serial.println("imu poll 1");
 
   mag.getEvent(&event);
   imuData.magX = event.magnetic.x;
@@ -63,6 +74,9 @@ void Imu::poll(){
   // Serial.print((unsigned long)&imuData);
   // Serial.print("imuData.accelZ:");
   // Serial.println(imuData.accelZ);
+  Serial.println("imu poll end");
+  xSemaphoreGive(i2cMutexHandle);
+  Serial.println("giveIMU2");
 }
 
 ImuData& Imu::getData(){

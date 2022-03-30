@@ -19,6 +19,9 @@ Tof::Tof(TofInfo* tofInfo){
   tofData.lastPolled = 0;
   index = tofInfo->tofIndex;
   dataMutex = tofInfo->dataMutex;
+  i2cMutexHandle = tofInfo->i2cMutexHandle;
+  Serial.printf("handle(tof init): %p\n", (void*)i2cMutexHandle);
+  mutexTimeout = MUTEX_TIMEOUT_TICKS;
   init();
 }
 
@@ -28,17 +31,33 @@ bool Tof::init(){
   // if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("begin"); }
 
   // Configure VL53LX satellite component.
-  sensor_vl53lx_sat->begin();
 
-  // if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.println("init tof sensor");}
+  Serial.print("semaphore count for take1: ");
+  Serial.println(uxSemaphoreGetCount(i2cMutexHandle));
+  xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+  Serial.println("take1");
+  sensor_vl53lx_sat->begin();
+  xSemaphoreGive(i2cMutexHandle);
+  Serial.println("give1");
+
+  Serial.print("tof"); Serial.print(index);
   //Initialize VL53LX satellite component.
+  
+  xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+  Serial.println("take2");
   initializedProperly &= sensor_vl53lx_sat->InitSensor(0x10 + index*2) == 0;  // ensure sensor initialized properly
+  xSemaphoreGive(i2cMutexHandle);
+  Serial.println("give2");
 
 
   // if (hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index);  Serial.println("start measurement"); }
   // Start Measurements
+  xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+  Serial.println("take3");
   sensor_vl53lx_sat->VL53LX_StartMeasurement();
 
+  xSemaphoreGive(i2cMutexHandle);
+  Serial.println("give3");
   needsToBeInitialized = false;
 
   return initializedProperly;
@@ -49,21 +68,30 @@ TofData& Tof::getData(){
 }
 
 void Tof::poll(){
-  TickType_t mutexTimeout = MUTEX_TIMEOUT_TICKS;
   xSemaphoreTake(dataMutex, mutexTimeout);
+  Serial.println("take4");
   lastPolled = micros();
   xSemaphoreGive(dataMutex);
+  Serial.println("give4");
   VL53LX_MultiRangingData_t MultiRangingData;
   VL53LX_MultiRangingData_t* pMultiRangingData = &MultiRangingData;
 
+  xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+  Serial.println("take5");
   status = sensor_vl53lx_sat->VL53LX_GetMeasurementDataReady(&NewDataReady);  // TODO: what if status bad
+  xSemaphoreGive(i2cMutexHandle);
+  Serial.println("give5");
   if(NewDataReady == 1){
     NewDataReady = 0;  // reset for next time
 //    if (hms->data.sensorsLogLevel >= 2) Serial.println("ready");
 
     if (status == 0)
     {
+      xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+      Serial.println("take6");
       status = sensor_vl53lx_sat->VL53LX_GetMultiRangingData(pMultiRangingData);
+      xSemaphoreGive(i2cMutexHandle);
+      Serial.println("give6");
       if (status == 0){
         tofData.numObjs = pMultiRangingData->NumberOfObjectsFound;
 
@@ -115,7 +143,11 @@ void Tof::poll(){
           }
         }
 
+        xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+        Serial.println("take25");
         status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
+        xSemaphoreGive(i2cMutexHandle);
+        Serial.println("give25");
       }
       else{
         Serial.print("tof"); Serial.print(index); Serial.println("unique_fuck2");
@@ -129,7 +161,12 @@ void Tof::poll(){
     /* Serial.print("No data ready. elapsed: "); Serial.println(dt); */
     if (micros() - lastReading > TIMEOUT){
     if (hms->data.sensorsLogLevel >= 1) { Serial.print("tof"); Serial.print(index); Serial.println("Timeout");}
+
+    xSemaphoreTake(i2cMutexHandle, mutexTimeout);
+    Serial.println("take69");
     status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
+    xSemaphoreGive(i2cMutexHandle);
+    Serial.println("give69");
     NewDataReady = 0;
     xSemaphoreTake(dataMutex, mutexTimeout);
     tofData.timeoutCount++;

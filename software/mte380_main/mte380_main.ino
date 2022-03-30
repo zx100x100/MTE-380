@@ -21,14 +21,17 @@ Sorry sorry = Sorry(&motors, &sensors, &hms);
 
 void setup() {
   Serial.begin(115200);
+  Wire.begin();
+  Wire.setClock(400000);
+  delay(100);
 
   Serial.println("Initializing Health Monitoring System");
   hms.init();
   Serial.println("Initializing Sensors");
   sensors.init();
-  Serial.println("Initializing Navigation");
-  hms.data.mainLogLevel = HmsData_LogLevel_NORMAL;
-  hms.data.sensorsLogLevel = HmsData_LogLevel_NORMAL;
+  Serial.println("Done with init sensors");
+  hms.data.mainLogLevel = HmsData_LogLevel_DEBUG;
+  hms.data.sensorsLogLevel = HmsData_LogLevel_DEBUG;
 }
 
 void loop() {
