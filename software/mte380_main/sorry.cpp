@@ -149,24 +149,24 @@ void Sorry::calibrateGyroDrift(){
 
 void Sorry::run(){
   calibrateGyroDrift();
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55); */
-  /* drive(STOPPED_POWER, 500,  0.5,  GUIDED        ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55); */
-  /* drive(STOPPED_POWER, 500,  0.5,  GUIDED        ); */
-  /* turnInPlace(); */
-  /* drive(FAST_POWER,    800,  0.5,  GUIDED        ); */
-  /* drive(MEDIUM_POWER,  200,  0.5,  GUIDED        ); */
-  /* drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48); */
-  /* drive(STOPPED_POWER, 500,  0.5,  PARALLEL      ); */
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
+  turnInPlace();
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
+  turnInPlace();
+  drive(FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
+  drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
   /* turnInPlace(); */
   // segment 3: deep pit to climb
-  /* drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO   ); */
-  drive(MEDIUM_POWER,  3300, 0.4,  GUIDED, -1, 20); //The -1 is the flag for not reading distance to stop at (otherwise defaulted argument)
+  drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO   );
+  /* drive(MEDIUM_POWER,  3300, 0.4,  GUIDED, -1, 20); //The -1 is the flag for not reading distance to stop at (otherwise defaulted argument) */
   drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
   drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
   turnInPlace();
@@ -208,15 +208,15 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
         break;
       }
     }
-    if (pitchToStopAt != NO_PITCH_ANGLE_THRESHOLD){
-      Serial.printf("Gyro pitch: %5.4f pitchToStop: %5.4f\n", pitch, pitchToStopAt);
-      if (pitch >= pitchToStopAt && pitchToStopAt > 0){
-        break;
-      }
-      else if (pitch <= pitchToStopAt && pitchToStopAt < 0){
-        break;
-      }
-    }
+    /* if (pitchToStopAt != NO_PITCH_ANGLE_THRESHOLD){ */
+      /* Serial.printf("Gyro pitch: %5.4f pitchToStop: %5.4f\n", pitch, pitchToStopAt); */
+      /* if (pitch >= pitchToStopAt && pitchToStopAt > 0){ */
+        /* break; */
+      /* } */
+      /* else if (pitch <= pitchToStopAt && pitchToStopAt < 0){ */
+        /* break; */
+      /* } */
+    /* } */
     if (curT - startCurDriveSegmentT >= timeout){
       break;
     }

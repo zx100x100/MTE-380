@@ -2,7 +2,7 @@
 
 #define TIMEOUT 50000
 #define MAX_TIMEOUTS 5
-#define MAX_BAD_READINGS 5
+#define MAX_BAD_READINGS 10
 
 /* Tof::Tof(){ */
 /* } */
