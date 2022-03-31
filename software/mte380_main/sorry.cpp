@@ -1,34 +1,39 @@
 #include "sorry.h"
 #include "math_utils.h"
 
-#define ULTRA_POWER_MWAHAHAHA 140
-#define FAST_POWER 80
-#define MEDIUM_POWER 76
+#define ULTRA_POWER_MWAHAHAHA 110
+#define MOUNT_WALL_POWER 95
+#define FAST_POWER 62
+#define MEDIUM_POWER 62
 #define SLOW_POWER 62
+/* #define MEDIUM_POWER 55 */
+/* #define SLOW_POWER 44 */
 
-#define MAX_OUTPUT_POWER 110
+#define MAX_OUTPUT_POWER 89
 
 #define TRACK_DIM 6  // ft
 #define L_Y_DELTA 0.3958  // ft
 #define L_X_OFFSET 0.213  // ft
 
-#define MAX_TURN_IN_PLACE_OUTPUT_POWER 140//75 // must be < 255
+#define MAX_TURN_IN_PLACE_OUTPUT_POWER 60//75 // must be < 255
 #define MAX_TURN_IN_PLACE_ERROR_I 1200
 #define MAX_DRIFT_ERROR_I 200
 
-#define LOWER_RIGHT_VEL_SP_BY 0.94
-
+#define LOWER_RIGHT_VEL_SP_BY 0.87
 #define DRIFT_LOOK_AHEAD_DIST 1.5
 
-#define STOP_OFFSET 0.3
+#define STOP_OFFSET 0.35
 #define REVERSE_SPEED -40
 #define REVERSE_TIME 1000
 
 #define MAX_TURN_IN_PLACE_ERROR_I 700
 
+/* #define kP_drift 0.55 */
+/* #define kD_drift 900 */
+/* #define kI_drift 0.002 */
 #define kP_drift 0.55
 #define kD_drift 900
-#define kI_drift 0.002
+#define kI_drift 0.0//
 
 Sorry::Sorry(Motors* motors, Sensors* sensors, Nav* nav, Hms* hms):
 motors(motors),
@@ -48,30 +53,37 @@ void Sorry::run(){
   turnInPlace();
   drive(0, 800000, 0, 200000, 0.55, 0.5);
   turnInPlace();
-  drive(0, 800000, 0, 200000, 0.48, 0.5);
+  drive(0, 800000, 0, 200000, 0.42, 0.5);
   turnInPlace();
-  drive(3300000, 260000, 0, 200000, 1.5, 0.4, true);
+  drive(2400000, 0, 0, 0, 1.5, 0.4);
+  turnInPlace();
+  drive(0, 1000000, 0, 1200000, 1.35, 1.47);
   turnInPlace();
   drive(0, 1000000, 0, 1200000, 1.5, 1.47);
   turnInPlace();
-  drive(0, 1000000, 0, 1200000, 1.5, 1.47);
+  drive(0, 1000000, 0, 1200000, 1.2, 1.47);
   turnInPlace();
   drive(0, 1000000, 0, 1200000, 1.5, 1.47);
   turnInPlace();
   drive(0, 1000000, 0, 1200000, 2.5, 1.47);
   turnInPlace();
+  drive(0, 1000000, 0, 1200000, 2.5, 2.47);
+  turnInPlace();
+  drive(0, 1000000, 0, 1200000, 2.5, 2.47);
+  turnInPlace();
+  drive(0, 500000, 0, 500000, 2.5, 2.47);
 }
 
-void Sorry::drive(unsigned long goMediumForFirst, unsigned long goFastFor, unsigned long goFastUnguidedDur, unsigned long goMediumFor, float distanceToStopAt, float leftWallDist, bool ultraPower){
-  if (goMediumForFirst > 0){
+void Sorry::drive(unsigned long goMountSpeedForFirst, unsigned long goFastFor, unsigned long goFastUnguidedDur, unsigned long goMediumFor, float distanceToStopAt, float leftWallDist, bool ultraPower){
+  if (goMountSpeedForFirst > 0){
     unsigned long startT0 = micros();
     while(true){
       deltaT = micros() - curT;
       curT += deltaT;
-      if (curT - startT0 >= goMediumForFirst){
+      if (curT - startT0 >= goMountSpeedForFirst){
         break;
       }
-      driveTick(MEDIUM_POWER, leftWallDist);
+      driveTick(MOUNT_WALL_POWER, leftWallDist);
     }
   }
   if (goFastFor > 0){
@@ -164,6 +176,7 @@ void Sorry::driveTick(float motorPower, float leftWallDist){
   sensors->update();
   nav->getGyroAngle();
   // DRIFT PID --------------------------------------------------------------------------
+  Serial.printf("pitch angle: %6.3f", sensors->getGyroAnglePitch());
   float lastErrDrift = errDrift;
   float dist = left - leftWallDist;
 
@@ -217,6 +230,13 @@ void Sorry::driveTick(float motorPower, float leftWallDist){
   }
   leftTotal = constrainVal(leftTotal, MAX_OUTPUT_POWER);
   rightTotal = constrainVal(rightTotal, MAX_OUTPUT_POWER);
+
+  if (leftTotal < 0){
+    leftTotal = 0; 
+  }
+  if (rightTotal < 0){
+    rightTotal = 0;
+  }
   Serial.printf("ang=%7.3f desired=%7.3f lDr=%4.1f rDr=%4.1f dt=%7.3f bat=%7.3f\n",
         angFromWall, desiredAngle, leftOutputDrift, rightOutputDrift,
         hms->data.batteryVoltage);
@@ -293,7 +313,7 @@ void Sorry::turnInPlace(){
     lastTimestamp = curTs;
 
     /* if it takes longer than 4 seconds to turn, you fucked up */
-    if (curTs - _firstT > 2*1000*1000){
+    if (curTs - _firstT > 3*1000*1000){
       Serial.println("turn better next time please");
       break;
     }
@@ -311,6 +331,9 @@ void Sorry::turnInPlace(){
     /* total = I;// + D; */
 
     total = constrainVal(P + I + D, maxPower);
+    if (total < 0){
+      total = 0;
+    }
     Serial.printf("StartAngle: %.3f | rawAngle: %.3f | curAngle(adj): %.3f | P: %.3f * %.3f = %.3f D: %.3f * %.3f = %.3f | I: %.3f * %.3f = %.3f | L: %.3f, R: %.3f\n", startAngle, rawAngle, curAngle, error,kp_turny,P, errorD,kd_turny,D, errorI, ki_turny, I, total, -total);
     motors->setPower(total, -total*LOWER_RIGHT_VEL_SP_BY);
 

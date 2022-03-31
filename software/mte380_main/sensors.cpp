@@ -1,5 +1,6 @@
 #include "sensors.h"
 #include "hms_and_cmd_data.pb.h"
+#include "math_utils.h"
 
 #define V_SENSE_PIN 15
 #define MIN_CELL_VOLTAGE 3 // TODO update value?
@@ -19,6 +20,7 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
 void Sensors::initGyro(){
   imu = Imu(hms);
   imu.poll();
+  fusion.setup(imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
 }
 
 bool Sensors::init(){
@@ -51,12 +53,24 @@ void Sensors::updateBatteryVoltage(){
 // SensorData& Sensors::getData(){
   // return sensorData;
 // }
+float Sensors::getGyroAnglePitch(){
+  imu.poll();
+
+
+  fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
+
+  float pitch = rad2deg(fusion.pitch());
+
+  return pitch;
+}
 
 void Sensors::update(){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   imu.poll();
+  delay(3);
   for (int i=0; i<4; i++){
     tof[i].poll();
+    delay(3);
   }
 //  if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");
 

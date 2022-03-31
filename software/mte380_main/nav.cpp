@@ -37,7 +37,7 @@ Nav::Nav(Sensors& sensors, CmdData* cmdData, Hms* hms):
 
 void Nav::init(){
   //set up sensor fusion lib
-  /* fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ); */
+  // fusion.setup(sensors.imu.getData().accelX, sensors.imu.getData().accelY, sensors.imu.getData().accelZ);
 
   unsigned long startT = micros();
   unsigned long curT = 0;
