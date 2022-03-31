@@ -22,7 +22,7 @@
 #define LOWER_RIGHT_VEL_SP_BY 0.87
 #define DRIFT_LOOK_AHEAD_DIST 1.5
 
-#define STOP_OFFSET 0.35
+#define STOP_OFFSET 0.46
 #define REVERSE_SPEED -40
 #define REVERSE_TIME 1000
 
@@ -31,7 +31,7 @@
 /* #define kP_drift 0.55 */
 /* #define kD_drift 900 */
 /* #define kI_drift 0.002 */
-#define kP_drift 0.55
+#define kP_drift 0.7
 #define kD_drift 900
 #define kI_drift 0.0//
 
@@ -53,7 +53,7 @@ void Sorry::run(){
   turnInPlace();
   drive(0, 800000, 0, 200000, 0.55, 0.5);
   turnInPlace();
-  drive(0, 800000, 0, 200000, 0.42, 0.5);
+  drive(0, 800000, 0, 200000, 0.53, 0.5);
   turnInPlace();
   drive(2400000, 0, 0, 0, 1.5, 0.4);
   turnInPlace();
