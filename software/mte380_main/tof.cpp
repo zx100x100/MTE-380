@@ -72,13 +72,13 @@ void Tof::poll(){
                         tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
                         tofData.count = pMultiRangingData->StreamCount;
                     } else{
-                        consecutiveBadReadings++;
-                        if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
-                            needsToBeInitialized = true;
-                            Serial.print("tof"); Serial.print(index); Serial.println("REBOOTING TOF due to bad readings");
-                            init();
-                            return;
-                        }
+                        // consecutiveBadReadings++;
+                        // if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
+                            // needsToBeInitialized = true;
+                            // Serial.print("tof"); Serial.print(index); Serial.println("REBOOTING TOF due to bad readings");
+                            // init();
+                            // return;
+                        // }
                     } // TODO: if no objects found, we don't increment consecutiveBadReadings
 
                     if (hms->data.sensorsLogLevel >= 2) {
@@ -97,13 +97,13 @@ void Tof::poll(){
                 }
                 else{
                   Serial.print("tof"); Serial.print(index); Serial.println(" 0 detected");
-                  consecutiveBadReadings++;
-                  if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
-                      needsToBeInitialized = true;
-                      Serial.print("tof"); Serial.print(index); Serial.println("uniquexxx REBOOTING TOF due to bad readings");
-                      init();
-                      return;
-                  }
+                  // consecutiveBadReadings++;
+                  // if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
+                      // needsToBeInitialized = true;
+                      // Serial.print("tof"); Serial.print(index); Serial.println("uniquexxx REBOOTING TOF due to bad readings");
+                      // init();
+                      // return;
+                  // }
                 }
 
                 status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad

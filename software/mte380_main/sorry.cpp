@@ -3,14 +3,15 @@
 
 /* #define DISABLE_MOTORS */
 
-#define ULTRA_ULTRA_POWER 180
+#define ULTRA_ULTRA_POWER 150
+// #define ULTRA_ULTRA_POWER 255
 #define ULTRA_POWER 140
 #define FAST_POWER 83
 #define MEDIUM_POWER 76
 #define SLOW_POWER 62
 #define STOPPED_POWER 0
 
-#define MAX_OUTPUT_POWER 110
+#define MAX_OUTPUT_POWER 130
 
 #define TRACK_DIM 6  // ft
 #define L_Y_DELTA 0.3958  // ft
@@ -30,8 +31,8 @@
 
 #define MAX_TURN_IN_PLACE_ERROR_I 700
 
-#define kP_drift 0.55
-#define kD_drift 900
+#define kP_drift 3.1
+#define kD_drift 1300
 #define kI_drift 0.002
 
 #define TURN_IN_PLACE_TIMEOUT 2000000
@@ -142,27 +143,45 @@ void Sorry::calibrateGyroDrift(){
   unsigned long endCalibrationT = micros();
 
   gyroDriftPerMicro = (lastAngle - firstAngle)/(endCalibrationT - startCalibrationT);
-  Serial.printf("firstAngle: %6.3f lastAngle: %6.3f", firstAngle, lastAngle);
+  Serial.printf("firstAngle: %6.3f lastAngle: %6.3f\n", firstAngle, lastAngle);
   Serial.printf("gyroDriftPerMicro: %15.14f\n", gyroDriftPerMicro);
   Serial.printf("gyroDriftPerSecond: %15.12f\n", gyroDriftPerMicro*1000000);
 }
 
 void Sorry::run(){
-  calibrateGyroDrift();
-  drive(FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  // calibrateGyroDrift();
+  // drive(FAST_POWER,    1000,  0.5,  GUIDED        );
+  // drive(ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
+  // drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  // drive(ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
+  // drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  // drive(ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
+  // drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  // drive(ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
+  // drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  // drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  drive(ULTRA_POWER,    8000,  0.5,  UNGUIDED        );
+  drive(-ULTRA_POWER,    8000,  0.5,  UNGUIDED        );
+  // drive(ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
+  // drive(-ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
+  // drive(-ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
+  drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  while(true){}
+
+
+  drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  drive(STOPPED_POWER, 2000, 0.5, UNGUIDED);
+  drive(ULTRA_ULTRA_POWER,    2000,  0.5,  UNGUIDED        );
   drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
   drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
   turnInPlace();
-  drive(FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(FAST_POWER,    1000,  0.5,  GUIDED        );
   drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
   drive(STOPPED_POWER, 500,  0.5,  GUIDED        );
   turnInPlace();
-  drive(FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(FAST_POWER,    1000,  0.5,  GUIDED        );
   drive(SLOW_POWER,    2000, 0.5,  GUIDED,   0.48);
-  drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
+  // drive(STOPPED_POWER, 500,  0.5,  PARALLEL      );
   /* turnInPlace(); */
   // segment 3: deep pit to climb
   drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO   );
@@ -193,6 +212,7 @@ void Sorry::run(){
 }
 
 void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLeftWall, CorrectionMode correctionMode, float distanceToStopAt, float pitchToStopAt){
+  Serial.println("Start drive segment");
   timeout *= 1000;
   startCurDriveSegmentT = micros();
   curT = micros();
@@ -201,10 +221,11 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
     deltaT = micros() - curT;
     curT += deltaT;
     float frontDist = getTofFt(0);
-    float pitch = nav->getGyroAnglePitch();
+    /* float pitch = nav->getGyroAnglePitch(); */
+    Serial.printf("frontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
     if (distanceToStopAt > 0){
-      Serial.printf("frontD: %5.4f distToStop: %5.4f\n", frontDist, distanceToStopAt);
       if (frontDist <= distanceToStopAt + STOP_OFFSET){
+        Serial.println("reached distance threshold for drive segment!");
         break;
       }
     }
@@ -218,6 +239,7 @@ void Sorry::drive(float motorPower, unsigned long timeout, float desiredDistToLe
       /* } */
     /* } */
     if (curT - startCurDriveSegmentT >= timeout){
+      Serial.println("timed out drive segment!");
       break;
     }
     /* nav->getGyroAngle(); // literally just so fusion updates */
@@ -246,7 +268,9 @@ bool Sorry::isValid(int tofNum){
 }
 
 float Sorry::getTofFt(int tofNum){
-  return sensors->tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+  float val = sensors->tof[tofNum].getData().dist * 0.00328084; //mm -> ft
+  /* Serial.printf("tof%d val %7.3f\n", tofNum, val); */
+  return val;
 }
 
 bool Sorry::updateWallAngleAndDistance(float gyroAngle, float desiredDistToLeftWall, bool firstTick){
@@ -257,26 +281,39 @@ bool Sorry::updateWallAngleAndDistance(float gyroAngle, float desiredDistToLeftW
 
   curDistToLeftWall = ((getTofFt(1) + getTofFt(2)) / 2 + L_X_OFFSET) * cosd(angFromWall);
   if (abs(curDistToLeftWall - desiredDistToLeftWall) > MAX_TOLERABLE_WALL_DISTANCE_DIVERGENCE){
+    Serial.printf("invalid updateWallAngleAndDistance bc abs(curDistToLeftWall - desiredDistToLeftWall)=%7.3f > 1\n",abs(curDistToLeftWall - desiredDistToLeftWall));
     return false;
   }
 
   if (firstTick){
     return true;
   }
-  return abs(abs(gyroAngle - angFromWall) - abs(gyroAngleAtLastValidWallAngle - lastValidWallAngle)) < MAXIMUM_WALL_ANGLE_DIVERGENCE_BEFORE_DISTRUSTING_LEFT_TOFS;
+  return true;
+  /* bool invalidAngle = abs(abs(gyroAngle - angFromWall) - abs(gyroAngleAtLastValidWallAngle - lastValidWallAngle)) < MAXIMUM_WALL_ANGLE_DIVERGENCE_BEFORE_DISTRUSTING_LEFT_TOFS; */
+  /* Serial.print("abs(gyroAngle - angFromWall): "); Serial.println(abs(gyroAngle - angFromWall)); */
+  /* Serial.print("abs(gyroAngleAtLastValidWallAngle - lastValidWallAngle): "); Serial.println(abs(gyroAngleAtLastValidWallAngle - lastValidWallAngle)); */
+  /* Serial.print("abs(abs(gyroAngle - angFromWall)-abs(gyroAngleAtLastValidWallAngle - lastValidWallAngle)): "); Serial.println(abs(abs(gyroAngle - angFromWall)-abs(gyroAngleAtLastValidWallAngle - lastValidWallAngle))); */
+
+  /* if (invalidAngle){ */
+    /* Serial.println("invalid Angle!"); */
+  /* } */
 }
 
 void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionMode correctionMode, bool firstTick){
   float gyroAngle = 0;
   float desiredAngle = 0;
   if (correctionMode == UNGUIDED){
+    Serial.println("unguided");
     nav->getGyroAngle();
-#ifndef DISABLE_MOTORS
+    sensors->update(false, true); // the bool param is skipTOFs which we do only in guided_gyro mode
+    Serial.print("tof 0: "); Serial.println(getTofFt(0));
+    Serial.print("tof 1: "); Serial.println(getTofFt(1));
+    Serial.print("tof 2: "); Serial.println(getTofFt(2));
     motors->setPower(motorPower, motorPower*LOWER_RIGHT_VEL_SP_BY);
-#endif
     return;
   }
-  sensors->update(correctionMode==GUIDED_GYRO); // the bool param is skipTOFs which we do only in guided_gyro mode
+  sensors->update(false, true); // the bool param is skipTOFs which we do only in guided_gyro mode
+  Serial.printf("TOFS: 0:%7.3f, 1:%7.3f, 2:%7.3f\n", getTofFt(0), getTofFt(1), getTofFt(2));
   if (firstTick){
     startCurDriveSegmentAngle = getDirectionCorrectedGyroAngle();
     gyroAngle = startCurDriveSegmentAngle;
@@ -333,7 +370,7 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
 
   float driftOutput = P + I + D;
 
-  driftOutput *= motorPower / MAX_OUTPUT_POWER;
+  /* driftOutput *= motorPower / MAX_OUTPUT_POWER; */
   if (motorPower == SLOW_POWER){ // TODO scale motorPower!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     driftOutput *= 0.6;
   }
@@ -366,8 +403,8 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
   }
   leftTotal = constrainVal(leftTotal, MAX_OUTPUT_POWER);
   rightTotal = constrainVal(rightTotal, MAX_OUTPUT_POWER);
-  Serial.printf("curAngle=%7.3f wallAngle %7.3f gyroAngle %7.3f desiredAngle=%7.3f lDr=%4.1f rDr=%4.1f dt=%7.3f bat=%7.3f\n",
-        curAngle, angFromWall, gyroAngle, desiredAngle, leftOutputDrift, rightOutputDrift,
+  Serial.printf("leftWallDist %7.3f leftWallDistandAngleValid %d curAngle=%7.3f wallAngle %7.3f gyroAngle %7.3f desiredAngle=%7.3f lDr=%4.1f rDr=%4.1f bat=%7.3f\n",
+        curDistToLeftWall, wallAngleAndDistanceUpdated, curAngle, angFromWall, gyroAngle, desiredAngle, leftOutputDrift, rightOutputDrift,
         hms->data.batteryVoltage);
   motors->setPower(leftTotal, rightTotal*LOWER_RIGHT_VEL_SP_BY);
 }
@@ -408,6 +445,7 @@ void Sorry::turnInPlace(){
   float curAngle = startAngle;
 
   while(true){
+    sensors->update(false, true);
     curTs = micros();
     curAngle = getDriftCorrectedGyroAngle(curTs - _firstT); //nav->getGyroAngle();
     /* if (curAngle - rawAngle > 300){ //300 since cur - new will loop over to 360 degrees, but not quite 360 */

@@ -93,10 +93,6 @@ void Hms::updateLEDs(){
 }
 
 void Hms::init(){
-  data.mainLogLevel = MAIN_LOG_LEVEL_DEFAULT;
-  data.sensorsLogLevel = SENSORS_LOG_LEVEL_DEFAULT;
-  data.guidanceLogLevel = GUIDANCE_LOG_LEVEL_DEFAULT;
-  data.navLogLevel = NAV_LOG_LEVEL_DEFAULT;
 }
 
 void Hms::update(){
