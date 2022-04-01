@@ -46,5 +46,7 @@ class Sorry{
     float gyroDriftPerMicro;
     float startCurDriveSegmentAngle;
     float angleError;
+    float lastLeftTotalPID;
+    float lastRightTotalPID;
 };
 #endif

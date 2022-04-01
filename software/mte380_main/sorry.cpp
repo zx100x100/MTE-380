@@ -11,7 +11,9 @@
 #define STOPPED_POWER 0
 #define BRAKING_POWER -100
 
-#define DELAY_BETWEEN_LARGE_SLEWS_MS 40
+#define LP_FILTER_GAIN 0.25
+
+#define DELAY_BETWEEN_LARGE_SLEWS_MS 30
 /* #define MEDIUM_POWER 55 */
 /* #define SLOW_POWER 44 */
 
@@ -59,6 +61,8 @@ hms(hms){
   angleError = 0;
   angFromWall = 0;
   deltaT = 0;
+  lastLeftTotalPID = 0;
+  lastRightTotalPID = 0;
   gyroDriftPerMicro = 0;
   numGyroClockwiseWraparounds = 0; // in order to keep our units consistent for angle comparisons
   prevGyroMeasurementWasLargeAndMightWrapAroundToNegative = false;
@@ -95,7 +99,7 @@ void Sorry::run(){
   /* drive(0, 800000, 0, 200000, 0.53, 0.5); */
   drive(2,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(2,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  drive(2,2,SLOW_POWER,    2000, 0.5,  PARALLEL,   0.46);
+  drive(2,2,SLOW_POWER,    2000, 0.5,  PARALLEL,   0.52);
   /* drive(2,3,STOPPED_POWER, 500,  0.5,  PARALLEL      ); */
   turnInPlace(2);
 
@@ -105,8 +109,11 @@ void Sorry::run(){
   drive(3,1,STOPPED_POWER, 2000, 0.4, UNGUIDED);
   drive(3,2,MOUNT_WALL_POWER2,  325, 0.4,  UNGUIDED, -1);
   drive(3,3,40,                50, 0.5, UNGUIDED);
-  drive(3,3,0,                 500, 0.5, PARALLEL);
-  drive(3,4,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.5);
+  drive(3,4,0,                 500, 0.5, PARALLEL);
+  drive(3,5,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.5);
+  drive(3,6,STOPPED_POWER,300,0.5, UNGUIDED);
+  sensors->tof[0].init();
+  delay(500);
   turnInPlace(3);
 
   // LINE 5 YOU ARE NOW OUT OF PIT -----------------
@@ -335,7 +342,7 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
 
   // DRIFT PID --------------------------------------------------------------------------
   /* Serial.printf("pitch angle: %6.3f", sensors->getGyroAnglePitch()); */
-  float lastAngleError = angleError;
+
 
   bool updatedAngleAndDistSucc = updateWallAngleAndDistance(gyroAngle, desiredDistToLeftWall, firstTick);
   if (!updatedAngleAndDistSucc || correctionMode == UNGUIDED){
@@ -350,7 +357,9 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
     desiredAngle = 0;
   }
 
+  float lastAngleError = angleError;
   angleError = angFromWall - desiredAngle;
+  angleError = LP_FILTER_GAIN * angleError + (1- LP_FILTER_GAIN)*lastAngleError;
   float angleErrorD = (angleError - lastAngleError)*1000/deltaT;
   angleErrorI += angleError * deltaT/1000;
   if (sign(lastAngleError) != sign(angleError)){
@@ -401,6 +410,10 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
   Serial.printf("ang=%7.3f desired=%7.3f lDr=%4.1f rDr=%4.1f dt=%7.3f bat=%7.3f\n",
         angFromWall, desiredAngle, leftOutputDrift, rightOutputDrift,
         hms->data.batteryVoltage);
+  /* if (leftMotorChange > 50){ */
+    /* float leftTotalAdj -= leftMotorChange/2; */
+  /* } */
+
   motors->setPower(leftTotal, rightTotal*LOWER_RIGHT_VEL_SP_BY);
 }
 
@@ -438,13 +451,6 @@ void Sorry::turnInPlace(int turnNum){
   Serial.printf("Start turn #%d\n",turnNum);
   float startAngle = getDirectionCorrectedGyroAngle();
   float curAngle = startAngle;
-
-  motors->setPower(0,0);
-  delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
-  sensors->update(true);
-  delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
-  motors->setPower(60, -60);
-  delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
 
   while(true){
     curTs = micros();
@@ -497,14 +503,10 @@ void Sorry::turnInPlace(int turnNum){
     motors->setPower(total, -total*LOWER_RIGHT_VEL_SP_BY);
 #endif
     lastError = error;
-
   }
+  motors->setPower(0,0);
+  lastLeftTotalPID = 0;
+  lastRightTotalPID = 0;
 
-  if (total > 60){
-    motors->setPower(40, -40);
-    delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
-    motors->setPower(0,0);
-    delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
-  }
   return;
 }

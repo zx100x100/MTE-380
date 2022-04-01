@@ -6,6 +6,8 @@
 #define RIGHT_DRIVE_1 4
 #define RIGHT_DRIVE_2 2
 
+#define N_SLEW_SECTIONS 4
+
 // #define PROP_PIN 27
 // #define PROP_MIN 55
 // #define PROP_MAX 150
@@ -41,31 +43,55 @@ void Motors::setPower(float leftPower, float rightPower, bool brake){
 
   float leftMotorChange = leftPower - lastLeftPower; // -100
   float rightMotorChange = rightPower - lastRightPower;
-  bool changingDirectionsTooFastLeft = fabs(leftMotorChange) > 50;
-  bool changingDirectionsTooFastRight = fabs(rightMotorChange) > 50;
+  bool changingDirectionsTooFastLeft = fabs(leftMotorChange) > 150/N_SLEW_SECTIONS;
+  bool changingDirectionsTooFastRight = fabs(rightMotorChange) > 150/N_SLEW_SECTIONS;
   bool changingDirectionsTooFast = changingDirectionsTooFastLeft || changingDirectionsTooFastRight;
 
+  float leftPowerAdjBy = leftMotorChange/N_SLEW_SECTIONS; // -25
+  float rightPowerAdjBy = rightMotorChange/N_SLEW_SECTIONS;
+
   if (changingDirectionsTooFast){
-    leftPower = 
-  }
-  /* if (leftPower) */
-  if (leftPower >= 0){
-    analogWrite(LEFT_DRIVE_1, leftPower, PWM_FREQ);
-    analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);
+    for(int i=N_SLEW_SECTIONS-1; i>=0; --i){
+      float currLeftPower = leftPower - i*leftPowerAdjBy;
+      float currRightPower = rightPower - i*rightPowerAdjBy;
+      if (currLeftPower >= 0){
+        analogWrite(LEFT_DRIVE_1, currLeftPower, PWM_FREQ);
+        analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);
+      }
+      else{
+        analogWrite(LEFT_DRIVE_1, 0, PWM_FREQ);
+        analogWrite(LEFT_DRIVE_2, -currLeftPower, PWM_FREQ);
+      }
+      if (currRightPower >= 0){
+        analogWrite(RIGHT_DRIVE_1, currRightPower, PWM_FREQ);
+        analogWrite(RIGHT_DRIVE_2, 0, PWM_FREQ);
+      }
+      else{
+        analogWrite(RIGHT_DRIVE_1, 0, PWM_FREQ);
+        analogWrite(RIGHT_DRIVE_2, -currRightPower, PWM_FREQ);
+      }
+      delay(30/N_SLEW_SECTIONS);
+    }
   }
   else{
-    analogWrite(LEFT_DRIVE_1, 0, PWM_FREQ);
-    analogWrite(LEFT_DRIVE_2, -leftPower, PWM_FREQ);
-  }
-  if (rightPower >= 0){
-    analogWrite(RIGHT_DRIVE_1, rightPower, PWM_FREQ);
-    analogWrite(RIGHT_DRIVE_2, 0, PWM_FREQ);
-  }
-  else{
-    analogWrite(RIGHT_DRIVE_1, 0, PWM_FREQ);
-    analogWrite(RIGHT_DRIVE_2, -rightPower, PWM_FREQ);
+    /* if (leftPower) */
+    if (leftPower >= 0){
+      analogWrite(LEFT_DRIVE_1, leftPower, PWM_FREQ);
+      analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);
+    }
+    else{
+      analogWrite(LEFT_DRIVE_1, 0, PWM_FREQ);
+      analogWrite(LEFT_DRIVE_2, -leftPower, PWM_FREQ);
+    }
+    if (rightPower >= 0){
+      analogWrite(RIGHT_DRIVE_1, rightPower, PWM_FREQ);
+      analogWrite(RIGHT_DRIVE_2, 0, PWM_FREQ);
+    }
+    else{
+      analogWrite(RIGHT_DRIVE_1, 0, PWM_FREQ);
+      analogWrite(RIGHT_DRIVE_2, -rightPower, PWM_FREQ);
+    }
   }
   lastLeftPower = leftPower;
   lastRightPower = rightPower;
-
 }
