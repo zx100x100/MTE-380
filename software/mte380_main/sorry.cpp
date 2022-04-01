@@ -109,37 +109,38 @@ void Sorry::run(){
   // 5 rock north
   drive(4,0,FAST_POWER,    600, 1.47, GUIDED        );
   drive(4,1,SLOW_POWER,  500, 1.47, GUIDED        ); // we are tuning this rn, it was too long @ 800
-  drive(4,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.3); // undershot by 1 ish inch on 1.50
+  drive(4,2,SLOW_POWER,    2000, 1.47, GUIDED,   1.43); // undershot by 1 ish inch on 1.50
   turnInPlace(4);
 
   // 4 rock east
-  drive(5,0,FAST_POWER,    600, 1.47, GUIDED        );
-  drive(5,1,MEDIUM_POWER,  200, 1.47, GUIDED        );
-  drive(9,0,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(5,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.2);
+  // drive(5,0,FAST_POWER,    650, 1.47, GUIDED        );
+  drive(5,1,MEDIUM_POWER,  850, 1.47, GUIDED        );
+  // drive(9,0,STOPPED_POWER,    400, 1.47, UNGUIDED        );
+  drive(5,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.63);
   turnInPlace(5);
 
   // 4 sand south
-  drive(6,0,FAST_POWER,    300, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
-  drive(6,1,SLOW_POWER,  1300, 1.47, GUIDED        );
-  drive(6,0,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(6,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.35); // JUST 1.3
+  // drive(6,0,FAST_POWER,    300, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
+  // drive(6,1,SLOW_POWER,  700, 1.47, GUIDED        );
+  drive(6,0,MEDIUM_POWER,    1000, 1.47, GUIDED);
+  drive(6,1,STOPPED_POWER,    400, 1.47, UNGUIDED        );
+  drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.4); // JUST 1.3
   turnInPlace(6);
 
   // 3 sand west
   /* drive(7,0,MEDIUM_POWER,   600, 1.47, GUIDED        ); */
   drive(7,0,SLOW_POWER,   1200, 1.47, GUIDED        );
   drive(7,0,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(7,2,SLOW_POWER,    2000, 1.47, GUIDED,   2.12); // overshoot 1 inch ish on 2.6
+  drive(7,2,SLOW_POWER,    2000, 1.47, GUIDED,   2.26); // overshoot 1 inch ish on 2.6
   turnInPlace(7);
-
+  drive(7,3,STOPPED_POWER, 300, 1.5, UNGUIDED);
 
   // 3 sand north
   /* drive(8,0,MEDIUM_POWER,    1200, 2.47, GUIDED        ); */
   drive(8,0,SLOW_POWER,    1100, 2.47, GUIDED        );
-  drive(8,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.18);
+  drive(8,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.36);
   turnInPlace(8);
-
+  drive(8,2, STOPPED_POWER, 300, 2.55, UNGUIDED);
   // 2 wood east
   drive(9,0,SLOW_POWER,    500, 2.47, GUIDED        );
   drive(9,0,STOPPED_POWER,    300, 2.47, UNGUIDED        );
@@ -149,7 +150,7 @@ void Sorry::run(){
   // 2 wood south
   drive(10,0,SLOW_POWER,    500, 2.47, GUIDED        );
   drive(10,0,STOPPED_POWER,    300, 2.47, UNGUIDED        );
-  drive(10,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.60); // overshoot 0.1 on 2.6
+  drive(10,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.45); // overshoot 0.1 on 2.6
 
   /* motors->setPower(215,215); */
   delay(400);
