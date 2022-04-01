@@ -6,7 +6,7 @@
 //#include <ESP32Servo.h>
 
 #include "hms.h"
-#include "guidance_data.pb.h"
+// #include "guidance_data.pb.h"
 
 #define PWM_FREQ 2000
 
