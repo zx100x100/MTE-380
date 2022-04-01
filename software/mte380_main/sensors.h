@@ -24,7 +24,9 @@ class Sensors{
     Tof tof[4];
     long timestamp;
     Hms* hms;
+    float getGyroAngle();
     float getGyroAnglePitch();
+    uint32_t getTofDist(int n);
   private:
     // TODO update IMU and TOFs
     void updateBatteryVoltage();

@@ -18,9 +18,6 @@ class Hms{
     LedState redLedState;
     bool redLedLastOn;
     void updateLEDs();
-
-  private:
-    NavData navData;
 };
 
 #endif

@@ -2,7 +2,7 @@
 
 #define TIMEOUT 50000
 #define MAX_TIMEOUTS 5
-#define MAX_BAD_READINGS 5
+#define MAX_BAD_READINGS 15
 
 /* Tof::Tof(){ */
 /* } */
@@ -64,19 +64,20 @@ void Tof::poll(){
                 if (hms->data.sensorsLogLevel >= 2) Serial.print(report);
                 lastReading = micros();
                 if (tofData.numObjs){ // if at least 1 object found
-                  if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter); }
-                  if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(pMultiRangingData->RangeData[0].RangeMilliMeter); }
-                  if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist: "); Serial.println(tofData.dist); }
-                    if (pMultiRangingData->RangeData[0].RangeStatus == 0 && tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter){
+                  /* if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter); } */
+                  /* if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("pMultiRangingData->RangeData[0].RangeMilliMeter: "); Serial.println(pMultiRangingData->RangeData[0].RangeMilliMeter); } */
+                  /* if(hms->data.sensorsLogLevel >= 1){ Serial.print("tof"); Serial.print(index); Serial.print("tofData.dist: "); Serial.println(tofData.dist); } */
+                    if (pMultiRangingData->RangeData[0].RangeStatus == 0/* && tofData.dist != pMultiRangingData->RangeData[0].RangeMilliMeter*/){
                         consecutiveBadReadings = 0;
                         tofData.dist = pMultiRangingData->RangeData[0].RangeMilliMeter;
                         tofData.count = pMultiRangingData->StreamCount;
-                    } else{
+                    }else{
                         consecutiveBadReadings++;
                         if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
                             needsToBeInitialized = true;
                             Serial.print("tof"); Serial.print(index); Serial.println("REBOOTING TOF due to bad readings");
-                            init();
+                            /* init(); */
+                            hms->redLedState = LED_ON;
                             return;
                         }
                     } // TODO: if no objects found, we don't increment consecutiveBadReadings
@@ -97,13 +98,14 @@ void Tof::poll(){
                 }
                 else{
                   Serial.print("tof"); Serial.print(index); Serial.println(" 0 detected");
-                  consecutiveBadReadings++;
-                  if (consecutiveBadReadings % MAX_BAD_READINGS == 0){
-                      needsToBeInitialized = true;
-                      Serial.print("tof"); Serial.print(index); Serial.println("uniquexxx REBOOTING TOF due to bad readings");
-                      init();
-                      return;
-                  }
+                  consecutiveBadReadings = 0;
+                  /* consecutiveBadReadings++; */
+                  /* if (consecutiveBadReadings % MAX_BAD_READINGS == 0){ */
+                      /* needsToBeInitialized = true; */
+                      /* Serial.print("tof"); Serial.print(index); Serial.println("uniquexxx REBOOTING TOF due to bad readings"); */
+                      /* init(); */
+                      /* return; */
+                  /* } */
                 }
 
                 status = sensor_vl53lx_sat->VL53LX_ClearInterruptAndStartMeasurement(); // TODO: what if status bad
@@ -128,7 +130,8 @@ void Tof::poll(){
         if (tofData.timeoutCount % MAX_TIMEOUTS == 0){
           needsToBeInitialized = true;
           Serial.print("tof"); Serial.print(index); Serial.println("REBOOTING TOF due to timeouts");
-          init();
+          /* init(); */
+          hms->redLedState = LED_ON;
           return;
         }
       }

@@ -12,16 +12,14 @@
 
 class Motors{
   public:
-    Motors(GuidanceData& guidanceData, Hms* hms);
+    Motors(Hms* hms);
     void update();
-    void setPower(float leftPower, float rightPower);
+    void setPower(float leftPower, float rightPower, bool brake = false);
 
     void setAllToZero();
 
   private:
-    GuidanceData& guidanceData;
     Hms* hms;
-    /* Servo propServo; */
 
 };
 

@@ -19,7 +19,9 @@ Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
 }
 void Sensors::initGyro(){
   imu = Imu(hms);
+  delay(10);
   imu.poll();
+  delay(10);
   fusion.setup(imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
 }
 
@@ -31,11 +33,10 @@ bool Sensors::init(){
   //
   // he was talking about eng right?
 
-  Wire.begin();
-  Wire.setClock(400000);
-
+  delay(5);
   for (int i=0; i<4; i++){
     tof[i] = Tof(hms, sensor_vl53lx_sat[i], i);
+    delay(5);
   }
   timestamp = 0;
 }
@@ -50,27 +51,46 @@ void Sensors::updateBatteryVoltage(){
   // }
 }
 
-// SensorData& Sensors::getData(){
-  // return sensorData;
-// }
+float Sensors::getGyroAngle(){
+  imu.poll();
+
+  if (imu.getData().accelZ == 0 && imu.getData().accelZ == 0 && imu.getData().accelZ == 0){
+    while(true){
+      Serial.println("go home imu u r drunk");
+      delay(1000);
+    }
+  }
+
+  fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
+  /* Serial.println("fusion done"); */
+
+  float yaw = -rad2deg(fusion.yaw());
+  return yaw;
+}
 float Sensors::getGyroAnglePitch(){
   imu.poll();
 
 
   fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
 
-  float pitch = rad2deg(fusion.pitch());
+  float pitch = rad2deg(fusion.roll());
 
   return pitch;
 }
 
+uint32_t Sensors::getTofDist(int n){
+  uint32_t dist = tof[n].getData().dist;
+  return dist;
+}
+
+
 void Sensors::update(){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   imu.poll();
-  delay(3);
-  for (int i=0; i<4; i++){
+  /* delay(3); */
+  for (int i=0; i<3; i++){ // NOTE IVE DISABLED TOF 3 (back) by changing 4 to 3 in for() !!!!
     tof[i].poll();
-    delay(3);
+    /* delay(3); */
   }
 //  if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");
 

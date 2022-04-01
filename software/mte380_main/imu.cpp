@@ -9,6 +9,7 @@ Imu::Imu(){
 Imu::Imu(Hms* hms):
   hms(hms)
 {
+  delay(500);
   imuData = ImuData_init_zero;
   // return;
   bool success = true;
@@ -34,6 +35,7 @@ Imu::Imu(Hms* hms):
     Serial.println("Ooops, no L3GD20 detected ... Check your wiring!");
     success = false;
   }
+  delay(200);
 
 //  displayDetails();
   /* return success; */
