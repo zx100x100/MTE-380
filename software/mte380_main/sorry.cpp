@@ -37,8 +37,8 @@
 /* #define kP_drift 0.55 */
 /* #define kD_drift 900 */
 /* #define kI_drift 0.002 */
-#define kP_drift 3.14159
-#define kD_drift 900
+#define kP_drift 1.4 // 0.8 last
+#define kD_drift 600 // 300 last
 #define kI_drift 0.0
 
 #define TURN_IN_PLACE_TIMEOUT 3400000
@@ -73,44 +73,33 @@ void Sorry::run(){
   calibrateGyroDrift();
 
   // FIRST LINE (START) -------------------------------------------
-  // 5 wood north
-  /* return; */
-  /* turnInPlace(0); */
-  /* motors->setPower(0,0); */
-  /* while(true){ */
-  /* } */
   drive(0,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(0,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
   drive(0,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
-  /* drive(0,3,STOPPED_POWER, 500,  0.5,  GUIDED        ); */
   turnInPlace(0);
 
   // SECOND LINE -------------------------------------------
   // 6 wood east
-  /* drive(0, 800000, 0, 200000, 0.55, 0.5); */
   drive(1,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(1,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
   drive(1,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
-  /* drive(1,3,STOPPED_POWER, 500,  0.5,  GUIDED        ); */
   turnInPlace(1);
 
   // THIRD LINE
   // 6 south
-  /* drive(0, 800000, 0, 200000, 0.53, 0.5); */
   drive(2,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(2,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
   drive(2,2,SLOW_POWER,    2000, 0.5,  PARALLEL,   0.52);
-  /* drive(2,3,STOPPED_POWER, 500,  0.5,  PARALLEL      ); */
   turnInPlace(2);
 
   // FOURTH LINE -----------
   // 5 PIT west
-  drive(3,0,MOUNT_WALL_POWER,  5200, 0.4,  UNGUIDED, -1, -165, false);
+  drive(3,0,MOUNT_WALL_POWER,  5200, 0.4, GUIDED , -1, -165, false);
   drive(3,1,STOPPED_POWER, 2000, 0.4, UNGUIDED);
-  drive(3,2,MOUNT_WALL_POWER2,  325, 0.4,  UNGUIDED, -1);
+  drive(3,2,MOUNT_WALL_POWER2,  370, 0.4,  UNGUIDED, -1);
   drive(3,3,40,                50, 0.5, UNGUIDED);
-  drive(3,4,0,                 500, 0.5, PARALLEL);
-  drive(3,5,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.5);
+  drive(3,4,0,                 200, 0.5, PARALLEL);
+  drive(3,5,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.3);
   drive(3,6,STOPPED_POWER,300,0.5, UNGUIDED);
   sensors->tof[0].init();
   delay(500);
@@ -118,43 +107,46 @@ void Sorry::run(){
 
   // LINE 5 YOU ARE NOW OUT OF PIT -----------------
   // 5 rock north
-  drive(4,0,FAST_POWER,    1000, 1.47, GUIDED        );
-  drive(4,1,MEDIUM_POWER,  300, 1.47, GUIDED        ); // we are tuning this rn, it was too long @ 800
-  drive(4,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.45); // undershot by 1 ish inch on 1.50
+  drive(4,0,FAST_POWER,    600, 1.47, GUIDED        );
+  drive(4,1,SLOW_POWER,  500, 1.47, GUIDED        ); // we are tuning this rn, it was too long @ 800
+  drive(4,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.3); // undershot by 1 ish inch on 1.50
   turnInPlace(4);
 
   // 4 rock east
   drive(5,0,FAST_POWER,    600, 1.47, GUIDED        );
-  drive(5,1,MEDIUM_POWER,  700, 1.47, GUIDED        );
-  drive(5,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.565);
+  drive(5,1,MEDIUM_POWER,  400, 1.47, GUIDED        );
+  drive(5,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.57);
   turnInPlace(5);
 
   // 4 sand south
-  drive(6,0,FAST_POWER,    700, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
-  drive(6,1,MEDIUM_POWER,  400, 1.47, GUIDED        );
-  drive(6,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.67);
+  drive(6,0,FAST_POWER,    300, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
+  drive(6,1,SLOW_POWER,  1000, 1.47, GUIDED        );
+  drive(6,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.35); // JUST 1.3
   turnInPlace(6);
 
   // 3 sand west
-  drive(7,0,MEDIUM_POWER,   600, 1.47, GUIDED        );
-  drive(7,0,SLOW_POWER,   300, 1.47, GUIDED        );
-  drive(7,2,SLOW_POWER,    2000, 1.47, PARALLEL,   2.66); // overshoot 1 inch ish on 2.6
+  /* drive(7,0,MEDIUM_POWER,   600, 1.47, GUIDED        ); */
+  drive(7,0,SLOW_POWER,   900, 1.47, GUIDED        );
+  drive(7,2,SLOW_POWER,    2000, 1.47, GUIDED,   2.5); // overshoot 1 inch ish on 2.6
   turnInPlace(7);
 
 
   // 3 sand north
-  drive(8,0,MEDIUM_POWER,    500, 2.47, GUIDED        );
-  drive(8,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
+  /* drive(8,0,MEDIUM_POWER,    1200, 2.47, GUIDED        ); */
+  drive(8,0,SLOW_POWER,    1100, 2.47, GUIDED        );
+  drive(8,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.50);
   turnInPlace(8);
 
   // 2 wood east
-  drive(9,0,MEDIUM_POWER,    500, 2.47, GUIDED        );
-  drive(9,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
+  drive(9,0,SLOW_POWER,    500, 2.47, GUIDED        );
+  drive(9,0,STOPPED_POWER,    300, 2.47, UNGUIDED        );
+  drive(9,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.60);
   turnInPlace(9);
 
   // 2 wood south
-  drive(10,0,MEDIUM_POWER,    500, 2.47, GUIDED        );
-  drive(10,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.70); // overshoot 0.1 on 2.6
+  drive(10,0,SLOW_POWER,    500, 2.47, GUIDED        );
+  drive(10,0,STOPPED_POWER,    300, 2.47, UNGUIDED        );
+  drive(10,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.60); // overshoot 0.1 on 2.6
 
   /* motors->setPower(215,215); */
   delay(400);
@@ -407,6 +399,8 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
   if (rightTotal < 0){
     rightTotal = 0;
   }
+  leftTotal = constrainVal(leftTotal, MAX_OUTPUT_POWER);
+  rightTotal = constrainVal(rightTotal, MAX_OUTPUT_POWER);
   Serial.printf("ang=%7.3f desired=%7.3f lDr=%4.1f rDr=%4.1f dt=%7.3f bat=%7.3f\n",
         angFromWall, desiredAngle, leftOutputDrift, rightOutputDrift,
         hms->data.batteryVoltage);

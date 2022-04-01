@@ -6,7 +6,7 @@
 #define RIGHT_DRIVE_1 4
 #define RIGHT_DRIVE_2 2
 
-#define N_SLEW_SECTIONS 4
+#define N_SLEW_SECTIONS 10
 
 // #define PROP_PIN 27
 // #define PROP_MIN 55
@@ -51,9 +51,19 @@ void Motors::setPower(float leftPower, float rightPower, bool brake){
   float rightPowerAdjBy = rightMotorChange/N_SLEW_SECTIONS;
 
   if (changingDirectionsTooFast){
-    for(int i=N_SLEW_SECTIONS-1; i>=0; --i){
+    for(int i=N_SLEW_SECTIONS -1; i>=0; --i){
       float currLeftPower = leftPower - i*leftPowerAdjBy;
       float currRightPower = rightPower - i*rightPowerAdjBy;
+      if (abs(currLeftPower) > 170 || abs(currRightPower) > 170){
+        hms->redLedState = LED_ON;
+        setAllToZero();
+        while(true){
+          Serial.println("aaaaaaaa why u go backward??!");
+          Serial.printf("leftMotor: %5.3f rightMotor: %5.3f leftChange: %5.3f, rightChange: %5.3f currL: %5.3f, currR: %5.3f\n",leftPower, rightPower, leftPowerAdjBy, rightPowerAdjBy, currLeftPower, currRightPower);
+          hms->update();
+          delay(1000);
+        }
+      }
       if (currLeftPower >= 0){
         analogWrite(LEFT_DRIVE_1, currLeftPower, PWM_FREQ);
         analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);
@@ -70,11 +80,20 @@ void Motors::setPower(float leftPower, float rightPower, bool brake){
         analogWrite(RIGHT_DRIVE_1, 0, PWM_FREQ);
         analogWrite(RIGHT_DRIVE_2, -currRightPower, PWM_FREQ);
       }
-      delay(30/N_SLEW_SECTIONS);
+      delay(20/N_SLEW_SECTIONS);
     }
   }
   else{
     /* if (leftPower) */
+    if (abs(leftPower) > 170 || abs(rightPower > 170)){
+      hms->redLedState = LED_ON;
+      setAllToZero();
+      while(true){
+        hms->update();
+        Serial.println("aaaaaaaa why u go backward??!");
+        delay(1000);
+      }
+    }
     if (leftPower >= 0){
       analogWrite(LEFT_DRIVE_1, leftPower, PWM_FREQ);
       analogWrite(LEFT_DRIVE_2, 0, PWM_FREQ);

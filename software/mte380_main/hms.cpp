@@ -13,7 +13,7 @@ Hms::Hms()
   /* data = data_; */
   data.nCells = DEFAULT_N_BATTERY_CELLS;
   data.nTicks = 0;
-  greenLedState = LED_FAST_FLASH;
+  greenLedState = LED_OFF;
   greenLedLastOn = false;
   redLedState = LED_OFF;
   redLedLastOn = false;

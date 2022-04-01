@@ -4,6 +4,7 @@
 #include "hms.h"
 #include "tof.h"
 #include "imu.h"
+#include "motors.h"
 
 #include <imuFilter.h>
 
@@ -15,7 +16,7 @@ enum TofOrder {FRONT, L_FRONT, L_BACK, BACK};
 class Sensors{
   public:
     /*Sensors(); */
-    Sensors(Hms* hms, VL53LX tof_objects[]);
+    Sensors(Hms* hms, VL53LX tof_objects[], Motors* motors);
     bool init();
     void initGyro();
     // Sensors& getData();
@@ -35,6 +36,7 @@ class Sensors{
     imuFilter<&imuGain> fusion;
 
     float lastBackSensorVal;
+    Motors* motors;
 };
 
 #endif

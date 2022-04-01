@@ -15,8 +15,8 @@ VL53LX sensor_vl53lx_sat[4] = {
 
 //create subsystem objects
 Hms hms = Hms();
-Sensors sensors = Sensors(&hms, &sensor_vl53lx_sat[0]);
 Motors motors = Motors(&hms);
+Sensors sensors = Sensors(&hms, &sensor_vl53lx_sat[0], &motors);
 Sorry sorry = Sorry(&motors, &sensors, &hms);
 
 void setup() {

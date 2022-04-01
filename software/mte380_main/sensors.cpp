@@ -5,8 +5,9 @@
 #define V_SENSE_PIN 15
 #define MIN_CELL_VOLTAGE 3 // TODO update value?
 
-Sensors::Sensors(Hms* hms, VL53LX *tof_objects):
-  hms(hms)
+Sensors::Sensors(Hms* hms, VL53LX *tof_objects, Motors* motors):
+  hms(hms),
+  motors(motors)
 {
   for (int i = 0; i < 4; ++i){
     pinMode(tofPins[i], OUTPUT);
@@ -55,14 +56,27 @@ float Sensors::getGyroAngle(){
   imu.poll();
 
   if (imu.getData().accelZ == 0 && imu.getData().accelZ == 0 && imu.getData().accelZ == 0){
-    while(true){
-      Serial.println("go home imu u r drunk");
-      delay(1000);
-    }
-  }
+    /* imu.getData().accelZ = -10; */
+      Serial.println("1 more chance to prove sober imU");
+    /* delay(4); */
+    /* imu.poll(); */
+    /* if (imu.getData().accelZ == 0 && imu.getData().accelZ == 0 && imu.getData().accelZ == 0){ */
 
-  fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
+      /* motors->setAllToZero(); */
+      /* while(true){ */
+      /* Serial.println("go home imu u r drunk"); */
+      /* [> Serial.println("but we give u one more try"); <] */
+        /* delay(1000); */
+      /* } */
+    /* } */
+    hms->greenLedState = LED_ON;
+    fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ);
+  }
+  else{
+    fusion.update(imu.getData().gyroX, imu.getData().gyroY, imu.getData().gyroZ, imu.getData().accelX, imu.getData().accelY, imu.getData().accelZ);
+    hms->greenLedState = LED_OFF;
   /* Serial.println("fusion done"); */
+  }
 
   float yaw = -rad2deg(fusion.yaw());
   return yaw;
