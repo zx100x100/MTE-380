@@ -4,6 +4,7 @@
 #define ULTRA_POWER_MWAHAHAHA 110
 #define MOUNT_WALL_POWER 67
 #define MOUNT_WALL_POWER2 105
+#define FASTER_POWER 150
 #define FAST_POWER 85
 #define MEDIUM_POWER 70
 #define SLOW_POWER 62
@@ -17,13 +18,13 @@
 /* #define MEDIUM_POWER 55 */
 /* #define SLOW_POWER 44 */
 
-#define MAX_OUTPUT_POWER 120
+#define MAX_OUTPUT_POWER 150
 
 #define TRACK_DIM 6  // ft
 #define L_Y_DELTA 0.3958  // ft
 #define L_X_OFFSET 0.213  // ft
 
-#define MAX_TURN_IN_PLACE_OUTPUT_POWER 60//75 // must be < 255
+#define MAX_TURN_IN_PLACE_OUTPUT_POWER 170//75 // must be < 255
 #define MAX_TURN_IN_PLACE_ERROR_I 1200
 #define MAX_DRIFT_ERROR_I 200
 
@@ -74,16 +75,16 @@ void Sorry::run(){
   // drive(0,0,STOPPED_POWER,    5000,  0.5,  GUIDED        );
 
   // FIRST LINE (START) -------------------------------------------
-  drive(0,0,FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(0,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  drive(0,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(0,0,FASTER_POWER,    600,  0.5,  GUIDED        );
+  // drive(0,1,MEDIUM_POWER,  100,  0.5,  GUIDED        );
+  drive(0,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.95);
   turnInPlace(0);
 
   // SECOND LINE -------------------------------------------
   // 6 wood east
-  drive(1,0,FAST_POWER,    800,  0.5,  GUIDED        );
-  drive(1,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  drive(1,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  drive(1,0,FASTER_POWER,    600,  0.5,  GUIDED        );
+  // drive(1,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(1,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.92);
   turnInPlace(1);
 
   // THIRD LINE
@@ -96,49 +97,50 @@ void Sorry::run(){
   // FOURTH LINE -----------
   // 5 PIT west
   drive(3,0,MOUNT_WALL_POWER,  5200, 0.4, GUIDED , -1, -165, false);
-  drive(3,1,STOPPED_POWER, 2000, 0.4, UNGUIDED);
-  drive(3,2,MOUNT_WALL_POWER2,  370, 0.4,  UNGUIDED, -1);
+  drive(3,1,STOPPED_POWER, 200, 0.4, UNGUIDED);
+  drive(3,2,MOUNT_WALL_POWER2,  340, 0.4,  UNGUIDED, -1);
   drive(3,3,40,                50, 0.5, UNGUIDED);
-  drive(3,4,0,                 50, 0.5, PARALLEL);
-  drive(3,5,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.4);
-  drive(3,6,STOPPED_POWER,300,0.5, UNGUIDED);
-  sensors->tof[0].init();
-  delay(100);
+  drive(3,5,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.8);
+  drive(3,6,STOPPED_POWER,50,0.5, UNGUIDED);
+  // sensors->tof[0].init();
+  // delay(10);
   turnInPlace(3);
 
   // LINE 5 YOU ARE NOW OUT OF PIT -----------------
   // 5 rock north
+  drive(4,0,FASTER_POWER,    200, 1.55, UNGUIDED        );
   drive(4,0,FAST_POWER,    600, 1.55, GUIDED        );
   drive(4,1,SLOW_POWER,  600, 1.55, GUIDED        ); // we are tuning this rn, it was too long @ 800
-  drive(4,2,SLOW_POWER,    2000, 1.55, GUIDED,   1.36); // undershot by 1 ish inch on 1.50
+  drive(4,2,SLOW_POWER,    2000, 1.55, GUIDED,   1.7); // undershot by 1 ish inch on 1.50
   turnInPlace(4);
 
   // 4 rock east
   // drive(5,0,FAST_POWER,    650, 1.47, GUIDED        );
-  drive(5,1,MEDIUM_POWER,  950, 1.47, GUIDED        );
+  drive(5,1,FAST_POWER,  950, 1.47, GUIDED        );
   // drive(9,0,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(5,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.63);
+  drive(5,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.8);
   turnInPlace(5);
 
   // 4 sand south
   // drive(6,0,FAST_POWER,    300, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
   // drive(6,1,SLOW_POWER,  700, 1.47, GUIDED        );
-  drive(6,0,MEDIUM_POWER,    1000, 1.47, GUIDED);
+  drive(6,0,FAST_POWER,  900, 1.47, GUIDED);
   // drive(6,1,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.57); // JUST 1.3
+  drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.68); // JUST 1.3
   turnInPlace(6);
 
   // 3 sand west
   /* drive(7,0,MEDIUM_POWER,   600, 1.47, GUIDED        ); */
   drive(7,0,SLOW_POWER,   1200, 1.52, GUIDED        );
-  drive(7,0,STOPPED_POWER,    400, 1.52, UNGUIDED        );
-  drive(7,2,SLOW_POWER,    2000, 1.52, GUIDED,   2.26); // overshoot 1 inch ish on 2.6
+  drive(7,0,STOPPED_POWER,    200, 1.52, UNGUIDED        );
+  drive(7,2,SLOW_POWER,    2000, 1.52, GUIDED,   2.4); // overshoot 1 inch ish on 2.6
   turnInPlace(7);
-  drive(7,3,STOPPED_POWER, 300, 1.5, UNGUIDED);
+  drive(7,3,STOPPED_POWER, 100, 1.5, UNGUIDED);
 
   // 3 sand north
   /* drive(8,0,MEDIUM_POWER,    1200, 2.47, GUIDED        ); */
-  drive(8,0,SLOW_POWER,    1170, 2.47, GUIDED        );
+  // drive(8,0,SLOW_POWER,    1170, 2.47, GUIDED        );
+  drive(8,0,FAST_POWER,    600, 2.47, GUIDED        );
   drive(8,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.43);
   turnInPlace(8);
   drive(8,2, STOPPED_POWER, 300, 2.55, UNGUIDED);
@@ -420,7 +422,7 @@ void Sorry::turnInPlace(int turnNum){
   float threshold = 5; // end loop when 3 degrees from donezo for thresholdTime sec
   unsigned long thresholdTime = 50000;
   float angleDelta = 0;
-  float DUMB_ERROR_OFFSET = (turnNum==6 || turnNum==8)?5:0;
+  float DUMB_ERROR_OFFSET = (turnNum==6 || turnNum==8 || turnNum == 5)?9:0;
   float turnAmount = 90 + DUMB_ERROR_OFFSET;
   float error = turnAmount;
   float lastError = error;
@@ -444,7 +446,7 @@ void Sorry::turnInPlace(int turnNum){
   float total;
   float rawAngle;
 
-  float maxPower = 120; //MAX_TURN_IN_PLACE_OUTPUT_POWER * (5-(hms->data.batteryVoltage)/4);
+  float maxPower = MAX_TURN_IN_PLACE_OUTPUT_POWER; //MAX_TURN_IN_PLACE_OUTPUT_POWER * (5-(hms->data.batteryVoltage)/4);
 
   // theres a timeout dont worry
   Serial.printf("Start turn #%d\n",turnNum);
@@ -457,6 +459,7 @@ void Sorry::turnInPlace(int turnNum){
     angleDelta = curAngle - startAngle;
     error = turnAmount - angleDelta;
     if (fabs(error) < threshold){
+    // if (error - threshold < 0){
       if (withinThreshold){
         if (curTs - enterThresholdTimestamp > thresholdTime){
           Serial.println("Donezo");
