@@ -80,17 +80,21 @@ float Sensors::getGyroAnglePitch(){
 
 uint32_t Sensors::getTofDist(int n){
   uint32_t dist = tof[n].getData().dist;
+  /* if (tof[n].needsToBeInitialized){ */
+  /* } */
   return dist;
 }
 
 
-void Sensors::update(){
+void Sensors::update(bool noTofs){
   if (hms->data.sensorsLogLevel >= 2) Serial.println("Sensors::update()");
   imu.poll();
   /* delay(3); */
-  for (int i=0; i<3; i++){ // NOTE IVE DISABLED TOF 3 (back) by changing 4 to 3 in for() !!!!
-    tof[i].poll();
-    /* delay(3); */
+  if (!noTofs){
+    for (int i=0; i<3; i++){ // NOTE IVE DISABLED TOF 3 (back) by changing 4 to 3 in for() !!!!
+      tof[i].poll();
+      /* delay(3); */
+    }
   }
 //  if (hms->data.sensorsLogLevel >= 2) Serial.println("finished updating bat voltage");
 

@@ -2,11 +2,12 @@
 #include "math_utils.h"
 
 #define ULTRA_POWER_MWAHAHAHA 110
-#define MOUNT_WALL_POWER 82
-#define MOUNT_WALL_POWER2 110
+#define MOUNT_WALL_POWER 67
+#define MOUNT_WALL_POWER2 105
 #define FAST_POWER 85
 #define MEDIUM_POWER 70
 #define SLOW_POWER 62
+#define SLOWEST_POWER 50
 #define STOPPED_POWER 0
 #define BRAKING_POWER -100
 /* #define MEDIUM_POWER 55 */
@@ -34,7 +35,7 @@
 /* #define kP_drift 0.55 */
 /* #define kD_drift 900 */
 /* #define kI_drift 0.002 */
-#define kP_drift 1.2
+#define kP_drift 2
 #define kD_drift 900
 #define kI_drift 0.0
 
@@ -68,6 +69,7 @@ void Sorry::run(){
   calibrateGyroDrift();
 
   // FIRST LINE (START) -------------------------------------------
+  // 5 wood north
   /* return; */
   drive(0,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(0,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
@@ -76,6 +78,7 @@ void Sorry::run(){
   turnInPlace(0);
 
   // SECOND LINE -------------------------------------------
+  // 6 wood east
   /* drive(0, 800000, 0, 200000, 0.55, 0.5); */
   drive(1,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(1,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
@@ -84,87 +87,64 @@ void Sorry::run(){
   turnInPlace(1);
 
   // THIRD LINE
+  // 6 south
   /* drive(0, 800000, 0, 200000, 0.53, 0.5); */
   drive(2,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(2,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
   drive(2,2,SLOW_POWER,    2000, 0.5,  PARALLEL,   0.46);
   /* drive(2,3,STOPPED_POWER, 500,  0.5,  PARALLEL      ); */
   turnInPlace(2);
-  drive(3,0,MOUNT_WALL_POWER,  3200, 0.4,  GUIDED, -1, -160, false);
-  drive(3,1,MOUNT_WALL_POWER2,  400, 0.4,  UNGUIDED, -1, 180, true);
-  drive(3,2,SLOW_POWER, 600, 0.5,  PARALLEL, 2.15);
 
-  // YOU ARE NOW OUT OF PIT
+  // FOURTH LINE -----------
+  // 5 PIT west
+  drive(3,0,MOUNT_WALL_POWER,  5200, 0.4,  UNGUIDED, -1, -160, false);
+  drive(3,1,STOPPED_POWER, 2000, 0.4, UNGUIDED);
+  drive(3,2,MOUNT_WALL_POWER2,  325, 0.4,  UNGUIDED, -1);
+  drive(3,3,40,                50, 0.5, UNGUIDED);
+  drive(3,3,0,                 500, 0.5, PARALLEL);
+  drive(3,4,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.5);
   turnInPlace(3);
+
+  // LINE 5 YOU ARE NOW OUT OF PIT -----------------
+  // 5 rock north
   drive(4,0,FAST_POWER,    1000, 1.47, GUIDED        );
   drive(4,1,MEDIUM_POWER,  300, 1.47, GUIDED        ); // we are tuning this rn, it was too long @ 800
   drive(4,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.50);
-
   turnInPlace(4);
+
+  // 4 rock east
   drive(5,0,FAST_POWER,    1000, 1.47, GUIDED        );
   drive(5,1,MEDIUM_POWER,  200, 1.47, GUIDED        );
-  drive(5,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.50);
-
+  drive(5,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.62);
   turnInPlace(5);
-  drive(6,0,FAST_POWER,    800, 1.47, GUIDED        );
+
+  // 4 sand south
+  drive(6,0,FAST_POWER,    700, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
   drive(6,1,MEDIUM_POWER,  200, 1.47, GUIDED        );
-  drive(6,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.50);
+  drive(6,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.65);
   turnInPlace(6);
-  /* drive(0, 1000000, 0, 1200000, 2.5, 1.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 2.5, 2.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 2.5, 2.47); */
-  drive(7,0,FAST_POWER,    500, 1.47, GUIDED        );
+
+  // 3 sand west
+  drive(7,0,MEDIUM_POWER,    800, 1.47, GUIDED        );
   drive(7,2,SLOW_POWER,    2000, 1.47, PARALLEL,   2.60);
   turnInPlace(7);
-  drive(8,0,FAST_POWER,    500, 2.47, GUIDED        );
-  drive(8,2,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
-  turnInPlace(8);
-  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
 
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 1.35, 1.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 1.5, 1.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 1.2, 1.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 1.5, 1.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 2.5, 1.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 2.5, 2.47); */
-  /* turnInPlace(); */
-  /* drive(0, 1000000, 0, 1200000, 2.5, 2.47); */
-  /* turnInPlace(); */
-  /* drive(0, 500000, 0, 500000, 2.5, 2.47); */
-  // // segment 3: deep pit to climb
-  // // drive(FAST_POWER,  3100, 0.4,  GUIDED_GYRO     );
-  // drive(MEDIUM_POWER,  3300, 0.4,  GUIDED, -1, 20); //The -1 is the flag for not reading distance to stop at (otherwise defaulted argument)
-  // drive(SLOW_POWER,    2000, 0.4,  GUIDED,   1.50);
-  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  // turnInPlace();
-  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  // drive(STOPPED_POWER, 500,  0.4,  GUIDED        );
-  // turnInPlace();
-  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  // turnInPlace();
-  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  // turnInPlace();
-  // drive(FAST_POWER,    1000, 1.47, GUIDED        );
-  // drive(MEDIUM_POWER,  1200, 1.47, GUIDED        );
-  // drive(SLOW_POWER,    2000, 1.47, GUIDED,   1.50);
-  // drive(STOPPED_POWER, 500,  0.4,  PARALLEL      );
-  // turnInPlace();
+
+  // 3 sand north
+  drive(8,0,FAST_POWER,    500, 2.47, GUIDED        );
+  drive(8,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
+  turnInPlace(8);
+
+  // 2 wood east
+  drive(9,0,FAST_POWER,    500, 2.47, GUIDED        );
+  drive(9,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
+  turnInPlace(9);
+
+  // 2 wood south
+  drive(10,0,FAST_POWER,    500, 2.47, GUIDED        );
+  drive(10,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
+  turnInPlace(10);
+
   motors->setPower(0,0);
   while(true){
     Serial.println("we fuckin done boiiiiiiiiiiii");
@@ -343,7 +323,8 @@ float Sorry::getTofFt(int tofNum){
 
 /* void Sorry::driveTick(float motorPower, float leftWallDist){ */
 void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionMode correctionMode, bool firstTick){
-  sensors->update();
+  sensors->update(correctionMode==UNGUIDED?true:false);
+  hms->update();
   float gyroAngle = sensors->getGyroAngle();
 
   // DRIFT PID --------------------------------------------------------------------------

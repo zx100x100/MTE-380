@@ -4,7 +4,7 @@
 #include "hms_and_cmd_data.pb.h"
 #include "Arduino.h"
 
-enum LedState{LED_ON, LED_SLOW_FLASH, LED_FAST_FLASH};
+enum LedState{LED_ON, LED_SLOW_FLASH, LED_FAST_FLASH, LED_OFF};
 
 class Hms{
   public:
