@@ -19,6 +19,8 @@ class Motors{
     void setAllToZero();
 
   private:
+    float lastLeftPower;
+    float lastRightPower;
     Hms* hms;
 
 };

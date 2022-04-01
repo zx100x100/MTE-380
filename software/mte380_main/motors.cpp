@@ -14,6 +14,8 @@ Motors::Motors(Hms* hms):
   hms(hms)
 {
   setAllToZero();
+  lastLeftPower = 0;
+  lastRightPower = 0;
   // propServo.attach(PROP_PIN);
 }
 
@@ -33,7 +35,19 @@ void Motors::setPower(float leftPower, float rightPower, bool brake){
     analogWrite(RIGHT_DRIVE_2, -fabs(rightPower), PWM_FREQ);
     return;
   }
-  /* bool changingDirectionsTooFast =  */
+
+  //lastLeftPower = 100;
+  //leftPower = 0;
+
+  float leftMotorChange = leftPower - lastLeftPower; // -100
+  float rightMotorChange = rightPower - lastRightPower;
+  bool changingDirectionsTooFastLeft = fabs(leftMotorChange) > 50;
+  bool changingDirectionsTooFastRight = fabs(rightMotorChange) > 50;
+  bool changingDirectionsTooFast = changingDirectionsTooFastLeft || changingDirectionsTooFastRight;
+
+  if (changingDirectionsTooFast){
+    leftPower = 
+  }
   /* if (leftPower) */
   if (leftPower >= 0){
     analogWrite(LEFT_DRIVE_1, leftPower, PWM_FREQ);
@@ -51,4 +65,7 @@ void Motors::setPower(float leftPower, float rightPower, bool brake){
     analogWrite(RIGHT_DRIVE_1, 0, PWM_FREQ);
     analogWrite(RIGHT_DRIVE_2, -rightPower, PWM_FREQ);
   }
+  lastLeftPower = leftPower;
+  lastRightPower = rightPower;
+
 }

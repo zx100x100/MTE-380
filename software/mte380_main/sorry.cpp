@@ -10,6 +10,8 @@
 #define SLOWEST_POWER 50
 #define STOPPED_POWER 0
 #define BRAKING_POWER -100
+
+#define DELAY_BETWEEN_LARGE_SLEWS_MS 40
 /* #define MEDIUM_POWER 55 */
 /* #define SLOW_POWER 44 */
 
@@ -26,20 +28,18 @@
 #define LOWER_RIGHT_VEL_SP_BY 0.87
 #define DRIFT_LOOK_AHEAD_DIST 1.5
 
-#define STOP_OFFSET 0.6
-#define REVERSE_SPEED -40
-#define REVERSE_TIME 1000
+#define STOP_OFFSET 0.6 // 0.66??
 
 #define MAX_TURN_IN_PLACE_ERROR_I 700
 
 /* #define kP_drift 0.55 */
 /* #define kD_drift 900 */
 /* #define kI_drift 0.002 */
-#define kP_drift 2
+#define kP_drift 3.14159
 #define kD_drift 900
 #define kI_drift 0.0
 
-#define TURN_IN_PLACE_TIMEOUT 2000000
+#define TURN_IN_PLACE_TIMEOUT 3400000
 // ready to start calibration once the gyro has calmed down after init
 // (at init, it drifts like 10 deg / sec which is way faster than we actually expect and will be calibrating for.)
 #define MAX_DEGREES_PER_SECOND_BEFORE_CALIBRATION 0.2
@@ -71,6 +71,10 @@ void Sorry::run(){
   // FIRST LINE (START) -------------------------------------------
   // 5 wood north
   /* return; */
+  /* turnInPlace(0); */
+  /* motors->setPower(0,0); */
+  /* while(true){ */
+  /* } */
   drive(0,0,FAST_POWER,    800,  0.5,  GUIDED        );
   drive(0,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
   drive(0,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
@@ -97,7 +101,7 @@ void Sorry::run(){
 
   // FOURTH LINE -----------
   // 5 PIT west
-  drive(3,0,MOUNT_WALL_POWER,  5200, 0.4,  UNGUIDED, -1, -160, false);
+  drive(3,0,MOUNT_WALL_POWER,  5200, 0.4,  UNGUIDED, -1, -165, false);
   drive(3,1,STOPPED_POWER, 2000, 0.4, UNGUIDED);
   drive(3,2,MOUNT_WALL_POWER2,  325, 0.4,  UNGUIDED, -1);
   drive(3,3,40,                50, 0.5, UNGUIDED);
@@ -109,42 +113,44 @@ void Sorry::run(){
   // 5 rock north
   drive(4,0,FAST_POWER,    1000, 1.47, GUIDED        );
   drive(4,1,MEDIUM_POWER,  300, 1.47, GUIDED        ); // we are tuning this rn, it was too long @ 800
-  drive(4,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.50);
+  drive(4,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.45); // undershot by 1 ish inch on 1.50
   turnInPlace(4);
 
   // 4 rock east
-  drive(5,0,FAST_POWER,    1000, 1.47, GUIDED        );
-  drive(5,1,MEDIUM_POWER,  200, 1.47, GUIDED        );
-  drive(5,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.62);
+  drive(5,0,FAST_POWER,    600, 1.47, GUIDED        );
+  drive(5,1,MEDIUM_POWER,  700, 1.47, GUIDED        );
+  drive(5,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.565);
   turnInPlace(5);
 
   // 4 sand south
   drive(6,0,FAST_POWER,    700, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
-  drive(6,1,MEDIUM_POWER,  200, 1.47, GUIDED        );
-  drive(6,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.65);
+  drive(6,1,MEDIUM_POWER,  400, 1.47, GUIDED        );
+  drive(6,2,SLOW_POWER,    2000, 1.47, PARALLEL,   1.67);
   turnInPlace(6);
 
   // 3 sand west
-  drive(7,0,MEDIUM_POWER,    800, 1.47, GUIDED        );
-  drive(7,2,SLOW_POWER,    2000, 1.47, PARALLEL,   2.60);
+  drive(7,0,MEDIUM_POWER,   600, 1.47, GUIDED        );
+  drive(7,0,SLOW_POWER,   300, 1.47, GUIDED        );
+  drive(7,2,SLOW_POWER,    2000, 1.47, PARALLEL,   2.66); // overshoot 1 inch ish on 2.6
   turnInPlace(7);
 
 
   // 3 sand north
-  drive(8,0,FAST_POWER,    500, 2.47, GUIDED        );
+  drive(8,0,MEDIUM_POWER,    500, 2.47, GUIDED        );
   drive(8,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
   turnInPlace(8);
 
   // 2 wood east
-  drive(9,0,FAST_POWER,    500, 2.47, GUIDED        );
+  drive(9,0,MEDIUM_POWER,    500, 2.47, GUIDED        );
   drive(9,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
   turnInPlace(9);
 
   // 2 wood south
-  drive(10,0,FAST_POWER,    500, 2.47, GUIDED        );
-  drive(10,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.60);
-  turnInPlace(10);
+  drive(10,0,MEDIUM_POWER,    500, 2.47, GUIDED        );
+  drive(10,1,SLOW_POWER,    2000, 2.47, PARALLEL,   2.70); // overshoot 0.1 on 2.6
 
+  /* motors->setPower(215,215); */
+  delay(400);
   motors->setPower(0,0);
   while(true){
     Serial.println("we fuckin done boiiiiiiiiiiii");
@@ -293,7 +299,7 @@ void Sorry::calibrateGyroDrift(){
     }
     lastTimestamp = curTimestamp;
     prevAngle = curAngle;
-    Serial.printf("precal. ang: %6.3f\n");
+    Serial.printf("precal. ang: %6.3f\n", curAngle);
   }
   Serial.println("done pre calibration");
   float firstAngle = getDirectionCorrectedGyroAngle();
@@ -386,9 +392,6 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
     rightTotal /= spillover;
     leftTotal /= spillover;
   }
-  leftTotal = constrainVal(leftTotal, MAX_OUTPUT_POWER);
-  rightTotal = constrainVal(rightTotal, MAX_OUTPUT_POWER);
-
   if (leftTotal < 0){
     leftTotal = 0; 
   }
@@ -402,7 +405,7 @@ void Sorry::driveTick(float motorPower, float desiredDistToLeftWall, CorrectionM
 }
 
 void Sorry::turnInPlace(int turnNum){
-  float threshold = 3; // end loop when 3 degrees from donezo for thresholdTime sec
+  float threshold = 5; // end loop when 3 degrees from donezo for thresholdTime sec
   unsigned long thresholdTime = 50000;
   float angleDelta = 0;
   float DUMB_ERROR_OFFSET = 0;
@@ -410,7 +413,7 @@ void Sorry::turnInPlace(int turnNum){
   float error = turnAmount;
   float lastError = error;
   float kp_turny = 1.5;
-  float kd_turny = 400;
+  float kd_turny = 700;
   float ki_turny = 0.18;
   unsigned long _firstT = micros();
   unsigned long lastTimestamp = micros(); // zach I pinky promise that these two timestamps
@@ -429,12 +432,19 @@ void Sorry::turnInPlace(int turnNum){
   float total;
   float rawAngle;
 
-  float maxPower = MAX_TURN_IN_PLACE_OUTPUT_POWER * (5-(hms->data.batteryVoltage)/4);
+  float maxPower = 120; //MAX_TURN_IN_PLACE_OUTPUT_POWER * (5-(hms->data.batteryVoltage)/4);
 
   // theres a timeout dont worry
   Serial.printf("Start turn #%d\n",turnNum);
   float startAngle = getDirectionCorrectedGyroAngle();
   float curAngle = startAngle;
+
+  motors->setPower(0,0);
+  delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
+  sensors->update(true);
+  delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
+  motors->setPower(60, -60);
+  delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
 
   while(true){
     curTs = micros();
@@ -479,6 +489,9 @@ void Sorry::turnInPlace(int turnNum){
     /* total = I;// + D; */
 
     total = constrainVal(P + I + D, maxPower);
+    if (total < 0){
+      total = 0;
+    }
     Serial.printf("StartAngle: %.3f curAngle(adj): %.3f | P: %.3f * %.3f = %.3f D: %.3f * %.3f = %.3f | I: %.3f * %.3f = %.3f | L: %.3f, R: %.3f\n", startAngle, curAngle, error,kp_turny,P, errorD,kd_turny,D, errorI, ki_turny, I, total, -total);
 #ifndef DISABLE_MOTORS
     motors->setPower(total, -total*LOWER_RIGHT_VEL_SP_BY);
@@ -486,6 +499,12 @@ void Sorry::turnInPlace(int turnNum){
     lastError = error;
 
   }
-  motors->setAllToZero();
+
+  if (total > 60){
+    motors->setPower(40, -40);
+    delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
+    motors->setPower(0,0);
+    delay(DELAY_BETWEEN_LARGE_SLEWS_MS);
+  }
   return;
 }
