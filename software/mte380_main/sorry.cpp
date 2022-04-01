@@ -124,7 +124,7 @@ void Sorry::run(){
   // drive(6,1,SLOW_POWER,  700, 1.47, GUIDED        );
   drive(6,0,MEDIUM_POWER,    800, 1.47, GUIDED);
   drive(6,1,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.47); // JUST 1.3
+  drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.52); // JUST 1.3
   turnInPlace(6);
 
   // 3 sand west
@@ -137,7 +137,7 @@ void Sorry::run(){
 
   // 3 sand north
   /* drive(8,0,MEDIUM_POWER,    1200, 2.47, GUIDED        ); */
-  drive(8,0,SLOW_POWER,    1100, 2.47, GUIDED        );
+  drive(8,0,SLOW_POWER,    1170, 2.47, GUIDED        );
   drive(8,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.43);
   turnInPlace(8);
   drive(8,2, STOPPED_POWER, 300, 2.55, UNGUIDED);
