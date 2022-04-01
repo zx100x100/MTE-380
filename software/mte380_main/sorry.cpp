@@ -73,24 +73,24 @@ void Sorry::run(){
   calibrateGyroDrift();
 
   // FIRST LINE (START) -------------------------------------------
-  // drive(0,0,FAST_POWER,    800,  0.5,  GUIDED        );
-  // drive(0,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  // drive(0,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
-  // turnInPlace(0);
+  drive(0,0,FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(0,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(0,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  turnInPlace(0);
 
-  // // SECOND LINE -------------------------------------------
-  // // 6 wood east
-  // drive(1,0,FAST_POWER,    800,  0.5,  GUIDED        );
-  // drive(1,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  // drive(1,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
-  // turnInPlace(1);
+  // SECOND LINE -------------------------------------------
+  // 6 wood east
+  drive(1,0,FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(1,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(1,2,SLOW_POWER,    2000, 0.5,  GUIDED,   0.55);
+  turnInPlace(1);
 
-  // // THIRD LINE
-  // // 6 south
-  // drive(2,0,FAST_POWER,    800,  0.5,  GUIDED        );
-  // drive(2,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
-  // drive(2,2,SLOW_POWER,    2000, 0.5,  PARALLEL,   0.52);
-  // turnInPlace(2);
+  // THIRD LINE
+  // 6 south
+  drive(2,0,FAST_POWER,    800,  0.5,  GUIDED        );
+  drive(2,1,MEDIUM_POWER,  200,  0.5,  GUIDED        );
+  drive(2,2,SLOW_POWER,    2000, 0.5,  PARALLEL,   0.52);
+  turnInPlace(2);
 
   // FOURTH LINE -----------
   // 5 PIT west
@@ -122,7 +122,7 @@ void Sorry::run(){
   // 4 sand south
   // drive(6,0,FAST_POWER,    300, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
   // drive(6,1,SLOW_POWER,  700, 1.47, GUIDED        );
-  drive(6,0,MEDIUM_POWER,    1000, 1.47, GUIDED);
+  drive(6,0,MEDIUM_POWER,    800, 1.47, GUIDED);
   drive(6,1,STOPPED_POWER,    400, 1.47, UNGUIDED        );
   drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.4); // JUST 1.3
   turnInPlace(6);
