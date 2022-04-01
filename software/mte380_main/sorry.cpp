@@ -71,6 +71,7 @@ hms(hms){
 
 void Sorry::run(){
   calibrateGyroDrift();
+  // drive(0,0,STOPPED_POWER,    5000,  0.5,  GUIDED        );
 
   // FIRST LINE (START) -------------------------------------------
   drive(0,0,FAST_POWER,    800,  0.5,  GUIDED        );
@@ -99,17 +100,17 @@ void Sorry::run(){
   drive(3,2,MOUNT_WALL_POWER2,  370, 0.4,  UNGUIDED, -1);
   drive(3,3,40,                50, 0.5, UNGUIDED);
   drive(3,4,0,                 50, 0.5, PARALLEL);
-  drive(3,5,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.3);
+  drive(3,5,SLOWEST_POWER, 1200, 0.5, PARALLEL, 1.4);
   drive(3,6,STOPPED_POWER,300,0.5, UNGUIDED);
   sensors->tof[0].init();
-  delay(500);
+  delay(100);
   turnInPlace(3);
 
   // LINE 5 YOU ARE NOW OUT OF PIT -----------------
   // 5 rock north
-  drive(4,0,FAST_POWER,    600, 1.47, GUIDED        );
-  drive(4,1,SLOW_POWER,  600, 1.47, GUIDED        ); // we are tuning this rn, it was too long @ 800
-  drive(4,2,SLOW_POWER,    2000, 1.47, GUIDED,   1.36); // undershot by 1 ish inch on 1.50
+  drive(4,0,FAST_POWER,    600, 1.55, GUIDED        );
+  drive(4,1,SLOW_POWER,  600, 1.55, GUIDED        ); // we are tuning this rn, it was too long @ 800
+  drive(4,2,SLOW_POWER,    2000, 1.55, GUIDED,   1.36); // undershot by 1 ish inch on 1.50
   turnInPlace(4);
 
   // 4 rock east
@@ -122,16 +123,16 @@ void Sorry::run(){
   // 4 sand south
   // drive(6,0,FAST_POWER,    300, 1.47, GUIDED        ); // if this turns SUPER early go back to 800
   // drive(6,1,SLOW_POWER,  700, 1.47, GUIDED        );
-  drive(6,0,MEDIUM_POWER,    800, 1.47, GUIDED);
-  drive(6,1,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.52); // JUST 1.3
+  drive(6,0,MEDIUM_POWER,    1000, 1.47, GUIDED);
+  // drive(6,1,STOPPED_POWER,    400, 1.47, UNGUIDED        );
+  drive(6,2,MEDIUM_POWER,    2000, 1.47, GUIDED,   1.57); // JUST 1.3
   turnInPlace(6);
 
   // 3 sand west
   /* drive(7,0,MEDIUM_POWER,   600, 1.47, GUIDED        ); */
-  drive(7,0,SLOW_POWER,   1200, 1.47, GUIDED        );
-  drive(7,0,STOPPED_POWER,    400, 1.47, UNGUIDED        );
-  drive(7,2,SLOW_POWER,    2000, 1.47, GUIDED,   2.26); // overshoot 1 inch ish on 2.6
+  drive(7,0,SLOW_POWER,   1200, 1.52, GUIDED        );
+  drive(7,0,STOPPED_POWER,    400, 1.52, UNGUIDED        );
+  drive(7,2,SLOW_POWER,    2000, 1.52, GUIDED,   2.26); // overshoot 1 inch ish on 2.6
   turnInPlace(7);
   drive(7,3,STOPPED_POWER, 300, 1.5, UNGUIDED);
 
@@ -149,12 +150,12 @@ void Sorry::run(){
 
   // 2 wood south
   drive(10,0,SLOW_POWER,    500, 2.47, GUIDED        );
-  drive(10,0,STOPPED_POWER,    300, 2.47, UNGUIDED        );
-  drive(10,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.45); // overshoot 0.1 on 2.6
+  // drive(10,0,STOPPED_POWER,    300, 2.47, UNGUIDED        );
+  drive(10,1,SLOW_POWER,    2000, 2.47, GUIDED,   2.6); // overshoot 0.1 on 2.6
 
   /* motors->setPower(215,215); */
-  delay(400);
   motors->setPower(0,0);
+  delay(400);
   while(true){
     Serial.println("we fuckin done boiiiiiiiiiiii");
     delay(1000);
@@ -419,7 +420,7 @@ void Sorry::turnInPlace(int turnNum){
   float threshold = 5; // end loop when 3 degrees from donezo for thresholdTime sec
   unsigned long thresholdTime = 50000;
   float angleDelta = 0;
-  float DUMB_ERROR_OFFSET = 0;
+  float DUMB_ERROR_OFFSET = (turnNum==6 || turnNum==8)?5:0;
   float turnAmount = 90 + DUMB_ERROR_OFFSET;
   float error = turnAmount;
   float lastError = error;
